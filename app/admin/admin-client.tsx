@@ -64,6 +64,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
 
+  React.useEffect(() => { setProducts(initialProducts); }, [initialProducts]);
+  React.useEffect(() => { setOrders(initialOrders); }, [initialOrders]);
+
   // --- Calculations for Dashboard ---
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
   const totalStock = useMemo(() => products.reduce((acc, p) => acc + p.stock, 0), [products]);
@@ -92,22 +95,70 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }));
   }, [products]);
 
-  // Mock Sales Data
   const salesData = useMemo(() => {
-    const baseRevenue = totalValue * 0.15;
-    return [
-      { month: 'Jan', revenue: baseRevenue * 0.8, cost: baseRevenue * 0.8 * 0.4 },
-      { month: 'Feb', revenue: baseRevenue * 0.9, cost: baseRevenue * 0.9 * 0.42 },
-      { month: 'Mar', revenue: baseRevenue * 1.1, cost: baseRevenue * 1.1 * 0.38 },
-      { month: 'Apr', revenue: baseRevenue * 1.05, cost: baseRevenue * 1.05 * 0.4 },
-      { month: 'May', revenue: baseRevenue * 1.25, cost: baseRevenue * 1.25 * 0.39 },
-      { month: 'Jun', revenue: baseRevenue * 1.4, cost: baseRevenue * 1.4 * 0.35 },
-    ].map(item => ({
+    const now = new Date();
+    const start = new Date(now);
+    if (timeRange === '7D') start.setDate(now.getDate() - 6);
+    else if (timeRange === '30D') start.setDate(now.getDate() - 29);
+    else start.setMonth(0, 1);
+    start.setHours(0, 0, 0, 0);
+
+    const productById = new Map(products.map(product => [product.id, product]));
+    const productByName = new Map(products.map(product => [product.name, product]));
+    const buckets = new Map<string, { period: string; revenue: number; cost: number }>();
+
+    const addBucket = (date: Date) => {
+      const key = timeRange === 'YTD'
+        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        : date.toISOString().slice(0, 10);
+      if (!buckets.has(key)) {
+        buckets.set(key, {
+          period: timeRange === 'YTD'
+            ? date.toLocaleDateString(undefined, { month: 'short' })
+            : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          revenue: 0,
+          cost: 0,
+        });
+      }
+      return buckets.get(key)!;
+    };
+
+    if (timeRange === 'YTD') {
+      for (let month = 0; month <= now.getMonth(); month += 1) {
+        addBucket(new Date(now.getFullYear(), month, 1));
+      }
+    } else {
+      const cursor = new Date(start);
+      while (cursor <= now) {
+        addBucket(new Date(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    }
+
+    for (const order of orders) {
+      const date = new Date(order.created_at);
+      if (Number.isNaN(date.getTime()) || date < start || date > now) continue;
+      if (['failed', 'canceled', 'cancelled'].includes(order.status?.toLowerCase())) continue;
+      if (['failed', 'canceled', 'cancelled'].includes(order.payment_status?.toLowerCase())) continue;
+
+      const bucket = addBucket(date);
+      for (const item of order.items || []) {
+        const quantity = Number.isFinite(item.quantity) ? item.quantity : 0;
+        bucket.revenue += (Number.isFinite(item.price) ? item.price : 0) * quantity;
+        const product = productById.get(item.productId) || productByName.get(item.productName);
+        const sizeCost = item.selectedSize
+          ? product?.sizes?.find(size => size.label === item.selectedSize)?.cost
+          : undefined;
+        bucket.cost += (sizeCost ?? product?.cost ?? 0) * quantity;
+      }
+    }
+
+    return Array.from(buckets.values()).map(item => ({
       ...item,
       profit: item.revenue - item.cost,
-      profitMargin: Math.round(((item.revenue - item.cost) / item.revenue) * 100)
+      profitMargin: item.revenue > 0 ? Math.round(((item.revenue - item.cost) / item.revenue) * 100) : 0,
     }));
-  }, [totalValue]);
+  }, [orders, products, timeRange]);
 
   const refreshData = async () => {
     try {
@@ -519,7 +570,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5E0D8]">
-                    {products.sort((a,b) => (b.price * b.stock) - (a.price * a.stock)).map(item => {
+                    {[...products].sort((a,b) => (b.price * b.stock) - (a.price * a.stock)).map(item => {
                       const potentialProfit = (item.price - (item.cost || 0)) * item.stock;
                       return (
                         <tr key={item.id}>
@@ -721,8 +772,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E0D8" />
-                        <XAxis dataKey="month" stroke="#786B59" fontSize={12} tickLine={false} />
-                        <YAxis stroke="#786B59" fontSize={12} tickLine={false} tickFormatter={(val) => `$${val/1000}k`} />
+                        <XAxis dataKey="period" stroke="#786B59" fontSize={12} tickLine={false} interval="preserveStartEnd" />
+                        <YAxis stroke="#786B59" fontSize={12} tickLine={false} tickFormatter={(val) => val >= 1000 ? `$${(val/1000).toFixed(1)}k` : `$${val}`} />
                         <RechartsTooltip 
                           contentStyle={{ backgroundColor: '#F9F8F4', border: '1px solid #E5E0D8' }}
                           formatter={(value: number | undefined, name: string | undefined) => [`$${Math.round(value ?? 0).toLocaleString()}`, name === 'profit' ? 'Net Profit' : 'Cost of Goods']}
@@ -818,7 +869,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   )}
                   {analyticsView === 'SALES' && (
                     <div className="text-xs text-[#786B59]">
-                      Showing simulated 6-month performance based on current inventory mix.
+                      Showing actual {timeRange} order revenue, estimated product cost, and gross profit.
                     </div>
                   )}
                 </div>

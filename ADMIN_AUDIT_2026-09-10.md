@@ -13,7 +13,7 @@
 
 ## Fixes applied
 
-- Added authenticated server-side image upload endpoint. It uses `SUPABASE_SERVICE_ROLE_KEY` when available, ensures the `product-images` bucket is public, validates type/size, and returns a stable Supabase public URL. Anon-key fallback remains for existing Storage policies.
+- Added authenticated image-upload setup with direct-to-Supabase uploads. With `SUPABASE_SERVICE_ROLE_KEY`, the server ensures the public bucket exists and issues a signed upload token; existing anon Storage policies remain a backwards-compatible fallback. Image bytes no longer pass through Vercel functions.
 - Removed base64 fallback behavior from admin upload flow; upload failures are now visible and are not silently saved as fake product URLs.
 - Added a shared `SafeProductImage` renderer with legacy JSON-array normalization and a local fallback image.
 - Fixed admin list thumbnails for multi-image products.
@@ -24,8 +24,9 @@
 - Filter invalid/zero-priced sizes defensively on product cards/detail pages.
 - Removed quick-add for products that require a size choice.
 - Refresh stale cart metadata when an existing item is re-added.
-- Protected product mutation/import endpoints with the current admin session cookie and revalidate storefront pages after changes.
+- Replaced the forgeable literal admin cookie with an expiring HMAC-signed session and protected product mutation/import/image/order-create endpoints. Storefront pages are revalidated after catalogue changes.
 - Corrected CSV import template metadata and image URL validation/encoding.
+- Replaced simulated sales analytics with actual order-derived 7D / 30D / YTD data and kept client admin state synchronized after refresh.
 
 ## Configuration requirement
 

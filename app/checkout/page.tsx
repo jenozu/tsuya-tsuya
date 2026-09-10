@@ -298,7 +298,7 @@ export default function CheckoutPage() {
                       <div key={`${item.id}-${idx}`} className="flex gap-3">
                         <div className="w-16 h-16 flex-shrink-0 border border-[#E5E0D8] relative overflow-hidden">
                           <SafeProductImage
-                            src={item.imageUrl || 'https://picsum.photos/64/64'}
+                            src={item.imageUrl}
                             alt={item.name}
                             fill
                             className="object-cover"

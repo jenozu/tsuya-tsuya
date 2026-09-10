@@ -52,10 +52,13 @@ export function SafeProductImage({
     setCurrentSrc(normalizeProductImageSrc(src));
   }, [src]);
 
+  const inlineImage = currentSrc.startsWith('data:') || currentSrc.startsWith('blob:')
+
   return (
     <Image
       {...props}
       src={currentSrc}
+      unoptimized={props.unoptimized ?? inlineImage}
       onError={(event) => {
         if (currentSrc !== fallbackSrc) setCurrentSrc(fallbackSrc);
         onError?.(event);

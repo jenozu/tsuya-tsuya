@@ -403,20 +403,46 @@ export async function deleteShippingRate(id: string): Promise<boolean> {
 // ==================== STORAGE ====================
 
 export async function uploadProductImage(file: File, fileName: string): Promise<string | null> {
-  const formData = new FormData()
-  formData.append('file', file, fileName)
-
-  const response = await fetch('/api/admin/product-images', {
+  const setupResponse = await fetch('/api/admin/product-images', {
     method: 'POST',
-    body: formData,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      fileName,
+      fileType: file.type,
+      fileSize: file.size,
+    }),
   })
-  const result = await response.json().catch(() => ({}))
+  const setup = await setupResponse.json().catch(() => ({}))
 
-  if (!response.ok || typeof result.url !== 'string') {
-    throw new Error(result.error || 'Image upload failed')
+  if (!setupResponse.ok || typeof setup.path !== 'string' || typeof setup.url !== 'string') {
+    throw new Error(setup.error || 'Could not prepare image upload')
   }
 
-  return result.url
+  if (setup.mode === 'signed') {
+    if (typeof setup.token !== 'string') throw new Error('Signed upload token is missing')
+    const { error } = await supabase.storage
+      .from('product-images')
+      .uploadToSignedUrl(setup.path, setup.token, file, {
+        cacheControl: '31536000',
+        contentType: file.type,
+      })
+    if (error) throw error
+    return setup.url
+  }
+
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(setup.path, file, {
+      cacheControl: '31536000',
+      contentType: file.type,
+      upsert: false,
+    })
+
+  if (error) {
+    throw new Error(`${error.message}. Add SUPABASE_SERVICE_ROLE_KEY to Vercel or allow authenticated admin uploads in the product-images bucket.`)
+  }
+
+  return setup.url
 }
 
 export async function deleteProductImage(imageUrl: string): Promise<boolean> {

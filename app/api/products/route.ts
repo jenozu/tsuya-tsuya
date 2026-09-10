@@ -19,7 +19,7 @@ export async function GET() {
 
 // POST /api/products - Create new product
 export async function POST(request: NextRequest) {
-  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const body = await request.json()
     

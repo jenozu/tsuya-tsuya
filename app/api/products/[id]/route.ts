@@ -34,7 +34,7 @@ export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { id } = await context.params;
     const body = await request.json()
@@ -77,7 +77,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
-  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { id } = await context.params;
     const success = await deleteProduct(id)

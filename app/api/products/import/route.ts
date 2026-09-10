@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache'
  * Bulk import products from CSV file
  */
 export async function POST(request: NextRequest) {
-  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     // Parse form data
     const formData = await request.formData();
