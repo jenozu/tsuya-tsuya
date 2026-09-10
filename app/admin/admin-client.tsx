@@ -48,8 +48,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [description, setDescription] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
+  const [stock, setStock] = useState(0);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -147,7 +150,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCategory('');
     setDescription('');
     setImageUrls([]);
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
+    setStock(0);
+    setImageUploadError(null);
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0 })));
   };
 
   const handleEdit = (product: Product) => {
@@ -158,11 +163,16 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const urls = parseImageUrls(product.image_url);
     setImageUrls(urls);
     const existingSizes = product.sizes || [];
-    const sizeMap = new Map(existingSizes.map(s => [s.label, s.price]));
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({
-      label,
-      price: sizeMap.get(label) ?? 0
-    })));
+    const sizeMap = new Map(existingSizes.map(s => [s.label, s]));
+    const standardLabels = new Set<string>(STANDARD_PRINT_SIZES);
+    const standardSizes = STANDARD_PRINT_SIZES.map(label => {
+      const existing = sizeMap.get(label);
+      return { label, price: existing?.price ?? 0, cost: existing?.cost ?? 0 };
+    });
+    const customSizes = existingSizes.filter(s => !standardLabels.has(s.label));
+    setSizes([...standardSizes, ...customSizes]);
+    setStock(product.stock ?? 0);
+    setImageUploadError(null);
     setIsEditing(true);
     setActiveTab('PRODUCTS');
   };
@@ -230,27 +240,32 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleSave = async () => {
+    if (isUploadingImages) {
+      alert('Please wait for image uploads to finish.');
+      return;
+    }
     if (!name || !category) {
       alert('Please fill in Name and Category.');
       return;
     }
-    const sizesWithPrice = sizes.filter(s => s.price > 0);
+    const sizesWithPrice = sizes.filter(s => Number.isFinite(s.price) && s.price > 0);
     if (sizesWithPrice.length === 0) {
       alert('Please add at least one size with a price.');
       return;
     }
 
     const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
-    const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : 'https://picsum.photos/800/800';
+    const avgCost = Math.round(sizesWithPrice.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizesWithPrice.length);
+    const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : '/product-placeholder.svg';
     const productData = {
       name,
       description,
       price: avgPrice,
-      cost: 0,
+      cost: avgCost,
       category,
       image_url: imageUrlValue,
-      stock: 0,
-      sizes: sizes
+      stock,
+      sizes: sizesWithPrice
     };
 
     try {
@@ -277,10 +292,10 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   // --- Size Management ---
-  const updateSizePrice = (index: number, value: string) => {
+  const updateSizeField = (index: number, field: 'price' | 'cost', value: string) => {
     const num = parseFloat(value) || 0;
     const newSizes = [...sizes];
-    newSizes[index] = { ...newSizes[index], price: num };
+    newSizes[index] = { ...newSizes[index], [field]: num };
     setSizes(newSizes);
   };
 
@@ -306,33 +321,40 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
   // --- Image Upload ---
   const processFiles = async (files: File[]) => {
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maxBytes = 10 * 1024 * 1024;
+    const validFiles = files.filter(file => allowedTypes.has(file.type) && file.size > 0 && file.size <= maxBytes);
+    const rejectedCount = files.length - validFiles.length;
+
+    if (validFiles.length === 0) {
+      setImageUploadError('No valid images selected. Use JPG, PNG, or WebP files up to 10 MB each.');
+      return;
+    }
+
+    setIsUploadingImages(true);
+    setImageUploadError(null);
     const newUrls: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    const failures: string[] = [];
+
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
       try {
-        const fileName = `${Date.now()}-${i}-${file.name}`;
-        const publicUrl = await uploadProductImage(file, fileName);
-        if (publicUrl) {
-          newUrls.push(publicUrl);
-        } else {
-          const dataUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          });
-          newUrls.push(dataUrl);
-        }
+        const publicUrl = await uploadProductImage(file, file.name);
+        if (publicUrl) newUrls.push(publicUrl);
+        else failures.push(file.name);
       } catch (error) {
         console.error('Error uploading image:', error);
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-        newUrls.push(dataUrl);
+        failures.push(`${file.name}: ${error instanceof Error ? error.message : 'upload failed'}`);
       }
     }
-    setImageUrls(prev => [...prev, ...newUrls]);
+
+    if (newUrls.length > 0) setImageUrls(prev => [...prev, ...newUrls]);
+
+    const messages: string[] = [];
+    if (rejectedCount > 0) messages.push(`${rejectedCount} file(s) were rejected because of type or size.`);
+    if (failures.length > 0) messages.push(`Upload failed for ${failures.join(', ')}`);
+    setImageUploadError(messages.length ? messages.join(' ') : null);
+    setIsUploadingImages(false);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -842,7 +864,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   </div>
 
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-[#4A4036]">Name</label>
                         <input 
@@ -859,6 +881,17 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           onChange={(e) => setCategory(e.target.value)}
                           className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
                           placeholder="Home Decor"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-[#4A4036]">Stock</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={stock}
+                          onChange={(e) => setStock(Math.max(0, parseInt(e.target.value || '0', 10)))}
+                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
                         />
                       </div>
                     </div>
@@ -886,7 +919,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     {/* Product Images */}
                     <div className="space-y-4 pt-4 border-t border-[#E5E0D8]">
                       <label className="text-sm font-medium text-[#4A4036]">Product Images</label>
-                      <p className="text-xs text-[#786B59]">Add multiple images by clicking or dragging onto the upload area. Drag thumbnails to reorder. First image is the primary.</p>
+                      <p className="text-xs text-[#786B59]">Add multiple images by clicking or dragging onto the upload area. Drag thumbnails to reorder. First image is the primary. JPG, PNG, or WebP; max 10 MB each.</p>
+                      {isUploadingImages && <p className="text-xs text-[#4A4036]">Uploading images…</p>}
+                      {imageUploadError && <p className="text-xs text-[#8C3F3F]">{imageUploadError}</p>}
                       
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
                         {imageUrls.map((url, index) => (
@@ -927,10 +962,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         >
                           <input
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             multiple
+                            disabled={isUploadingImages}
                             onChange={handleImageUpload}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                           />
                           <Upload size={24} className={`mb-1 ${isDragOver ? 'text-[#2D2A26]' : 'text-[#786B59]'}`} />
                           <span className={`text-xs ${isDragOver ? 'text-[#2D2A26] font-medium' : 'text-[#786B59]'}`}>
@@ -962,17 +998,31 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                               <GripVertical size={16} className="text-[#786B59] cursor-grab active:cursor-grabbing" />
                               <span className="text-sm font-medium text-[#2D2A26]">{size.label}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[#786B59]">$</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={size.price || ''}
-                                onChange={(e) => updateSizePrice(index, e.target.value)}
-                                className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                                placeholder="0"
-                              />
+                            <div className="flex items-center gap-3">
+                              <label className="flex items-center gap-1 text-xs text-[#786B59]">
+                                Price $
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={size.price || ''}
+                                  onChange={(e) => updateSizeField(index, 'price', e.target.value)}
+                                  className="w-24 p-2 text-sm text-[#2D2A26] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                  placeholder="0"
+                                />
+                              </label>
+                              <label className="flex items-center gap-1 text-xs text-[#786B59]">
+                                Cost $
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={size.cost || ''}
+                                  onChange={(e) => updateSizeField(index, 'cost', e.target.value)}
+                                  className="w-24 p-2 text-sm text-[#2D2A26] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                  placeholder="0"
+                                />
+                              </label>
                             </div>
                           </div>
                         ))}
@@ -984,8 +1034,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       <Button variant="secondary" onClick={() => { resetForm(); setIsEditing(false); }}>
                         Cancel
                       </Button>
-                      <Button onClick={handleSave}>
-                        Save Product
+                      <Button onClick={handleSave} disabled={isUploadingImages}>
+                        {isUploadingImages ? 'Uploading…' : 'Save Product'}
                       </Button>
                     </div>
                   </div>
@@ -1008,7 +1058,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
+                              <img src={parseImageUrls(product.image_url)[0] || '/product-placeholder.svg'} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
                               <span className="font-medium text-[#2D2A26]">{product.name}</span>
                             </div>
                           </td>

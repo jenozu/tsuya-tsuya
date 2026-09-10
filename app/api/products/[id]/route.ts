@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getProduct, updateProduct, deleteProduct } from '@/lib/supabase-helpers'
+import { hasAdminSession } from '@/lib/admin-session'
+import { revalidatePath } from 'next/cache'
 
 // GET /api/products/[id] - Get single product
 export async function GET(
@@ -32,6 +34,7 @@ export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { id } = await context.params;
     const body = await request.json()
@@ -56,6 +59,9 @@ export async function PUT(
       )
     }
     
+    revalidatePath('/')
+    revalidatePath('/shop')
+    revalidatePath(`/shop/${id}`)
     return NextResponse.json(updatedProduct)
   } catch (error) {
     console.error('Error updating product:', error)
@@ -71,6 +77,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { id } = await context.params;
     const success = await deleteProduct(id)
@@ -82,6 +89,9 @@ export async function DELETE(
       )
     }
     
+    revalidatePath('/')
+    revalidatePath('/shop')
+    revalidatePath(`/shop/${id}`)
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {
     console.error('Error deleting product:', error)

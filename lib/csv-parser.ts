@@ -62,7 +62,7 @@ export interface CSVImportResult {
 function isValidImageUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
   
-  const lowerUrl = url.toLowerCase();
+  const lowerUrl = url.toLowerCase().split('?')[0].split('#')[0];
   return CSV_CONFIG.VALID_IMAGE_EXTENSIONS.some(ext => lowerUrl.endsWith(ext));
 }
 
@@ -89,7 +89,8 @@ function normalizeImageUrl(imageUrlOrFilename: string): string {
   }
   
   // Construct full Supabase Storage URL
-  return `${supabaseUrl}/storage/v1/object/public/product-images/products/${trimmed}`;
+  const encoded = trimmed.split('/').map(part => encodeURIComponent(part)).join('/');
+  return `${supabaseUrl}/storage/v1/object/public/product-images/products/${encoded}`;
 }
 
 /**

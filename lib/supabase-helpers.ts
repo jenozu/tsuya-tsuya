@@ -403,28 +403,20 @@ export async function deleteShippingRate(id: string): Promise<boolean> {
 // ==================== STORAGE ====================
 
 export async function uploadProductImage(file: File, fileName: string): Promise<string | null> {
-  try {
-    const filePath = `products/${fileName}`
-    
-    const { error: uploadError } = await supabase.storage
-      .from('product-images')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-      })
-    
-    if (uploadError) throw uploadError
-    
-    // Get public URL
-    const { data } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(filePath)
-    
-    return data.publicUrl
-  } catch (error) {
-    console.error('Error uploading image:', error)
-    return null
+  const formData = new FormData()
+  formData.append('file', file, fileName)
+
+  const response = await fetch('/api/admin/product-images', {
+    method: 'POST',
+    body: formData,
+  })
+  const result = await response.json().catch(() => ({}))
+
+  if (!response.ok || typeof result.url !== 'string') {
+    throw new Error(result.error || 'Image upload failed')
   }
+
+  return result.url
 }
 
 export async function deleteProductImage(imageUrl: string): Promise<boolean> {

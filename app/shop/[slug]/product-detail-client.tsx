@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { SafeProductImage } from '@/components/safe-product-image';
 import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
@@ -18,9 +18,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   
-  const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(
-    product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined
-  );
+  const availableSizes = (product.sizes || []).filter(size => Number.isFinite(size.price) && size.price > 0);
+  const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(availableSizes[0]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const imageUrls = getImageUrls(product);
   const primaryImage = imageUrls[0] || product.image_url;
@@ -29,8 +28,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
   // Reset selected size when product changes
   useEffect(() => {
-    if (product.sizes && product.sizes.length > 0) {
-      setSelectedSize(product.sizes[0]);
+    const validSizes = (product.sizes || []).filter(size => Number.isFinite(size.price) && size.price > 0);
+    if (validSizes.length > 0) {
+      setSelectedSize(validSizes[0]);
     } else {
       setSelectedSize(undefined);
     }
@@ -63,7 +63,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Image Section */}
           <div className="space-y-3">
             <div className="relative aspect-[3/4] bg-[#F2EFE9] overflow-hidden shadow-sm border border-[#E5E0D8]">
-              <Image
+              <SafeProductImage
                 src={imageUrls[selectedImageIndex] || primaryImage}
                 alt={product.name}
                 fill
@@ -79,11 +79,11 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                     key={i}
                     type="button"
                     onClick={() => setSelectedImageIndex(i)}
-                    className={`flex-shrink-0 w-16 h-16 border-2 overflow-hidden transition-colors ${
+                    className={`relative flex-shrink-0 w-16 h-16 border-2 overflow-hidden transition-colors ${
                       selectedImageIndex === i ? 'border-[#2D2A26]' : 'border-[#E5E0D8] hover:border-[#786B59]'
                     }`}
                   >
-                    <Image
+                    <SafeProductImage
                       src={url}
                       alt={`${product.name} ${i + 1}`}
                       fill
@@ -110,19 +110,19 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
 
             {/* Size Selector (positioned directly above Add to Cart) */}
-            {product.sizes && product.sizes.length > 0 && (
+            {availableSizes.length > 0 && (
               <div className="space-y-3">
                 <label className="text-sm font-medium text-[#2D2A26] uppercase tracking-wide">Select Size</label>
                 <div className="relative">
                   <select 
                     value={selectedSize?.label}
                     onChange={(e) => {
-                      const size = product.sizes?.find(s => s.label === e.target.value);
+                      const size = availableSizes.find(s => s.label === e.target.value);
                       setSelectedSize(size);
                     }}
                     className="w-full appearance-none bg-white border border-[#E5E0D8] px-4 py-3 pr-8 rounded-none text-[#2D2A26] focus:outline-none focus:border-[#2D2A26] cursor-pointer"
                   >
-                    {product.sizes.map((size) => (
+                    {availableSizes.map((size) => (
                       <option key={size.label} value={size.label}>
                         {size.label} - ${size.price.toLocaleString()}
                       </option>

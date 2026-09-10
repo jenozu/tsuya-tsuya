@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csv-parser';
 import { createProduct } from '@/lib/supabase-helpers';
+import { hasAdminSession } from '@/lib/admin-session'
+import { revalidatePath } from 'next/cache'
 
 /**
  * POST /api/products/import
  * Bulk import products from CSV file
  */
 export async function POST(request: NextRequest) {
+  if (!hasAdminSession(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     // Parse form data
     const formData = await request.formData();
@@ -77,6 +80,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Return summary
+    revalidatePath('/')
+    revalidatePath('/shop')
     return NextResponse.json(
       {
         success: true,
@@ -108,8 +113,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     template: {
-      requiredHeaders: ['name', 'category', 'price', 'stock', 'imageUrl'],
-      optionalHeaders: ['description', 'salePrice', 'cost', 'videoUrl'],
+      requiredHeaders: ['name', 'category', 'stock', 'imageUrl'],
+      requiredPricing: 'At least one price_8x10 ... price_24x36 column must contain a positive price',
+      optionalHeaders: ['description', 'videoUrl', 'cost_8x10 ... cost_24x36'],
       sizeVariations: [
         '8" x 10"',
         '11" x 14"',
