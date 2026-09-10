@@ -1,0 +1,56 @@
+name: Admin audit follow-up
+
+on:
+  push:
+    branches:
+      - audit/admin-images
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit/admin-images
+          fetch-depth: 1
+
+      - name: Apply follow-up fixes
+        run: python3 scripts/apply-admin-audit-followup.py
+
+      - name: Remove temporary audit machinery
+        run: |
+          rm scripts/apply-admin-audit-followup.py
+          rm .github/workflows/admin-audit-followup.yml
+
+      - name: Install exact dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Static audit assertions
+        run: |
+          ! grep -q 'readAsDataURL' app/admin/admin-client.tsx
+          grep -q 'uploadToSignedUrl' lib/supabase-helpers.ts
+          grep -q 'createSignedUploadUrl' app/api/admin/product-images/route.ts
+          grep -q 'createAdminSessionToken' app/api/admin/auth/route.ts
+          ! grep -q "adminSession?.value === 'authenticated'" middleware.ts
+          ! grep -q 'Mock Sales Data' app/admin/admin-client.tsx
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify patch cleanliness
+        run: git diff --check
+
+      - name: Commit verified follow-up
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Harden admin session and image uploads"
+          git push origin audit/admin-images
