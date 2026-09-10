@@ -1,0 +1,49 @@
+{
+  "name": "tsuyanouchi",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "upload-images": "node scripts/bulk-upload-images.js",
+    "upload-images-1": "node scripts/bulk-upload-images.js 1",
+    "upload-images-2": "node scripts/bulk-upload-images.js 2",
+    "upload-images-3": "node scripts/bulk-upload-images.js 3"
+  },
+  "dependencies": {
+    "@google/genai": "^1.30.0",
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-label": "^2.1.1",
+    "@radix-ui/react-separator": "^1.1.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@stripe/react-stripe-js": "^5.5.0",
+    "@stripe/stripe-js": "^8.0.0",
+    "@supabase/supabase-js": "^2.47.10",
+    "@tailwindcss/postcss": "^4.1.18",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.555.0",
+    "next": "^16.1.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "react-hook-form": "^7.60.0",
+    "recharts": "^3.5.1",
+    "resend": "^4.0.1",
+    "stripe": "^17.5.0",
+    "tailwind-merge": "^2.5.5",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
+    "typescript": "~5.8.2"
+  }
+}

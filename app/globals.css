@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  /* From tailwind.config.ts - Tailwind v4 uses --color-* */
+  --color-primary-dark: #2D2A26;
+  --color-background-light: #F9F8F4;
+  --color-background-beige: #F2EFE9;
+  --color-accent-beige: #E5E0D8;
+  --color-accent-darkBeige: #D4CEC5;
+  --color-text-muted: #786B59;
+  --color-text-dark: #4A4036;
+  --color-error: #8C3F3F;
+  --color-success: #5C7C66;
+  --font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background-light text-primary-dark antialiased;
+  }
+  
+  * {
+    @apply border-accent-beige;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
