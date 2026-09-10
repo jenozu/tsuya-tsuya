@@ -12,10 +12,10 @@ import {
   TrendingUp, AlertCircle, DollarSign, ArrowRight, ShoppingCart, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Product, Order, ShippingRate, ProductSize } from '@/lib/supabase-helpers';
+import { Product, Order, ShippingRate, ProductSize } from '@/lib/types'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { generateProductDescription } from '@/services/gemini';
-import { uploadProductImage } from '@/lib/supabase-helpers';
+import { uploadProductImage } from '@/lib/image-upload-client'
 
 type AdminTab = 'DASHBOARD' | 'PRODUCTS' | 'ORDERS' | 'SHIPPING' | 'SETTINGS';
 type AnalyticsViewType = 'INVENTORY' | 'CATEGORIES' | 'VALUATION' | 'SALES';
@@ -48,8 +48,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [description, setDescription] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
+  const [stock, setStock] = useState(0);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null);
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -60,6 +63,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   // CSV Upload Ref and State
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
+
+  React.useEffect(() => { setProducts(initialProducts); }, [initialProducts]);
+  React.useEffect(() => { setOrders(initialOrders); }, [initialOrders]);
 
   // --- Calculations for Dashboard ---
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
@@ -89,22 +95,70 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }));
   }, [products]);
 
-  // Mock Sales Data
   const salesData = useMemo(() => {
-    const baseRevenue = totalValue * 0.15;
-    return [
-      { month: 'Jan', revenue: baseRevenue * 0.8, cost: baseRevenue * 0.8 * 0.4 },
-      { month: 'Feb', revenue: baseRevenue * 0.9, cost: baseRevenue * 0.9 * 0.42 },
-      { month: 'Mar', revenue: baseRevenue * 1.1, cost: baseRevenue * 1.1 * 0.38 },
-      { month: 'Apr', revenue: baseRevenue * 1.05, cost: baseRevenue * 1.05 * 0.4 },
-      { month: 'May', revenue: baseRevenue * 1.25, cost: baseRevenue * 1.25 * 0.39 },
-      { month: 'Jun', revenue: baseRevenue * 1.4, cost: baseRevenue * 1.4 * 0.35 },
-    ].map(item => ({
+    const now = new Date();
+    const start = new Date(now);
+    if (timeRange === '7D') start.setDate(now.getDate() - 6);
+    else if (timeRange === '30D') start.setDate(now.getDate() - 29);
+    else start.setMonth(0, 1);
+    start.setHours(0, 0, 0, 0);
+
+    const productById = new Map(products.map(product => [product.id, product]));
+    const productByName = new Map(products.map(product => [product.name, product]));
+    const buckets = new Map<string, { period: string; revenue: number; cost: number }>();
+
+    const addBucket = (date: Date) => {
+      const key = timeRange === 'YTD'
+        ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        : date.toISOString().slice(0, 10);
+      if (!buckets.has(key)) {
+        buckets.set(key, {
+          period: timeRange === 'YTD'
+            ? date.toLocaleDateString(undefined, { month: 'short' })
+            : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          revenue: 0,
+          cost: 0,
+        });
+      }
+      return buckets.get(key)!;
+    };
+
+    if (timeRange === 'YTD') {
+      for (let month = 0; month <= now.getMonth(); month += 1) {
+        addBucket(new Date(now.getFullYear(), month, 1));
+      }
+    } else {
+      const cursor = new Date(start);
+      while (cursor <= now) {
+        addBucket(new Date(cursor));
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    }
+
+    for (const order of orders) {
+      const date = new Date(order.created_at);
+      if (Number.isNaN(date.getTime()) || date < start || date > now) continue;
+      if (['failed', 'canceled', 'cancelled'].includes(order.status?.toLowerCase())) continue;
+      if (['failed', 'canceled', 'cancelled'].includes(order.payment_status?.toLowerCase())) continue;
+
+      const bucket = addBucket(date);
+      for (const item of order.items || []) {
+        const quantity = Number.isFinite(item.quantity) ? item.quantity : 0;
+        bucket.revenue += (Number.isFinite(item.price) ? item.price : 0) * quantity;
+        const product = productById.get(item.productId) || productByName.get(item.productName);
+        const sizeCost = item.selectedSize
+          ? product?.sizes?.find(size => size.label === item.selectedSize)?.cost
+          : undefined;
+        bucket.cost += (sizeCost ?? product?.cost ?? 0) * quantity;
+      }
+    }
+
+    return Array.from(buckets.values()).map(item => ({
       ...item,
       profit: item.revenue - item.cost,
-      profitMargin: Math.round(((item.revenue - item.cost) / item.revenue) * 100)
+      profitMargin: item.revenue > 0 ? Math.round(((item.revenue - item.cost) / item.revenue) * 100) : 0,
     }));
-  }, [totalValue]);
+  }, [orders, products, timeRange]);
 
   const refreshData = async () => {
     try {
@@ -147,7 +201,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCategory('');
     setDescription('');
     setImageUrls([]);
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
+    setStock(0);
+    setImageUploadError(null);
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0 })));
   };
 
   const handleEdit = (product: Product) => {
@@ -158,11 +214,16 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const urls = parseImageUrls(product.image_url);
     setImageUrls(urls);
     const existingSizes = product.sizes || [];
-    const sizeMap = new Map(existingSizes.map(s => [s.label, s.price]));
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({
-      label,
-      price: sizeMap.get(label) ?? 0
-    })));
+    const sizeMap = new Map(existingSizes.map(s => [s.label, s]));
+    const standardLabels = new Set<string>(STANDARD_PRINT_SIZES);
+    const standardSizes = STANDARD_PRINT_SIZES.map(label => {
+      const existing = sizeMap.get(label);
+      return { label, price: existing?.price ?? 0, cost: existing?.cost ?? 0 };
+    });
+    const customSizes = existingSizes.filter(s => !standardLabels.has(s.label));
+    setSizes([...standardSizes, ...customSizes]);
+    setStock(product.stock ?? 0);
+    setImageUploadError(null);
     setIsEditing(true);
     setActiveTab('PRODUCTS');
   };
@@ -230,27 +291,32 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleSave = async () => {
+    if (isUploadingImages) {
+      alert('Please wait for image uploads to finish.');
+      return;
+    }
     if (!name || !category) {
       alert('Please fill in Name and Category.');
       return;
     }
-    const sizesWithPrice = sizes.filter(s => s.price > 0);
+    const sizesWithPrice = sizes.filter(s => Number.isFinite(s.price) && s.price > 0);
     if (sizesWithPrice.length === 0) {
       alert('Please add at least one size with a price.');
       return;
     }
 
     const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
-    const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : 'https://picsum.photos/800/800';
+    const avgCost = Math.round(sizesWithPrice.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizesWithPrice.length);
+    const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : '/product-placeholder.svg';
     const productData = {
       name,
       description,
       price: avgPrice,
-      cost: 0,
+      cost: avgCost,
       category,
       image_url: imageUrlValue,
-      stock: 0,
-      sizes: sizes
+      stock,
+      sizes: sizesWithPrice
     };
 
     try {
@@ -277,10 +343,10 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   // --- Size Management ---
-  const updateSizePrice = (index: number, value: string) => {
+  const updateSizeField = (index: number, field: 'price' | 'cost', value: string) => {
     const num = parseFloat(value) || 0;
     const newSizes = [...sizes];
-    newSizes[index] = { ...newSizes[index], price: num };
+    newSizes[index] = { ...newSizes[index], [field]: num };
     setSizes(newSizes);
   };
 
@@ -306,33 +372,40 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
   // --- Image Upload ---
   const processFiles = async (files: File[]) => {
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    const maxBytes = 10 * 1024 * 1024;
+    const validFiles = files.filter(file => allowedTypes.has(file.type) && file.size > 0 && file.size <= maxBytes);
+    const rejectedCount = files.length - validFiles.length;
+
+    if (validFiles.length === 0) {
+      setImageUploadError('No valid images selected. Use JPG, PNG, or WebP files up to 10 MB each.');
+      return;
+    }
+
+    setIsUploadingImages(true);
+    setImageUploadError(null);
     const newUrls: string[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    const failures: string[] = [];
+
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
       try {
-        const fileName = `${Date.now()}-${i}-${file.name}`;
-        const publicUrl = await uploadProductImage(file, fileName);
-        if (publicUrl) {
-          newUrls.push(publicUrl);
-        } else {
-          const dataUrl = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-          });
-          newUrls.push(dataUrl);
-        }
+        const publicUrl = await uploadProductImage(file, file.name);
+        if (publicUrl) newUrls.push(publicUrl);
+        else failures.push(file.name);
       } catch (error) {
         console.error('Error uploading image:', error);
-        const dataUrl = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(file);
-        });
-        newUrls.push(dataUrl);
+        failures.push(`${file.name}: ${error instanceof Error ? error.message : 'upload failed'}`);
       }
     }
-    setImageUrls(prev => [...prev, ...newUrls]);
+
+    if (newUrls.length > 0) setImageUrls(prev => [...prev, ...newUrls]);
+
+    const messages: string[] = [];
+    if (rejectedCount > 0) messages.push(`${rejectedCount} file(s) were rejected because of type or size.`);
+    if (failures.length > 0) messages.push(`Upload failed for ${failures.join(', ')}`);
+    setImageUploadError(messages.length ? messages.join(' ') : null);
+    setIsUploadingImages(false);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -497,7 +570,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5E0D8]">
-                    {products.sort((a,b) => (b.price * b.stock) - (a.price * a.stock)).map(item => {
+                    {[...products].sort((a,b) => (b.price * b.stock) - (a.price * a.stock)).map(item => {
                       const potentialProfit = (item.price - (item.cost || 0)) * item.stock;
                       return (
                         <tr key={item.id}>
@@ -699,8 +772,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={salesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E0D8" />
-                        <XAxis dataKey="month" stroke="#786B59" fontSize={12} tickLine={false} />
-                        <YAxis stroke="#786B59" fontSize={12} tickLine={false} tickFormatter={(val) => `$${val/1000}k`} />
+                        <XAxis dataKey="period" stroke="#786B59" fontSize={12} tickLine={false} interval="preserveStartEnd" />
+                        <YAxis stroke="#786B59" fontSize={12} tickLine={false} tickFormatter={(val) => val >= 1000 ? `$${(val/1000).toFixed(1)}k` : `$${val}`} />
                         <RechartsTooltip 
                           contentStyle={{ backgroundColor: '#F9F8F4', border: '1px solid #E5E0D8' }}
                           formatter={(value: number | undefined, name: string | undefined) => [`$${Math.round(value ?? 0).toLocaleString()}`, name === 'profit' ? 'Net Profit' : 'Cost of Goods']}
@@ -796,7 +869,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   )}
                   {analyticsView === 'SALES' && (
                     <div className="text-xs text-[#786B59]">
-                      Showing simulated 6-month performance based on current inventory mix.
+                      Showing actual {timeRange} order revenue, estimated product cost, and gross profit.
                     </div>
                   )}
                 </div>
@@ -842,7 +915,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   </div>
 
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-[#4A4036]">Name</label>
                         <input 
@@ -859,6 +932,17 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           onChange={(e) => setCategory(e.target.value)}
                           className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
                           placeholder="Home Decor"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-[#4A4036]">Stock</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={stock}
+                          onChange={(e) => setStock(Math.max(0, parseInt(e.target.value || '0', 10)))}
+                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
                         />
                       </div>
                     </div>
@@ -886,7 +970,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     {/* Product Images */}
                     <div className="space-y-4 pt-4 border-t border-[#E5E0D8]">
                       <label className="text-sm font-medium text-[#4A4036]">Product Images</label>
-                      <p className="text-xs text-[#786B59]">Add multiple images by clicking or dragging onto the upload area. Drag thumbnails to reorder. First image is the primary.</p>
+                      <p className="text-xs text-[#786B59]">Add multiple images by clicking or dragging onto the upload area. Drag thumbnails to reorder. First image is the primary. JPG, PNG, or WebP; max 10 MB each.</p>
+                      {isUploadingImages && <p className="text-xs text-[#4A4036]">Uploading images…</p>}
+                      {imageUploadError && <p className="text-xs text-[#8C3F3F]">{imageUploadError}</p>}
                       
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
                         {imageUrls.map((url, index) => (
@@ -927,10 +1013,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         >
                           <input
                             type="file"
-                            accept="image/*"
+                            accept="image/jpeg,image/png,image/webp"
                             multiple
+                            disabled={isUploadingImages}
                             onChange={handleImageUpload}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                           />
                           <Upload size={24} className={`mb-1 ${isDragOver ? 'text-[#2D2A26]' : 'text-[#786B59]'}`} />
                           <span className={`text-xs ${isDragOver ? 'text-[#2D2A26] font-medium' : 'text-[#786B59]'}`}>
@@ -962,17 +1049,31 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                               <GripVertical size={16} className="text-[#786B59] cursor-grab active:cursor-grabbing" />
                               <span className="text-sm font-medium text-[#2D2A26]">{size.label}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[#786B59]">$</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={size.price || ''}
-                                onChange={(e) => updateSizePrice(index, e.target.value)}
-                                className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                                placeholder="0"
-                              />
+                            <div className="flex items-center gap-3">
+                              <label className="flex items-center gap-1 text-xs text-[#786B59]">
+                                Price $
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={size.price || ''}
+                                  onChange={(e) => updateSizeField(index, 'price', e.target.value)}
+                                  className="w-24 p-2 text-sm text-[#2D2A26] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                  placeholder="0"
+                                />
+                              </label>
+                              <label className="flex items-center gap-1 text-xs text-[#786B59]">
+                                Cost $
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={size.cost || ''}
+                                  onChange={(e) => updateSizeField(index, 'cost', e.target.value)}
+                                  className="w-24 p-2 text-sm text-[#2D2A26] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                  placeholder="0"
+                                />
+                              </label>
                             </div>
                           </div>
                         ))}
@@ -984,8 +1085,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       <Button variant="secondary" onClick={() => { resetForm(); setIsEditing(false); }}>
                         Cancel
                       </Button>
-                      <Button onClick={handleSave}>
-                        Save Product
+                      <Button onClick={handleSave} disabled={isUploadingImages}>
+                        {isUploadingImages ? 'Uploading…' : 'Save Product'}
                       </Button>
                     </div>
                   </div>
@@ -1008,7 +1109,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
+                              <img src={parseImageUrls(product.image_url)[0] || '/product-placeholder.svg'} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
                               <span className="font-medium text-[#2D2A26]">{product.name}</span>
                             </div>
                           </td>
@@ -1114,7 +1215,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-3xl font-serif text-[#2D2A26]">Shipping Rates</h2>
               <div className="bg-white p-6 border border-[#E5E0D8]">
-                <p className="text-[#786B59]">Shipping rates are managed through Supabase. Visit your Supabase dashboard to add or modify rates.</p>
+                <p className="text-[#786B59]">Shipping rates are stored in Neon PostgreSQL. Update them through the app's database tooling or the Neon SQL Editor.</p>
               </div>
             </div>
           )}

@@ -1,31 +1,36 @@
-# Environment Variables Template
+# Tsuyanouchi environment variables
 
-Create a `.env.local` file in the `gemini/tsuyanouchi` directory with the following variables:
+# Neon PostgreSQL
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
 
-```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+# Cloudflare R2 object storage
+R2_ACCOUNT_ID=your-cloudflare-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET_NAME=tsuya-tsuya-images
+# Public custom domain or r2.dev URL, no trailing slash
+R2_PUBLIC_URL=https://images.example.com
 
-# Stripe Configuration
-STRIPE_SECRET_KEY=sk_test_your-stripe-secret-key
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-stripe-publishable-key
-STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
+# Stripe
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 
-# Admin Configuration
-ADMIN_PASSWORD=your-secure-admin-password
+# Admin
+ADMIN_PASSWORD=choose-a-strong-password
+ADMIN_SESSION_SECRET=generate-a-long-random-secret
 
-# Owner Access (under-construction page - "Enter site" password)
-PREVIEW_PASSWORD=your-preview-password
+# Owner preview
+PREVIEW_PASSWORD=choose-a-preview-password
 
-# Resend Email Configuration
-RESEND_API_KEY=re_your-resend-api-key
+# Email
+RESEND_API_KEY=re_...
 ORDER_NOTIFICATION_EMAIL=admin@tsuyanouchi.com
 RESEND_FROM_EMAIL=Tsuyanouchi <orders@tsuyanouchi.com>
 
-# Gemini AI Configuration (for product descriptions)
-GEMINI_API_KEY=your-gemini-api-key
-```
+# Gemini descriptions
+GEMINI_API_KEY=...
 
-Refer to `SETUP.md` for detailed instructions on obtaining these credentials.
+# Temporary migration-only source credentials. Remove after migration.
+LEGACY_SUPABASE_URL=https://your-old-project.supabase.co
+LEGACY_SUPABASE_SERVICE_ROLE_KEY=your-old-service-role-key

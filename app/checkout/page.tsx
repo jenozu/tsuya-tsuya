@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { SafeProductImage } from '@/components/safe-product-image';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
@@ -297,8 +297,8 @@ export default function CheckoutPage() {
                     {cartItems.map((item, idx) => (
                       <div key={`${item.id}-${idx}`} className="flex gap-3">
                         <div className="w-16 h-16 flex-shrink-0 border border-[#E5E0D8] relative overflow-hidden">
-                          <Image
-                            src={item.imageUrl || 'https://picsum.photos/64/64'}
+                          <SafeProductImage
+                            src={item.imageUrl}
                             alt={item.name}
                             fill
                             className="object-cover"

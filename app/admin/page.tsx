@@ -1,6 +1,6 @@
 import React from 'react';
 import { AdminDashboard } from './admin-client';
-import { getProducts, getOrders, getShippingRates } from '@/lib/supabase-helpers';
+import { getProducts, getOrders, getShippingRates } from '@/lib/data'
 
 export const dynamic = 'force-dynamic';
 

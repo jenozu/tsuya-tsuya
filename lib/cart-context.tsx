@@ -71,7 +71,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingIndex >= 0) {
         // Item exists, increment quantity
         const newItems = [...prev];
-        newItems[existingIndex].quantity += 1;
+        newItems[existingIndex] = {
+          ...newItems[existingIndex],
+          ...item,
+          quantity: newItems[existingIndex].quantity + 1,
+        };
         return newItems;
       } else {
         // New item, add to cart

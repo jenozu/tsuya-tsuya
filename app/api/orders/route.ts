@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
-import { createOrder } from '@/lib/supabase-helpers'
+import { createOrder } from '@/lib/data'
+import { hasAdminSession } from '@/lib/admin-session'
 
 export async function POST(request: Request) {
+  if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const orderData = await request.json()
 

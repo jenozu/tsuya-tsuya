@@ -2,7 +2,7 @@ import React from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ShopClient } from './shop-client';
-import { getProducts } from '@/lib/supabase-helpers';
+import { getProducts } from '@/lib/data'
 
 export const revalidate = 300;
 

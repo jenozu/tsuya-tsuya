@@ -2,7 +2,7 @@ import React from 'react';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { FavouritesClient } from './favourites-client';
-import { getProducts } from '@/lib/supabase-helpers';
+import { getProducts } from '@/lib/data'
 
 export const dynamic = 'force-dynamic';
 

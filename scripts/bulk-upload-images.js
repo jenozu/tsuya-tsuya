@@ -1,145 +1,52 @@
 #!/usr/bin/env node
 
-/**
- * Bulk Image Upload Script for Supabase Storage
- * 
- * Usage:
- * 1. Place all product images in a folder (e.g., ./product-images/)
- * 2. Run: node scripts/bulk-upload-images.js [subfolder]
- * 3. Images will be uploaded to Supabase Storage bucket 'product-images'
- * 4. Use the filenames in your CSV (e.g., "mountain.jpg")
- * 
- * Examples:
- * - Upload from root:           node scripts/bulk-upload-images.js
- * - Upload from subfolder "1":  node scripts/bulk-upload-images.js 1
- * - Upload from subfolder "2":  node scripts/bulk-upload-images.js 2
- * - Upload from subfolder "3":  node scripts/bulk-upload-images.js 3
- */
+try { process.loadEnvFile?.('.env.local') } catch {}
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3')
+const fs = require('fs')
+const path = require('path')
 
-require('dotenv').config({ path: '.env.local' });
-const { createClient } = require('@supabase/supabase-js');
-const fs = require('fs');
-const path = require('path');
-
-// Get subfolder from command line argument (e.g., "1", "2", "3")
-const subfolder = process.argv[2];
-
-// Configuration
-const BASE_FOLDER = path.join(__dirname, '../product-images');
-const IMAGES_FOLDER = subfolder 
-  ? path.join(BASE_FOLDER, subfolder)
-  : BASE_FOLDER;
-const SUPABASE_FOLDER = 'products'; // Folder within the bucket
-
-// Validate environment variables
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('❌ Error: Missing Supabase credentials in .env.local');
-  console.error('Required: NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
+const subfolder = process.argv[2]
+const baseFolder = path.join(__dirname, '../product-images')
+const imagesFolder = subfolder ? path.join(baseFolder, subfolder) : baseFolder
+const required = ['R2_ACCOUNT_ID', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_PUBLIC_URL']
+for (const name of required) {
+  if (!process.env[name]) {
+    console.error(`Missing ${name} in .env.local`)
+    process.exit(1)
+  }
 }
 
-// Create Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const r2 = new S3Client({
+  region: 'auto',
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: { accessKeyId: process.env.R2_ACCESS_KEY_ID, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY },
+})
 
-/**
- * Upload all images from a folder to Supabase Storage
- */
-async function uploadImagesFromFolder(folderPath) {
-  // Check if folder exists
-  if (!fs.existsSync(folderPath)) {
-    console.error(`❌ Error: Folder not found: ${folderPath}`);
-    console.log('\n📝 Available folders:');
-    const baseFolder = path.join(__dirname, '../product-images');
-    if (fs.existsSync(baseFolder)) {
-      const folders = fs.readdirSync(baseFolder, { withFileTypes: true })
-        .filter(dirent => dirent.isDirectory())
-        .map(dirent => dirent.name);
-      if (folders.length > 0) {
-        console.log(`   ${folders.join(', ')}`);
-        console.log('\n💡 Usage:');
-        console.log('   node scripts/bulk-upload-images.js       (upload from root)');
-        folders.forEach(f => {
-          console.log(`   node scripts/bulk-upload-images.js ${f}    (upload from subfolder "${f}")`);
-        });
-      } else {
-        console.log('   No subfolders found in product-images/');
-        console.log('   Create a folder and add images there.');
-      }
-    } else {
-      console.log('   Create a folder called "product-images" in your project root');
-    }
-    process.exit(1);
+const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }
+
+async function run() {
+  if (!fs.existsSync(imagesFolder)) throw new Error(`Folder not found: ${imagesFolder}`)
+  const files = fs.readdirSync(imagesFolder).filter(name => MIME[path.extname(name).toLowerCase()])
+  if (!files.length) throw new Error(`No JPG, PNG, or WebP files found in ${imagesFolder}`)
+
+  let uploaded = 0
+  for (const filename of files) {
+    const ext = path.extname(filename).toLowerCase()
+    const relative = subfolder ? `${subfolder}/${filename}` : filename
+    const key = `products/${relative.replace(/\\/g, '/')}`
+    const body = fs.readFileSync(path.join(imagesFolder, filename))
+    await r2.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME,
+      Key: key,
+      Body: body,
+      ContentType: MIME[ext],
+      CacheControl: 'public, max-age=31536000, immutable',
+    }))
+    uploaded += 1
+    const publicUrl = `${process.env.R2_PUBLIC_URL.replace(/\/+$/, '')}/${key.split('/').map(encodeURIComponent).join('/')}`
+    console.log(`Uploaded ${filename} -> ${publicUrl}`)
   }
-
-  // Read all files
-  const files = fs.readdirSync(folderPath);
-  const imageFiles = files.filter(f => /\.(jpg|jpeg|png|webp)$/i.test(f));
-  
-  if (imageFiles.length === 0) {
-    console.error('❌ No image files found in folder');
-    console.log(`   Looking in: ${folderPath}`);
-    console.log('   Supported formats: .jpg, .jpeg, .png, .webp');
-    process.exit(1);
-  }
-
-  const folderName = subfolder || 'root';
-  console.log(`\n🚀 Found ${imageFiles.length} images to upload from "${folderName}"\n`);
-  console.log('=' .repeat(60));
-  
-  let uploaded = 0;
-  let failed = 0;
-  let skipped = 0;
-
-  for (const filename of imageFiles) {
-    try {
-      const filePath = path.join(folderPath, filename);
-      const fileBuffer = fs.readFileSync(filePath);
-      const fileSize = (fileBuffer.length / 1024).toFixed(2);
-      
-      // Upload to Supabase Storage
-      const storagePath = `${SUPABASE_FOLDER}/${filename}`;
-      
-      const { data, error } = await supabase.storage
-        .from('product-images')
-        .upload(storagePath, fileBuffer, {
-          contentType: `image/${path.extname(filename).substring(1)}`,
-          upsert: true, // Overwrite if exists
-          cacheControl: '3600'
-        });
-      
-      if (error) {
-        // Check if file already exists
-        if (error.message.includes('already exists')) {
-          console.log(`⚠️  Skipped: ${filename} (already exists)`);
-          skipped++;
-        } else {
-          throw error;
-        }
-      } else {
-        console.log(`✅ Uploaded: ${filename} (${fileSize} KB)`);
-        uploaded++;
-      }
-      
-    } catch (error) {
-      console.error(`❌ Failed: ${filename} - ${error.message}`);
-      failed++;
-    }
-  }
-  
-  console.log('=' .repeat(60));
-  console.log(`\n📊 Upload Summary:`);
-  console.log(`   ✅ Uploaded: ${uploaded}`);
-  console.log(`   ⚠️  Skipped: ${skipped} (already existed)`);
-  console.log(`   ❌ Failed: ${failed}`);
-  console.log(`\n✨ Done! Your images are now in Supabase Storage.`);
-  console.log(`\n📝 Next Steps:`);
-  console.log(`   1. Create your CSV with these filenames in the imageUrl column`);
-  console.log(`   2. Import CSV via admin panel`);
-  console.log(`   3. Products will automatically use these images!\n`);
+  console.log(`Done. Uploaded ${uploaded} image(s) to Cloudflare R2.`)
 }
 
-// Run the upload
-uploadImagesFromFolder(IMAGES_FOLDER);
+run().catch(error => { console.error(error); process.exit(1) })
