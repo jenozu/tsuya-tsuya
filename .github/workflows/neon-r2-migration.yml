@@ -21,6 +21,11 @@ jobs:
       - name: Apply Neon and R2 migration
         run: python3 scripts/apply-neon-r2-migration.py
 
+      - name: Fix type-only imports missed by legacy pattern
+        run: |
+          sed -i "s|@/lib/supabase-helpers|@/lib/types|g" app/preview/order-confirmation/route.ts
+          sed -i "s|@/lib/supabase-helpers|@/lib/types|g" lib/email-templates/order-confirmation.ts
+
       - name: Remove temporary migration machinery
         run: |
           rm scripts/apply-neon-r2-migration.py
