@@ -1215,7 +1215,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-3xl font-serif text-[#2D2A26]">Shipping Rates</h2>
               <div className="bg-white p-6 border border-[#E5E0D8]">
-                <p className="text-[#786B59]">Shipping rates are managed through Supabase. Visit your Supabase dashboard to add or modify rates.</p>
+                <p className="text-[#786B59]">Shipping rates are stored in Neon PostgreSQL. Update them through the app's database tooling or the Neon SQL Editor.</p>
               </div>
             </div>
           )}
