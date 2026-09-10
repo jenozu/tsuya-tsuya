@@ -29,3 +29,5 @@ jobs:
           git add -A
           git commit -m "Clone tsuya-v2 app into tsuya-tsuya"
           git push origin main
+
+# Trigger import after workflow bootstrap
