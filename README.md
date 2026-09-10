@@ -1,250 +1,119 @@
 # Tsuyanouchi — House of Lustre
 
-A luxury e-commerce platform built with Next.js 15, featuring a curated collection of Japanese-inspired lifestyle goods.
+A luxury e-commerce storefront built with Next.js and TypeScript for Japanese-inspired art and lifestyle goods.
 
-![Tsuyanouchi](https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&q=80&w=1200&h=400)
+## Core features
 
-## Features
+Customer-facing functionality includes the product catalogue, search/filtering, favourites, cart, size-based pricing, Stripe checkout, shipping calculations, order confirmation and responsive product galleries.
 
-### Customer Features
-- 🛍️ **Product Catalog** - Browse beautifully curated products with detailed descriptions
-- 🔍 **Search & Filter** - Find products by category and search terms
-- ❤️ **Favorites** - Save products to favorites with localStorage persistence
-- 🛒 **Shopping Cart** - Full-featured cart with quantity management
-- 💳 **Secure Checkout** - Stripe-powered payment processing
-- 📧 **Order Confirmation** - Automated email notifications via Resend
-- 📦 **Multiple Shipping Options** - Domestic and international shipping rates
+The protected `/admin` portal includes product CRUD, multiple-image upload/reordering, inventory/cost management, CSV import, order visibility, analytics and Gemini-assisted product descriptions.
 
-### Admin Features
-- 🔐 **Password-Protected Admin** - Secure access with middleware protection
-- 📊 **Executive Dashboard** - Real-time analytics and KPIs
-- 📈 **Interactive Charts** - Sales, inventory, and valuation visualizations using Recharts
-- ✏️ **Product Management** - Full CRUD operations with image upload
-- 🤖 **AI Descriptions** - Generate product descriptions using Google Gemini AI
-- 📥 **CSV Import** - Bulk product import functionality
-- 🎨 **Size Variations** - Support for multiple sizes with different prices
-- 📋 **Order Management** - View and manage customer orders
-- 🚚 **Shipping Configuration** - Manage shipping rates per country
+## Architecture
 
-## Tech Stack
+- **Framework:** Next.js 16 / React 19
+- **Database:** Neon PostgreSQL
+- **Product images:** Cloudflare R2
+- **Image processing:** Sharp; admin uploads are rotated, resized to fit within 2400×2400 and converted to WebP
+- **Payments:** Stripe
+- **Email:** Resend
+- **AI descriptions:** Google Gemini
+- **Deployment:** Vercel
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS v4
-- **Database**: Supabase (PostgreSQL)
-- **Payments**: Stripe
-- **Email**: Resend
-- **AI**: Google Gemini API
-- **Charts**: Recharts
-- **Forms**: React Hook Form + Zod
-- **Deployment**: Vercel
+The image files themselves live in Cloudflare R2. Neon stores structured product/order data and image URL metadata; image binaries are not stored in PostgreSQL.
 
-## Design Philosophy
+## Local setup
 
-Tsuyanouchi embodies minimalist Japanese aesthetics with a focus on:
-- Clean, serif typography
-- Muted, luxury color palette (dark browns, beiges, and whites)
-- Spacious layouts with intentional white space
-- High-quality product imagery
-- Smooth transitions and subtle animations
+Requirements: Node.js 20+ and npm.
 
-### Color Palette
-- Primary Dark: `#2D2A26`
-- Background Light: `#F9F8F4`
-- Accent Beige: `#E5E0D8`
-- Text Muted: `#786B59`
-- Error Red: `#8C3F3F`
-- Success Green: `#5C7C66`
-
-## Getting Started
-
-### Prerequisites
-- Node.js 20+
-- npm or yarn
-- Accounts for: Supabase, Stripe, Resend, Google AI Studio
-
-### Quick Start
-
-1. **Clone the repository**
-   ```bash
-   git clone <your-repo-url>
-   cd gemini/tsuyanouchi
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   - See `ENV_TEMPLATE.md` for all required variables
-   - Follow `SETUP.md` for detailed configuration instructions
-
-4. **Run database migrations**
-   - Execute the SQL in `SUPABASE_SCHEMA.sql` in your Supabase SQL Editor
-
-5. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
-   - Visit [http://localhost:3000](http://localhost:3000)
-   - Admin portal: [http://localhost:3000/admin](http://localhost:3000/admin)
-
-## Project Structure
-
-```
-gemini/tsuyanouchi/
-├── app/                        # Next.js App Router
-│   ├── page.tsx               # Homepage
-│   ├── shop/                  # Shop pages
-│   │   ├── page.tsx          # Product listing
-│   │   └── [slug]/page.tsx   # Product detail
-│   ├── cart/                  # Shopping cart
-│   ├── checkout/              # Checkout flow
-│   ├── favourites/            # Favorites page
-│   ├── thank-you/             # Order confirmation
-│   ├── admin/                 # Admin dashboard
-│   │   ├── login/            # Admin authentication
-│   │   └── page.tsx          # Dashboard with analytics
-│   └── api/                   # API routes
-│       ├── products/          # Product CRUD
-│       ├── orders/            # Order management
-│       ├── payments/          # Stripe integration
-│       ├── shipping/          # Shipping rates
-│       ├── webhooks/          # Stripe webhooks
-│       └── admin/             # Admin auth
-├── components/                # React components
-│   ├── navbar.tsx            # Navigation bar
-│   ├── footer.tsx            # Footer
-│   ├── cart-drawer.tsx       # Sliding cart drawer
-│   ├── product-card.tsx      # Product card
-│   └── ui/                   # UI components
-├── lib/                       # Utilities
-│   ├── supabase-client.ts    # Supabase setup
-│   ├── supabase-helpers.ts   # Database operations
-│   ├── stripe.ts             # Stripe utilities
-│   ├── email.ts              # Email via Resend
-│   ├── cart-context.tsx      # Cart state management
-│   ├── favorites-context.tsx # Favorites management
-│   └── utils.ts              # Helper functions
-├── services/                  # External services
-│   └── gemini.ts             # AI description generation
-├── middleware.ts              # Route protection
-└── SETUP.md                   # Detailed setup guide
-```
-
-## Key Routes
-
-### Public Routes
-- `/` - Homepage with hero and featured products
-- `/shop` - Full product catalog with search and filters
-- `/shop/[slug]` - Product detail page
-- `/cart` - Shopping cart
-- `/checkout` - Secure checkout flow
-- `/favourites` - Saved favorites
-- `/thank-you` - Order confirmation
-- `/account` - Account page (coming soon)
-
-### Admin Routes (Protected)
-- `/admin/login` - Admin authentication
-- `/admin` - Dashboard with analytics
-  - Products tab - Manage inventory
-  - Orders tab - View and manage orders
-  - Shipping tab - Configure shipping rates
-  - Settings tab - System settings
-
-### API Routes
-- `GET /api/products` - List all products
-- `POST /api/products` - Create product
-- `GET /api/products/[id]` - Get product
-- `PUT /api/products/[id]` - Update product
-- `DELETE /api/products/[id]` - Delete product
-- `POST /api/orders` - Create order
-- `GET /api/shipping/rates` - Get shipping rates
-- `POST /api/payments/create-intent` - Create Stripe payment intent
-- `POST /api/webhooks/stripe` - Handle Stripe events
-- `POST /api/admin/auth` - Admin login
-- `DELETE /api/admin/auth` - Admin logout
-
-## Environment Variables
-
-All environment variables are documented in `ENV_TEMPLATE.md`. Key categories:
-- Supabase credentials
-- Stripe API keys
-- Admin password
-- Resend API key
-- Gemini AI key
-
-## Deployment
-
-### Deploy to Vercel
-
-1. Push your code to GitHub
-2. Connect repository to Vercel
-3. Set root directory to: `gemini/tsuyanouchi`
-4. Add all environment variables
-5. Deploy!
-
-See `SETUP.md` for detailed deployment instructions.
-
-## Testing
-
-### Test Cards (Stripe)
-- Success: `4242 4242 4242 4242`
-- Decline: `4000 0000 0000 0002`
-- 3D Secure: `4000 0025 0000 3155`
-
-Use any future expiry date and any 3-digit CVC.
-
-### Admin Access
-Default admin password is set via `ADMIN_PASSWORD` environment variable.
-
-## Development
-
-### Scripts
 ```bash
-npm run dev       # Start development server
-npm run build     # Build for production
-npm run start     # Start production server
-npm run lint      # Run ESLint
+git clone https://github.com/jenozu/tsuya-tsuya.git
+cd tsuya-tsuya
+npm install
 ```
 
-### Code Style
-- Use TypeScript for type safety
-- Follow existing component patterns
-- Maintain the luxury design aesthetic
-- Keep UI components reusable
+Create `.env.local` using `ENV_TEMPLATE.md`, then follow `NEON_R2_SETUP.md` or `SETUP.md` to provision Neon and R2.
 
-## Features Roadmap
+Run the database schema in the Neon SQL Editor:
 
-- [ ] User accounts and authentication
-- [ ] Order history for customers
-- [ ] Product reviews and ratings
-- [ ] Wishlist sharing
-- [ ] Gift cards
-- [ ] Multi-currency support
-- [ ] Advanced inventory management
-- [ ] Email marketing integration
-- [ ] Product recommendations
-- [ ] Live chat support
+```text
+migrations/002_neon_r2_schema.sql
+```
 
-## License
+Then start the app:
 
-All rights reserved © 2026 Tsuyanouchi
+```bash
+npm run dev
+```
 
-## Support
+The storefront is available at `http://localhost:3000`, and the admin portal is at `http://localhost:3000/admin`.
 
-For setup assistance or issues:
-1. Check `SETUP.md` for detailed instructions
-2. Review `SUPABASE_SCHEMA.sql` for database setup
-3. Consult service documentation:
-   - [Next.js Docs](https://nextjs.org/docs)
-   - [Supabase Docs](https://supabase.com/docs)
-   - [Stripe Docs](https://stripe.com/docs)
-   - [Resend Docs](https://resend.com/docs)
+## Required infrastructure variables
 
----
+For the catalogue/admin pipeline you need:
 
-Built with care and attention to detail, embodying the Japanese principle of *mono no aware* — the beauty of impermanence and mindful craftsmanship.
+```text
+DATABASE_URL
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME
+R2_PUBLIC_URL
+ADMIN_PASSWORD
+ADMIN_SESSION_SECRET
+```
+
+Stripe, Resend and Gemini variables are documented in `ENV_TEMPLATE.md` and are needed only for their corresponding features.
+
+Never expose the R2 secret key, `DATABASE_URL`, Stripe secret key or admin-session secret in client-side (`NEXT_PUBLIC_*`) variables.
+
+## Product images
+
+Admin uploads are handled by `/api/admin/product-images`. The server validates JPG/PNG/WebP input, optimizes it and uploads the resulting WebP object to R2. A typical object key looks like:
+
+```text
+products/2026-09-10/550e8400-e29b-41d4-a716-446655440000.webp
+```
+
+Only the resulting public URL is saved with the product record. The same image metadata is then used by the shop, product detail, cart and checkout views.
+
+Existing repository image folders can also be uploaded to R2 with:
+
+```bash
+npm run upload-images-1
+npm run upload-images-2
+npm run upload-images-3
+```
+
+## Migrating old Supabase data
+
+The running application has no Supabase SDK/runtime dependency. A temporary one-time migration utility remains at `scripts/migrate-supabase-to-neon.mjs` so existing data and images can be moved before the old Supabase project is retired.
+
+See `NEON_R2_SETUP.md` for the migration procedure. After the migration is validated, remove the temporary `LEGACY_SUPABASE_*` credentials. They are not used by the application itself.
+
+## Important routes
+
+- `/` — homepage
+- `/shop` — product catalogue
+- `/shop/[slug]` — product detail
+- `/cart` — cart
+- `/checkout` — checkout
+- `/favourites` — saved favourites
+- `/thank-you` — confirmation
+- `/admin/login` — admin login
+- `/admin` — protected admin portal
+- `/api/products` and `/api/products/[id]` — product API
+- `/api/admin/product-images` — authenticated R2 image upload/delete
+- `/api/webhooks/stripe` — Stripe webhook
+- `/api/waitlist` — waitlist signup
+
+## Verification
+
+Before merging infrastructure changes, run:
+
+```bash
+npx tsc --noEmit
+npm run build
+git diff --check
+```
+
+For detailed Neon/R2 provisioning and migration instructions, use `NEON_R2_SETUP.md`.
