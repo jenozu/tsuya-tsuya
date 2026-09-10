@@ -31,6 +31,7 @@ jobs:
         run: |
           rm scripts/apply-neon-r2-migration.py
           rm .github/workflows/neon-r2-migration.yml
+          rm -f .migration-trigger
 
       - name: Replace runtime dependencies
         run: |
