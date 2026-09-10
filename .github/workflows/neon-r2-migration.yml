@@ -1,0 +1,60 @@
+name: Neon R2 migration
+
+on:
+  push:
+    branches:
+      - feat/neon-r2
+
+permissions:
+  contents: write
+
+jobs:
+  migrate-and-verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/neon-r2
+          fetch-depth: 1
+
+      - name: Apply Neon and R2 migration
+        run: python3 scripts/apply-neon-r2-migration.py
+
+      - name: Remove temporary migration machinery
+        run: |
+          rm scripts/apply-neon-r2-migration.py
+          rm .github/workflows/neon-r2-migration.yml
+
+      - name: Replace runtime dependencies
+        run: |
+          npm uninstall @supabase/supabase-js --no-audit --no-fund
+          npm install @neondatabase/serverless @aws-sdk/client-s3 sharp --save --no-audit --no-fund
+
+      - name: Verify Supabase runtime removal
+        run: |
+          if grep -R -n -E "@supabase|supabase-client|supabase-helpers|supabase-admin" app lib services package.json --include='*.ts' --include='*.tsx' --include='*.js' --include='package.json'; then
+            echo "Supabase runtime reference remains"
+            exit 1
+          fi
+          test -f lib/db.ts
+          test -f lib/data.ts
+          test -f lib/r2.ts
+          test -f migrations/002_neon_r2_schema.sql
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
+
+      - name: Verify clean diff
+        run: git diff --check
+
+      - name: Commit verified migration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Replace Supabase with Neon and Cloudflare R2"
+          git push origin feat/neon-r2
