@@ -14,20 +14,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const formData = await request.formData()
-    const file = formData.get('file')
+    const body = await request.json().catch(() => null) as {
+      fileName?: string
+      fileType?: string
+      fileSize?: number
+    } | null
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No image file provided' }, { status: 400 })
-    }
-    if (!ALLOWED_TYPES.has(file.type)) {
+    const fileType = body?.fileType
+    const fileSize = body?.fileSize
+
+    if (!fileType || !ALLOWED_TYPES.has(fileType)) {
       return NextResponse.json({ error: 'Only JPG, PNG, and WebP images are supported' }, { status: 400 })
     }
-    if (file.size <= 0 || file.size > MAX_FILE_SIZE) {
+    if (!Number.isFinite(fileSize) || !fileSize || fileSize <= 0 || fileSize > MAX_FILE_SIZE) {
       return NextResponse.json({ error: 'Image must be between 1 byte and 10 MB' }, { status: 400 })
     }
 
     const { client: supabase, usingServiceRole } = getSupabaseStorageAdmin()
+    const extension = fileType === 'image/jpeg' ? 'jpg' : fileType === 'image/png' ? 'png' : 'webp'
+    const storagePath = `products/${crypto.randomUUID()}.${extension}`
 
     if (usingServiceRole) {
       const { data: bucket } = await supabase.storage.getBucket(BUCKET)
@@ -48,31 +53,37 @@ export async function POST(request: NextRequest) {
         })
         if (updateError) throw updateError
       }
+
+      const { data: signedUpload, error: signedUploadError } = await supabase.storage
+        .from(BUCKET)
+        .createSignedUploadUrl(storagePath)
+
+      if (signedUploadError || !signedUpload?.token) {
+        throw signedUploadError || new Error('Could not create a signed upload URL')
+      }
+
+      const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
+      return NextResponse.json({
+        mode: 'signed',
+        path: storagePath,
+        token: signedUpload.token,
+        url: publicData.publicUrl,
+      })
     }
 
-    const extension = file.type === 'image/jpeg' ? 'jpg' : file.type === 'image/png' ? 'png' : 'webp'
-    const storagePath = `products/${crypto.randomUUID()}.${extension}`
-    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(storagePath, file, {
-      cacheControl: '31536000',
-      contentType: file.type,
-      upsert: false,
+    // Backwards-compatible path for installations that already grant anonymous
+    // INSERT access to the public product-images bucket. No file bytes pass through
+    // Vercel, so large images are not constrained by function request-body limits.
+    const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
+    return NextResponse.json({
+      mode: 'anon',
+      path: storagePath,
+      url: publicData.publicUrl,
     })
-
-    if (uploadError) {
-      const hint = usingServiceRole
-        ? ''
-        : ' Add SUPABASE_SERVICE_ROLE_KEY to Vercel if the bucket does not allow anonymous uploads.'
-      throw new Error(`${uploadError.message}.${hint}`)
-    }
-
-    const { data } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
-    if (!data.publicUrl) throw new Error('Supabase did not return a public image URL')
-
-    return NextResponse.json({ url: data.publicUrl })
   } catch (error) {
-    console.error('Admin image upload error:', error)
+    console.error('Admin image upload setup error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Image upload failed' },
+      { error: error instanceof Error ? error.message : 'Image upload setup failed' },
       { status: 500 },
     )
   }
