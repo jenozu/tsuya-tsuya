@@ -25,7 +25,7 @@ jobs:
         run: |
           sed -i "s|@/lib/supabase-helpers|@/lib/types|g" app/preview/order-confirmation/route.ts
           sed -i "s|@/lib/supabase-helpers|@/lib/types|g" lib/email-templates/order-confirmation.ts
-          find app lib services -type f \( -name '*.ts' -o -name '*.tsx' \) -exec sed -i "s/'import /'\\nimport /g" {} +
+          find app lib services -type f \( -name '*.ts' -o -name '*.tsx' \) -exec sed -i -e "s/'import /'\\nimport /g" -e "s/'export /'\\nexport /g" {} +
 
       - name: Remove temporary migration machinery
         run: |
