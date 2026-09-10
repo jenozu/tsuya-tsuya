@@ -35,3 +35,8 @@ For reliable production uploads, Vercel should contain `NEXT_PUBLIC_SUPABASE_URL
 ## Remaining security note
 
 `SUPABASE_SCHEMA.sql` contains permissive `FOR ALL USING (true)` policies on multiple tables. Protecting the Next.js mutation APIs prevents ordinary unauthenticated API writes, but those database policies should be tightened separately before a public launch so a caller with the public anon key cannot bypass the app and write directly to Supabase.
+
+
+## Storage/database architecture update
+
+Supabase has subsequently been replaced by Neon PostgreSQL + Cloudflare R2. See `NEON_R2_SETUP.md`.

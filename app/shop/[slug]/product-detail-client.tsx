@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
-import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
+import { Product, ProductSize, getImageUrls } from '@/lib/types'
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown, RotateCcw } from 'lucide-react';

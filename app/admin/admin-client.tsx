@@ -12,10 +12,10 @@ import {
   TrendingUp, AlertCircle, DollarSign, ArrowRight, ShoppingCart, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Product, Order, ShippingRate, ProductSize } from '@/lib/supabase-helpers';
+import { Product, Order, ShippingRate, ProductSize } from '@/lib/types'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { generateProductDescription } from '@/services/gemini';
-import { uploadProductImage } from '@/lib/supabase-helpers';
+import { uploadProductImage } from '@/lib/image-upload-client'
 
 type AdminTab = 'DASHBOARD' | 'PRODUCTS' | 'ORDERS' | 'SHIPPING' | 'SETTINGS';
 type AnalyticsViewType = 'INVENTORY' | 'CATEGORIES' | 'VALUATION' | 'SALES';

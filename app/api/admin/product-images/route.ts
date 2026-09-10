@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import sharp from 'sharp'
 import { hasAdminSession } from '@/lib/admin-session'
-import { getSupabaseStorageAdmin } from '@/lib/supabase-admin'
+import { deleteR2Object, objectKeyFromPublicUrl, putR2Object } from '@/lib/r2'
 
 export const runtime = 'nodejs'
 
-const BUCKET = 'product-images'
-const MAX_FILE_SIZE = 10 * 1024 * 1024
+const MAX_INPUT_SIZE = 15 * 1024 * 1024
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 export async function POST(request: NextRequest) {
@@ -14,77 +14,43 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json().catch(() => null) as {
-      fileName?: string
-      fileType?: string
-      fileSize?: number
-    } | null
+    const formData = await request.formData()
+    const file = formData.get('file')
+    if (!(file instanceof File)) return NextResponse.json({ error: 'No image file provided' }, { status: 400 })
+    if (!ALLOWED_TYPES.has(file.type)) return NextResponse.json({ error: 'Only JPG, PNG, and WebP images are supported' }, { status: 400 })
+    if (file.size <= 0 || file.size > MAX_INPUT_SIZE) return NextResponse.json({ error: 'Image must be between 1 byte and 15 MB' }, { status: 413 })
 
-    const fileType = body?.fileType
-    const fileSize = body?.fileSize
+    const input = Buffer.from(await file.arrayBuffer())
+    const optimized = await sharp(input)
+      .rotate()
+      .resize({ width: 2400, height: 2400, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 84, effort: 4 })
+      .toBuffer()
 
-    if (!fileType || !ALLOWED_TYPES.has(fileType)) {
-      return NextResponse.json({ error: 'Only JPG, PNG, and WebP images are supported' }, { status: 400 })
-    }
-    if (!Number.isFinite(fileSize) || !fileSize || fileSize <= 0 || fileSize > MAX_FILE_SIZE) {
-      return NextResponse.json({ error: 'Image must be between 1 byte and 10 MB' }, { status: 400 })
-    }
+    const day = new Date().toISOString().slice(0, 10)
+    const key = `products/${day}/${crypto.randomUUID()}.webp`
+    const url = await putR2Object({ key, body: optimized, contentType: 'image/webp' })
 
-    const { client: supabase, usingServiceRole } = getSupabaseStorageAdmin()
-    const extension = fileType === 'image/jpeg' ? 'jpg' : fileType === 'image/png' ? 'png' : 'webp'
-    const storagePath = `products/${crypto.randomUUID()}.${extension}`
-
-    if (usingServiceRole) {
-      const { data: bucket } = await supabase.storage.getBucket(BUCKET)
-      if (!bucket) {
-        const { error: createError } = await supabase.storage.createBucket(BUCKET, {
-          public: true,
-          fileSizeLimit: MAX_FILE_SIZE,
-          allowedMimeTypes: Array.from(ALLOWED_TYPES),
-        })
-        if (createError && !createError.message.toLowerCase().includes('already exists')) {
-          throw createError
-        }
-      } else if (!bucket.public) {
-        const { error: updateError } = await supabase.storage.updateBucket(BUCKET, {
-          public: true,
-          fileSizeLimit: MAX_FILE_SIZE,
-          allowedMimeTypes: Array.from(ALLOWED_TYPES),
-        })
-        if (updateError) throw updateError
-      }
-
-      const { data: signedUpload, error: signedUploadError } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUploadUrl(storagePath)
-
-      if (signedUploadError || !signedUpload?.token) {
-        throw signedUploadError || new Error('Could not create a signed upload URL')
-      }
-
-      const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
-      return NextResponse.json({
-        mode: 'signed',
-        path: storagePath,
-        token: signedUpload.token,
-        url: publicData.publicUrl,
-      })
-    }
-
-    // Backwards-compatible path for installations that already grant anonymous
-    // INSERT access to the public product-images bucket. No file bytes pass through
-    // Vercel, so large images are not constrained by function request-body limits.
-    const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(storagePath)
-    return NextResponse.json({
-      mode: 'anon',
-      path: storagePath,
-      url: publicData.publicUrl,
-    })
+    return NextResponse.json({ url, key, bytes: optimized.byteLength })
   } catch (error) {
-    console.error('Admin image upload setup error:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Image upload setup failed' },
-      { status: 500 },
-    )
+    console.error('R2 product image upload error:', error)
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Image upload failed' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!(await hasAdminSession(request))) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    const body = await request.json().catch(() => ({})) as { url?: string; key?: string }
+    const key = body.key || (body.url ? objectKeyFromPublicUrl(body.url) : null)
+    if (!key || !key.startsWith('products/')) return NextResponse.json({ error: 'Invalid R2 product image key' }, { status: 400 })
+    await deleteR2Object(key)
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('R2 product image delete error:', error)
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Image deletion failed' }, { status: 500 })
   }
 }

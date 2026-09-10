@@ -1,4 +1,4 @@
-import type { Order } from '@/lib/supabase-helpers'
+import type { Order } from '@/lib/types'
 
 /**
  * Order confirmation email template (customer-facing).

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getShippingRates } from '@/lib/supabase-helpers'
-
+import { getShippingRates } from '@/lib/data'
 export async function GET() {
   try {
     const rates = await getShippingRates()

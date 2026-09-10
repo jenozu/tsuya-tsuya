@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csv-parser';
-import { createProduct } from '@/lib/supabase-helpers';
+import { createProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
 

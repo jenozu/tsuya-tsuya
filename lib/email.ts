@@ -1,5 +1,5 @@
 import { Resend } from 'resend'
-import { Order } from './supabase-helpers'
+import { Order } from './types'
 import { renderOrderConfirmationHtml } from './email-templates/order-confirmation'
 
 if (!process.env.RESEND_API_KEY) {

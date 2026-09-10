@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
-import { Product, getImageUrls } from '@/lib/supabase-helpers';
+import { Product, getImageUrls } from '@/lib/types'
 import { ShoppingBag, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';

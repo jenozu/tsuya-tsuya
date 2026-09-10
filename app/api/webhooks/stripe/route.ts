@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { verifyWebhookSignature, stripe } from '@/lib/stripe'
-import { updateOrderStatus, getOrder, createOrder } from '@/lib/supabase-helpers'
+import { updateOrderStatus, getOrder, createOrder } from '@/lib/data'
 import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
 
 export const runtime = 'nodejs'

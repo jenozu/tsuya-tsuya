@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Product } from '@/lib/supabase-helpers';
+import { Product } from '@/lib/types'
 import { useFavorites } from '@/lib/favorites-context';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { ProductCard } from '@/components/product-card';
-import { Product } from '@/lib/supabase-helpers';
+import { Product } from '@/lib/types'
 import { Search } from 'lucide-react';
 
 interface ShopClientProps {

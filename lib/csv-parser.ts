@@ -1,5 +1,5 @@
 import { CSV_CONFIG, STANDARD_PRINT_SIZES, SIZE_MULTIPLIERS } from './print-sizes';
-import { ProductSize } from './supabase-helpers';
+import { ProductSize } from './types'
 
 /**
  * CSV Row Interface - Updated for individual size prices
@@ -67,30 +67,20 @@ function isValidImageUrl(url: string): boolean {
 }
 
 /**
- * Converts filename to Supabase Storage URL if needed
+ * Converts a filename to its Cloudflare R2 public URL if needed
  * If already a full URL, returns as-is
  * @param imageUrlOrFilename - Either a full URL or just a filename
  */
 function normalizeImageUrl(imageUrlOrFilename: string): string {
   const trimmed = imageUrlOrFilename.trim();
-  
-  // If it's already a full URL (starts with http:// or https://), return as-is
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    return trimmed;
-  }
-  
-  // Otherwise, construct Supabase Storage URL
-  // Format: https://[project-id].supabase.co/storage/v1/object/public/product-images/products/[filename]
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  
-  if (!supabaseUrl) {
-    // Fallback: return filename as-is and let Supabase helpers construct URL
-    return trimmed;
-  }
-  
-  // Construct full Supabase Storage URL
-  const encoded = trimmed.split('/').map(part => encodeURIComponent(part)).join('/');
-  return `${supabaseUrl}/storage/v1/object/public/product-images/products/${encoded}`;
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) return trimmed;
+
+  const publicBase = process.env.R2_PUBLIC_URL?.replace(/\/+$/, '');
+  if (!publicBase) throw new Error('R2_PUBLIC_URL is required when CSV imageUrl contains a filename');
+
+  const key = trimmed.startsWith('products/') ? trimmed : `products/${trimmed}`;
+  const encodedKey = key.split('/').map(part => encodeURIComponent(part)).join('/');
+  return `${publicBase}/${encodedKey}`;
 }
 
 /**

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProductDetailClient } from './product-detail-client';
-import { getProduct } from '@/lib/supabase-helpers';
+import { getProduct } from '@/lib/data'
 
 export const revalidate = 300;
 

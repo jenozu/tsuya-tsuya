@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createOrder } from '@/lib/supabase-helpers'
+import { createOrder } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 
 export async function POST(request: Request) {

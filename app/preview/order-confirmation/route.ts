@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { renderOrderConfirmationHtml } from '@/lib/email-templates/order-confirmation'
-import type { Order } from '@/lib/supabase-helpers'
+import type { Order } from '@/lib/types'
 
 /** Mock order for email preview. Edit this to test different content. */
 const MOCK_ORDER: Order = {
