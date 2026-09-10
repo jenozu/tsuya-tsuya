@@ -25,9 +25,13 @@ jobs:
         run: |
           rm scripts/apply-admin-audit-fixes.py
           rm .github/workflows/admin-audit-fix.yml
+          sed -i 's/[[:space:]]\+$//' components/product-card.tsx
 
       - name: Install dependencies and repair lockfile
         run: npm install --no-audit --no-fund
+
+      - name: Typecheck
+        run: npx tsc --noEmit
 
       - name: Build
         run: npm run build
