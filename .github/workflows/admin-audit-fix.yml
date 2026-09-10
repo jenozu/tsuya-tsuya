@@ -21,10 +21,11 @@ jobs:
       - name: Apply audited fixes
         run: python3 scripts/apply-admin-audit-fixes.py
 
-      - name: Remove temporary audit machinery
+      - name: Normalize image component references and remove audit machinery
         run: |
           rm scripts/apply-admin-audit-fixes.py
           rm .github/workflows/admin-audit-fix.yml
+          sed -i 's/<Image/<SafeProductImage/g' components/product-card.tsx components/cart-drawer.tsx app/cart/page.tsx app/checkout/page.tsx app/shop/\[slug\]/product-detail-client.tsx
           sed -i 's/[[:space:]]\+$//' components/product-card.tsx
 
       - name: Install dependencies and repair lockfile
