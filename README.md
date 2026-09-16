@@ -2,24 +2,30 @@
 
 A luxury e-commerce storefront built with Next.js and TypeScript for Japanese-inspired art and lifestyle goods.
 
-## Core features
+## Current architecture
 
-Customer-facing functionality includes the product catalogue, search/filtering, favourites, cart, size-based pricing, Stripe checkout, shipping calculations, order confirmation and responsive product galleries.
-
-The protected `/admin` portal includes product CRUD, multiple-image upload/reordering, inventory/cost management, CSV import, order visibility, analytics and Gemini-assisted product descriptions.
-
-## Architecture
-
-- **Framework:** Next.js 16 / React 19
+- **Framework / hosting:** Next.js 16 + React 19 on Vercel
 - **Database:** Neon PostgreSQL
-- **Product images:** Cloudflare R2
-- **Image processing:** Sharp; admin uploads are rotated, resized to fit within 2400×2400 and converted to WebP
+- **Product image storage:** Cloudflare R2
 - **Payments:** Stripe
-- **Email:** Resend
-- **AI descriptions:** Google Gemini
-- **Deployment:** Vercel
+- **Transactional email:** Resend
+- **AI product descriptions:** Google Gemini
 
-The image files themselves live in Cloudflare R2. Neon stores structured product/order data and image URL metadata; image binaries are not stored in PostgreSQL.
+Neon stores structured application data such as products, orders, shipping rates, favourites, waitlist signups, and public product-image URL metadata. Product image files themselves are stored in Cloudflare R2.
+
+## Admin portal
+
+The protected `/admin` portal supports product create/edit/delete, multiple product images, image ordering, stock/cost management, CSV import, order visibility, shipping management, analytics, and Gemini-assisted descriptions.
+
+When an administrator selects a JPG, PNG, or WebP from their computer, the browser sends it to `/api/admin/product-images`. The authenticated server route validates the file and uploads the original image bytes directly to R2. The returned public R2 URL is then stored with the product in Neon.
+
+Typical R2 object key:
+
+```text
+products/2026-09-16/550e8400-e29b-41d4-a716-446655440000.jpg
+```
+
+You do not need to manually upload ordinary admin product images through the Cloudflare dashboard.
 
 ## Local setup
 
@@ -31,25 +37,16 @@ cd tsuya-tsuya
 npm install
 ```
 
-Create `.env.local` using `ENV_TEMPLATE.md`, then follow `NEON_R2_SETUP.md` or `SETUP.md` to provision Neon and R2.
-
-Run the database schema in the Neon SQL Editor:
-
-```text
-migrations/002_neon_r2_schema.sql
-```
-
-Then start the app:
+Create `.env.local` using `ENV_TEMPLATE.md`, run `migrations/002_neon_r2_schema.sql` in the Neon SQL Editor, and then start the app:
 
 ```bash
 npm run dev
 ```
 
-The storefront is available at `http://localhost:3000`, and the admin portal is at `http://localhost:3000/admin`.
+Storefront: `http://localhost:3000`  
+Admin: `http://localhost:3000/admin`
 
 ## Required infrastructure variables
-
-For the catalogue/admin pipeline you need:
 
 ```text
 DATABASE_URL
@@ -62,21 +59,19 @@ ADMIN_PASSWORD
 ADMIN_SESSION_SECRET
 ```
 
-Stripe, Resend and Gemini variables are documented in `ENV_TEMPLATE.md` and are needed only for their corresponding features.
+Stripe, Resend, Gemini, and optional preview variables are documented in `ENV_TEMPLATE.md`.
 
-Never expose the R2 secret key, `DATABASE_URL`, Stripe secret key or admin-session secret in client-side (`NEXT_PUBLIC_*`) variables.
+Never expose `DATABASE_URL`, R2 secret credentials, Stripe secret keys, or the admin-session secret through a `NEXT_PUBLIC_*` variable.
 
-## Product images
+## Product image workflows
 
-Admin uploads are handled by `/api/admin/product-images`. The server validates JPG/PNG/WebP input, optimizes it and uploads the resulting WebP object to R2. A typical object key looks like:
+### Admin uploads
 
-```text
-products/2026-09-10/550e8400-e29b-41d4-a716-446655440000.webp
-```
+Use the image picker/drop area in the admin product editor. Supported types are JPG, PNG, and WebP, up to 10 MB each. Files are written to Cloudflare R2 automatically.
 
-Only the resulting public URL is saved with the product record. The same image metadata is then used by the shop, product detail, cart and checkout views.
+### Existing tracked image folders
 
-Existing repository image folders can also be uploaded to R2 with:
+The repository also contains historical product image folders under `product-images/`. To upload those files to R2 while retaining their filenames:
 
 ```bash
 npm run upload-images-1
@@ -84,11 +79,17 @@ npm run upload-images-2
 npm run upload-images-3
 ```
 
-## Migrating old Supabase data
+See `CSV_IMPORT_GUIDE.md` for using filenames in CSV imports.
 
-The running application has no Supabase SDK/runtime dependency. A temporary one-time migration utility remains at `scripts/migrate-supabase-to-neon.mjs` so existing data and images can be moved before the old Supabase project is retired.
+## Infrastructure guard
 
-See `NEON_R2_SETUP.md` for the migration procedure. After the migration is validated, remove the temporary `LEGACY_SUPABASE_*` credentials. They are not used by the application itself.
+Production builds run:
+
+```bash
+npm run verify:infra
+```
+
+The guard fails the build if the current repository tree contains references to the retired backend/storage provider, and it verifies that the Neon and R2 dependencies/configuration markers are present. This prevents an old backend integration from accidentally being reintroduced.
 
 ## Important routes
 
@@ -101,19 +102,19 @@ See `NEON_R2_SETUP.md` for the migration procedure. After the migration is valid
 - `/thank-you` — confirmation
 - `/admin/login` — admin login
 - `/admin` — protected admin portal
-- `/api/products` and `/api/products/[id]` — product API
+- `/api/products` and `/api/products/[id]` — Neon-backed product API
 - `/api/admin/product-images` — authenticated R2 image upload/delete
 - `/api/webhooks/stripe` — Stripe webhook
 - `/api/waitlist` — waitlist signup
 
-## Verification
+## Deployment verification
 
-Before merging infrastructure changes, run:
+Before considering a production change complete, verify:
 
 ```bash
+npm run verify:infra
 npx tsc --noEmit
 npm run build
-git diff --check
 ```
 
-For detailed Neon/R2 provisioning and migration instructions, use `NEON_R2_SETUP.md`.
+Then smoke-test admin login, product creation, R2 image upload/display, product editing/deletion, checkout, Stripe webhooks, Neon order records, and Resend delivery.

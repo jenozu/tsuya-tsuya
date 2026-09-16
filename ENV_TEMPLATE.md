@@ -22,6 +22,7 @@ ADMIN_SESSION_SECRET=generate-a-long-random-secret
 
 # Owner preview
 PREVIEW_PASSWORD=choose-a-preview-password
+NEXT_PUBLIC_UNDER_CONSTRUCTION=false
 
 # Email
 RESEND_API_KEY=re_...
@@ -30,7 +31,3 @@ RESEND_FROM_EMAIL=Tsuyanouchi <orders@tsuyanouchi.com>
 
 # Gemini descriptions
 GEMINI_API_KEY=...
-
-# Temporary migration-only source credentials. Remove after migration.
-LEGACY_SUPABASE_URL=https://your-old-project.supabase.co
-LEGACY_SUPABASE_SERVICE_ROLE_KEY=your-old-service-role-key
