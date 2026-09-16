@@ -1,8 +1,6 @@
 name: Infrastructure Guard
 
 on:
-  push:
-    branches: [main, cleanup/neon-r2-only]
   pull_request:
     branches: [main]
 
