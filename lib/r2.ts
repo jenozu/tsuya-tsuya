@@ -8,12 +8,48 @@ function env(name: string): string {
   return value
 }
 
+function getR2Endpoint(): string {
+  const configured = env('R2_ACCOUNT_ID').replace(/\/+$/, '')
+
+  // Preferred format is the bare Cloudflare account ID. For resilience, also
+  // accept the full S3 endpoint if it was pasted into R2_ACCOUNT_ID in Vercel.
+  if (/^https?:\/\//i.test(configured)) {
+    let parsed: URL
+    try {
+      parsed = new URL(configured)
+    } catch {
+      throw new Error('R2_ACCOUNT_ID contains an invalid URL')
+    }
+
+    if (!parsed.hostname.endsWith('.r2.cloudflarestorage.com')) {
+      throw new Error(
+        'R2_ACCOUNT_ID must be your Cloudflare account ID or its S3 endpoint (https://<ACCOUNT_ID>.r2.cloudflarestorage.com)'
+      )
+    }
+
+    return parsed.origin
+  }
+
+  // Also tolerate an endpoint hostname pasted without https://.
+  if (configured.endsWith('.r2.cloudflarestorage.com')) {
+    return `https://${configured}`
+  }
+
+  if (configured.includes('/') || configured.includes(':') || configured.includes('.')) {
+    throw new Error(
+      'R2_ACCOUNT_ID must be the bare Cloudflare account ID, not the bucket name or public R2 URL'
+    )
+  }
+
+  return `https://${configured}.r2.cloudflarestorage.com`
+}
+
 export function getR2Client(): S3Client {
   if (!r2Client) {
-    const accountId = env('R2_ACCOUNT_ID')
     r2Client = new S3Client({
       region: 'auto',
-      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      endpoint: getR2Endpoint(),
+      forcePathStyle: true,
       credentials: {
         accessKeyId: env('R2_ACCESS_KEY_ID'),
         secretAccessKey: env('R2_SECRET_ACCESS_KEY'),
