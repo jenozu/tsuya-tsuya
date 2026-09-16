@@ -1,0 +1,13 @@
+name: Infrastructure Guard
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify current infrastructure references
+        run: node scripts/assert-current-infra.mjs
