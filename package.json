@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "verify:infra": "node scripts/assert-current-infra.mjs",
+    "build": "npm run verify:infra && next build",
     "start": "next start",
     "lint": "next lint",
     "upload-images": "node scripts/bulk-upload-images.js",
