@@ -4,6 +4,8 @@
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
 
 # Cloudflare R2 object storage
+# Preferred: bare Cloudflare account ID only (not the bucket name or public r2.dev URL).
+# The app also tolerates the full S3 endpoint: https://<ACCOUNT_ID>.r2.cloudflarestorage.com
 R2_ACCOUNT_ID=your-cloudflare-account-id
 R2_ACCESS_KEY_ID=your-r2-access-key-id
 R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
