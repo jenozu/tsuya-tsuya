@@ -25,9 +25,11 @@ This file is the current source of truth for the Tsuyanouchi rebuild/deployment 
 - [x] Retired backend/storage code and stale setup documentation removed from the current tree
 - [x] Infrastructure guard added to prevent retired backend/storage references from being reintroduced
 - [x] Native image-processing dependency removed from the production upload path after Vercel runtime failure
+- [x] Cleanup PR #3 merged to `main`
+- [x] Vercel production deployment for the cleanup merge completed successfully
 
 ### Current production verification
-- [ ] Confirm the newest Vercel deployment completes successfully with the infrastructure guard
+- [x] Confirm the Vercel deployment completes successfully with the infrastructure guard
 - [ ] Upload a new JPG/PNG/WebP from `/admin` and confirm `/api/admin/product-images` returns 200
 - [ ] Confirm the uploaded object appears in the `tsuya-tsuya-images` R2 bucket
 - [ ] Confirm the R2 image displays in admin, `/shop`, product detail, cart, and checkout
