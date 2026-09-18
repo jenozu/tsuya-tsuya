@@ -5,7 +5,7 @@ import type { Order } from '@/lib/types'
 /** Mock order for email preview. Edit this to test different content. */
 const MOCK_ORDER: Order = {
   id: 'preview-id',
-  order_id: 'ORD-1730000000-ABC123XYZ',
+  order_id: 'ORD-02K8FQ7',
   email: 'customer@example.com',
   items: [
     { productId: '1', productName: 'Sample Product One', quantity: 1, price: 85.0 },
@@ -19,11 +19,14 @@ const MOCK_ORDER: Order = {
   shipping_address: {
     firstName: 'Jane',
     lastName: 'Doe',
-    address: '123 Main Street, Apt 4',
+    address: '123 Main Street',
+    addressLine2: 'Building B',
+    unitNumber: '4',
     city: 'Brooklyn',
     state: 'NY',
     postalCode: '11201',
     country: 'US',
+    phone: '+1 555 123 4567',
   },
   payment_intent_id: 'pi_preview',
   payment_status: 'paid',
