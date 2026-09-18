@@ -50,10 +50,13 @@ export interface ShippingAddress {
   firstName: string
   lastName: string
   address: string
+  addressLine2?: string
+  unitNumber?: string
   city: string
   state: string
   postalCode: string
   country: string
+  phone?: string
 }
 
 export interface ShippingRate {
