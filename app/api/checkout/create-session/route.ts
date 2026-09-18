@@ -159,6 +159,11 @@ export async function POST(request: NextRequest) {
       addr_country: (addr.country ?? '').slice(0, 500),
     }
 
+    const paymentIntentMetadata: Record<string, string> = {
+      orderId,
+      ...(email && typeof email === 'string' && email.includes('@') ? { email } : {}),
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: lineItems,
@@ -168,6 +173,9 @@ export async function POST(request: NextRequest) {
       customer_creation: 'always',
       ...(email && typeof email === 'string' && email.includes('@') ? { customer_email: email } : {}),
       metadata,
+      payment_intent_data: {
+        metadata: paymentIntentMetadata,
+      },
     })
 
     if (!session.url) {
