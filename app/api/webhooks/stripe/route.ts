@@ -19,8 +19,10 @@ async function processCompletedCheckoutSession(sessionId: string) {
     customer_details?: {
       email?: string | null
       name?: string | null
+      phone?: string | null
       address?: {
         line1?: string | null
+        line2?: string | null
         city?: string | null
         state?: string | null
         postal_code?: string | null
@@ -48,7 +50,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
     payment_intent?: string | null
   }
 
-  const orderId = session.metadata?.orderId || `ORD-${session.id}`
+  const orderId = session.metadata?.orderId || `ORD-${session.id.slice(-7).toUpperCase()}`
   const email =
     session.customer_details?.email ||
     session.customer_email ||
@@ -76,10 +78,13 @@ async function processCompletedCheckoutSession(sessionId: string) {
         firstName: meta.addr_firstName ?? '',
         lastName: meta.addr_lastName ?? '',
         address: meta.addr_address ?? '',
+        addressLine2: meta.addr_address2 ?? '',
+        unitNumber: meta.addr_unit ?? '',
         city: meta.addr_city ?? '',
         state: meta.addr_state ?? '',
         postalCode: meta.addr_postalCode ?? '',
         country: meta.addr_country ?? '',
+        phone: meta.phone ?? '',
       }
     : (() => {
         const addr = session.customer_details?.address
@@ -88,10 +93,13 @@ async function processCompletedCheckoutSession(sessionId: string) {
           firstName: nameParts[0] || 'Customer',
           lastName: nameParts.slice(1).join(' '),
           address: addr?.line1 || '',
+          addressLine2: addr?.line2 || '',
+          unitNumber: '',
           city: addr?.city || '',
           state: addr?.state || '',
           postalCode: addr?.postal_code || '',
           country: addr?.country || '',
+          phone: session.customer_details?.phone || '',
         }
       })()
 
