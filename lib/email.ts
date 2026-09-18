@@ -87,9 +87,12 @@ export async function sendOrderNotification(
       <p style="margin: 12px 0 0; color: #4A4036;"><strong>Address:</strong></p>
       <p style="margin: 4px 0 0; color: #786B59;">
         ${order.shipping_address.address}<br>
+        ${order.shipping_address.addressLine2 ? `${order.shipping_address.addressLine2}<br>` : ''}
+        ${order.shipping_address.unitNumber ? `Unit ${order.shipping_address.unitNumber}<br>` : ''}
         ${order.shipping_address.city}, ${order.shipping_address.state} ${order.shipping_address.postalCode}<br>
         ${order.shipping_address.country}
       </p>
+      ${order.shipping_address.phone ? `<p style="margin: 8px 0 0; color: #4A4036;"><strong>Phone:</strong> ${order.shipping_address.phone}</p>` : ''}
     </div>
     
     <div style="background: white; padding: 24px; margin: 0 0 30px;">
