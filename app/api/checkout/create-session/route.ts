@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
@@ -8,10 +9,19 @@ interface ShippingAddressPayload {
   firstName: string
   lastName: string
   address: string
+  addressLine2?: string
+  unitNumber?: string
   city: string
   state: string
   postalCode: string
   country: string
+  phone?: string
+}
+
+function createShortOrderId(): string {
+  const max = 36 ** 7
+  const code = randomInt(0, max).toString(36).toUpperCase().padStart(7, '0')
+  return `ORD-${code}`
 }
 
 export async function POST(request: NextRequest) {
@@ -54,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     const origin = request.headers.get('origin') || request.nextUrl?.origin || ''
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 11).toUpperCase()}`
+    const orderId = createShortOrderId()
 
     const MAX_URL_LENGTH = 2048
 
@@ -153,10 +163,13 @@ export async function POST(request: NextRequest) {
       addr_firstName: (addr.firstName ?? '').slice(0, 500),
       addr_lastName: (addr.lastName ?? '').slice(0, 500),
       addr_address: (addr.address ?? '').slice(0, 500),
+      addr_address2: (addr.addressLine2 ?? '').slice(0, 500),
+      addr_unit: (addr.unitNumber ?? '').slice(0, 500),
       addr_city: (addr.city ?? '').slice(0, 500),
       addr_state: (addr.state ?? '').slice(0, 500),
       addr_postalCode: (addr.postalCode ?? '').slice(0, 500),
       addr_country: (addr.country ?? '').slice(0, 500),
+      phone: (addr.phone ?? '').slice(0, 500),
     }
 
     const paymentIntentMetadata: Record<string, string> = {
