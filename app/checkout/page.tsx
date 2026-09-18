@@ -18,10 +18,13 @@ const checkoutSchema = z.object({
   lastName: z.string().min(2, 'Last name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
+  addressLine2: z.string().max(100, 'Address line 2 is too long').optional(),
+  unitNumber: z.string().max(30, 'Unit number is too long').optional(),
   city: z.string().min(2, 'City must be at least 2 characters'),
   state: z.string().min(1, 'State/Province is required'),
-  postalCode: z.string().min(3, 'Postal code is required'),
+  postalCode: z.string().min(3, 'Postal Code / Zipcode is required'),
   country: z.string().min(2, 'Country is required'),
+  phone: z.string().max(30, 'Phone number is too long').optional(),
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
@@ -39,7 +42,12 @@ export default function CheckoutPage() {
     formState: { errors },
   } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { country: 'US' },
+    defaultValues: {
+      country: 'US',
+      addressLine2: '',
+      unitNumber: '',
+      phone: '',
+    },
   });
 
   const watchedCountry = watch('country');
@@ -93,10 +101,13 @@ export default function CheckoutPage() {
       firstName: data.firstName,
       lastName: data.lastName,
       address: data.address,
+      addressLine2: data.addressLine2?.trim() || '',
+      unitNumber: data.unitNumber?.trim() || '',
       city: data.city,
       state: data.state,
       postalCode: data.postalCode,
       country: data.country,
+      phone: data.phone?.trim() || '',
     };
 
     const items = cartItems.map((item) => ({
@@ -188,7 +199,7 @@ export default function CheckoutPage() {
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-white border border-[#E5E0D8] p-6">
                   <h2 className="text-xl font-serif text-[#2D2A26] mb-6">Shipping information</h2>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">First name</label>
                       <input
@@ -206,6 +217,7 @@ export default function CheckoutPage() {
                       {errors.lastName && <p className="text-xs text-[#8C3F3F] mt-1">{errors.lastName.message}</p>}
                     </div>
                   </div>
+
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-[#2D2A26] mb-2">Email</label>
                     <input
@@ -215,15 +227,47 @@ export default function CheckoutPage() {
                     />
                     {errors.email && <p className="text-xs text-[#8C3F3F] mt-1">{errors.email.message}</p>}
                   </div>
+
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address</label>
+                    <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address Line 1</label>
                     <input
                       {...register('address')}
                       className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
                     />
                     {errors.address && <p className="text-xs text-[#8C3F3F] mt-1">{errors.address.message}</p>}
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
+
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address Line 2 (Optional)</label>
+                    <input
+                      {...register('addressLine2')}
+                      className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                    />
+                    {errors.addressLine2 && <p className="text-xs text-[#8C3F3F] mt-1">{errors.addressLine2.message}</p>}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-sm font-medium text-[#2D2A26] mb-2">Unit Number (Optional)</label>
+                      <input
+                        {...register('unitNumber')}
+                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                      />
+                      {errors.unitNumber && <p className="text-xs text-[#8C3F3F] mt-1">{errors.unitNumber.message}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#2D2A26] mb-2">Phone Number (Optional)</label>
+                      <input
+                        type="tel"
+                        autoComplete="tel"
+                        {...register('phone')}
+                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                      />
+                      {errors.phone && <p className="text-xs text-[#8C3F3F] mt-1">{errors.phone.message}</p>}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">City</label>
                       <input
@@ -241,10 +285,12 @@ export default function CheckoutPage() {
                       {errors.state && <p className="text-xs text-[#8C3F3F] mt-1">{errors.state.message}</p>}
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mt-4">
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#2D2A26] mb-2">Postal code</label>
+                      <label className="block text-sm font-medium text-[#2D2A26] mb-2">Postal Code / Zipcode</label>
                       <input
+                        autoComplete="postal-code"
                         {...register('postalCode')}
                         className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
                       />
