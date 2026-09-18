@@ -1,6 +1,6 @@
 # Tsuyanouchi Master List
 
-_Last updated: 2026-09-16_
+_Last updated: 2026-09-18_
 
 This file is the current source of truth for the Tsuyanouchi rebuild/deployment work.
 
@@ -27,17 +27,23 @@ This file is the current source of truth for the Tsuyanouchi rebuild/deployment 
 - [x] Native image-processing dependency removed from the production upload path after Vercel runtime failure
 - [x] Cleanup PR #3 merged to `main`
 - [x] Vercel production deployment for the cleanup merge completed successfully
+- [x] Admin image upload verified end-to-end with Cloudflare R2
+- [x] Stripe sandbox checkout verified end-to-end
+- [x] Stripe test webhook verified with checkout/payment events
+- [x] Resend customer confirmation and owner notification both verified delivered
+- [x] Customer confirmation email refreshed: TsuyaNoUchi branding, compact order IDs, right-aligned totals, non-linked address styling
+- [x] Checkout expanded with address line 2, unit number, Postal Code / Zipcode, and optional phone number
 
 ### Current production verification
 - [x] Confirm the Vercel deployment completes successfully with the infrastructure guard
-- [ ] Upload a new JPG/PNG/WebP from `/admin` and confirm `/api/admin/product-images` returns 200
-- [ ] Confirm the uploaded object appears in the `tsuya-tsuya-images` R2 bucket
-- [ ] Confirm the R2 image displays in admin, `/shop`, product detail, cart, and checkout
+- [x] Upload a new JPG/PNG/WebP from `/admin` and confirm `/api/admin/product-images` succeeds
+- [x] Confirm the uploaded object appears in the `tsuya-tsuya-images` R2 bucket
+- [x] Confirm the R2 image displays through the storefront/checkout path
 - [ ] Test product edit/delete flows
 - [ ] Test CSV import using R2-backed image URLs/filenames
-- [ ] Test Stripe checkout end-to-end
-- [ ] Verify Stripe webhook delivery and resulting Neon order records
-- [ ] Verify Resend order-confirmation and owner-notification delivery
+- [x] Test Stripe checkout end-to-end in Stripe sandbox
+- [x] Verify Stripe sandbox webhook processing and resulting order workflow
+- [x] Verify Resend order-confirmation and owner-notification delivery
 - [ ] Run final production smoke test
 
 ## Production environment variables
@@ -60,7 +66,7 @@ Stripe:
 Resend/email:
 - [x] `RESEND_API_KEY`
 - [x] `ORDER_NOTIFICATION_EMAIL`
-- [ ] Confirm `RESEND_FROM_EMAIL` if overriding the built-in `orders@tsuyanouchi.com` sender
+- [x] `RESEND_FROM_EMAIL`
 
 Gemini:
 - [x] `GEMINI_API_KEY` if AI description generation is being kept
@@ -76,4 +82,4 @@ Gemini:
 
 ## Release gate
 
-Do not treat production as fully verified until the R2 image-upload/display flow, checkout/webhook flow, and email flow have all passed live smoke tests.
+R2 image upload/display and the Stripe sandbox → webhook → Neon → Resend flow are verified. Before launch, restore live Stripe credentials/webhook secret in Vercel and run one final live production smoke test.
