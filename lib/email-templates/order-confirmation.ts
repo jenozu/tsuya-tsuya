@@ -77,19 +77,19 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
       <table role="presentation" style="width: 100%; border-collapse: collapse;">
         <tr>
           <td style="padding: 10px 18px 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right;">Subtotal</td>
-          <td style="width: 110px; padding: 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right; font-variant-numeric: lining-nums tabular-nums;">${order.subtotal.toFixed(2)}</td>
+          <td style="width: 110px; padding: 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right; font-variant-numeric: lining-nums tabular-nums;">$${order.subtotal.toFixed(2)}</td>
         </tr>
         <tr>
           <td style="padding: 10px 18px 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right;">Shipping</td>
-          <td style="width: 110px; padding: 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right; font-variant-numeric: lining-nums tabular-nums;">${order.shipping.toFixed(2)}</td>
+          <td style="width: 110px; padding: 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right; font-variant-numeric: lining-nums tabular-nums;">$${order.shipping.toFixed(2)}</td>
         </tr>
         <tr>
           <td style="padding: 10px 18px 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right;">Tax</td>
-          <td style="width: 110px; padding: 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right; font-variant-numeric: lining-nums tabular-nums;">${order.taxes.toFixed(2)}</td>
+          <td style="width: 110px; padding: 10px 0; border-bottom: 1px solid #F2EFE9; color: #4A4036; text-align: right; font-variant-numeric: lining-nums tabular-nums;">$${order.taxes.toFixed(2)}</td>
         </tr>
         <tr>
           <td style="padding: 16px 18px 0 0; font-size: 20px; font-weight: 600; color: #2D2A26; text-align: right;">Total</td>
-          <td style="width: 110px; padding: 16px 0 0; font-size: 20px; font-weight: 600; color: #2D2A26; text-align: right; font-variant-numeric: lining-nums tabular-nums;">${order.total.toFixed(2)}</td>
+          <td style="width: 110px; padding: 16px 0 0; font-size: 20px; font-weight: 600; color: #2D2A26; text-align: right; font-variant-numeric: lining-nums tabular-nums;">$${order.total.toFixed(2)}</td>
         </tr>
       </table>
     </div>
