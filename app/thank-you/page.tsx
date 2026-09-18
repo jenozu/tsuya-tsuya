@@ -30,10 +30,10 @@ function ThankYouContent() {
       )}
       <div className="bg-[#F2EFE9] border border-[#E5E0D8] p-6 mb-8">
         <p className="text-[#4A4036] mb-4">
-          We've sent a confirmation email with your order details and tracking information.
+          Your order confirmation email should arrive shortly with your order details.
         </p>
         <p className="text-sm text-[#786B59]">
-          If you have any questions, please contact us at concierge@tsuyanouchi.com
+          If you have any questions, please contact us at support@tsuyanouchi.com
         </p>
       </div>
       <div className="flex gap-4 justify-center">
