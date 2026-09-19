@@ -12,7 +12,7 @@ export const generateProductDescription = async (name: string, category: string,
     try {
         const ai = getClient();
         const prompt = `
-            You are a senior copywriter for "Tsuyanouchi", an ultra-luxury Japanese-inspired lifestyle brand.
+            You are a senior copywriter for "TsuyaNoUchi", an ultra-luxury Japanese-inspired lifestyle brand.
             Write a compelling, sophisticated, and concise product description (max 40 words) for a product.
             
             Product Name: ${name}
