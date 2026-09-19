@@ -8,7 +8,7 @@ import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
 import { CartDrawer } from './cart-drawer';
 
-const APP_NAME = "Tsuyanouchi";
+const APP_NAME = "TsuyaNoUchi";
 
 export function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false);
