@@ -9,7 +9,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
     .map(
       (item) =>
         `<tr>
-          <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; font-family: 'Tsuyanouchi Serif', Georgia, serif;">${escapeHtml(item.productName)}</td>
+          <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; font-family: 'TsuyaNoUchi Serif', Georgia, serif;">${escapeHtml(item.productName)}</td>
           <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: center; font-variant-numeric: lining-nums tabular-nums;">${item.quantity}</td>
           <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: right; font-variant-numeric: lining-nums tabular-nums;">$${item.price.toFixed(2)}</td>
           <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: right; font-weight: 600; font-variant-numeric: lining-nums tabular-nums;">$${(item.price * item.quantity).toFixed(2)}</td>
@@ -29,7 +29,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
   <title>Order Confirmation - ${escapeHtml(orderId)}</title>
   <style>
     @font-face {
-      font-family: 'Tsuyanouchi Serif';
+      font-family: 'TsuyaNoUchi Serif';
       src: url('/fonts/tsuyanouchi-serif.otf') format('opentype'),
            url('/fonts/tsuyanouchi-serif.ttf') format('truetype');
       font-display: swap;
@@ -44,7 +44,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
     }
   </style>
 </head>
-<body style="font-family: 'Tsuyanouchi Serif', Georgia, Cambria, 'Times New Roman', Times, serif; line-height: 1.7; color: #2D2A26; max-width: 600px; margin: 0 auto; padding: 0; background: #F2EFE9; font-variant-numeric: lining-nums tabular-nums;">
+<body style="font-family: 'TsuyaNoUchi Serif', Georgia, Cambria, 'Times New Roman', Times, serif; line-height: 1.7; color: #2D2A26; max-width: 600px; margin: 0 auto; padding: 0; background: #F2EFE9; font-variant-numeric: lining-nums tabular-nums;">
   <div style="background: #2D2A26; color: #F9F8F4; padding: 40px 30px; text-align: center;">
     <h1 style="margin: 0; font-size: 32px; font-weight: 400; letter-spacing: 0.05em;">TsuyaNoUchi</h1>
   </div>
