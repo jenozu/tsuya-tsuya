@@ -11,7 +11,7 @@ const headerFont = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: 'Tsuyanouchi | House of Lustre',
+  title: 'TsuyaNoUchi',
   description: 'A curated collection of luxury lifestyle goods for the discerning individual.',
 };
 
