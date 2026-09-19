@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 
-const APP_NAME = "Tsuyanouchi";
+const APP_NAME = "TsuyaNoUchi";
 
 export function Footer() {
   return (
@@ -58,7 +58,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-[#DED9D0] flex justify-between items-center text-xs opacity-60">
-          <p>&copy; {new Date().getFullYear()} Tsuyanouchi. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} TsuyaNoUchi. All rights reserved.</p>
           <Link href="/admin" className="hover:text-[#2D2A26] transition-colors">Staff Access</Link>
         </div>
       </div>
