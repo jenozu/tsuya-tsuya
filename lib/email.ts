@@ -8,7 +8,7 @@ if (!process.env.RESEND_API_KEY) {
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Tsuyanouchi <orders@tsuyanouchi.com>'
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'TsuyaNoUchi <orders@tsuyanouchi.com>'
 const ADMIN_EMAIL = process.env.ORDER_NOTIFICATION_EMAIL || 'admin@tsuyanouchi.com'
 
 export async function sendOrderConfirmation(
