@@ -50,7 +50,7 @@ export default async function HomePage() {
             <h2 className="text-3xl font-serif text-[#2D2A26]">Simplicity is the ultimate sophistication</h2>
             <div className="w-16 h-px bg-[#786B59] mx-auto opacity-50"></div>
             <p className="text-[#4A4036] leading-relaxed">
-              At Tsuyanouchi, we believe in the power of fewer, better things. Each item in our collection is selected for its craftsmanship, material integrity, and ability to age gracefully.
+              At TsuyaNoUchi, we believe in the power of fewer, better things. Each item in our collection is selected for its craftsmanship, material integrity, and ability to age gracefully.
             </p>
           </div>
         </section>
