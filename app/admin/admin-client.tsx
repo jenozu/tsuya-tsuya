@@ -599,7 +599,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       {/* Sidebar */}
       <div className="w-64 bg-[#1A1816] text-[#E5E0D8] flex flex-col shadow-xl z-10">
         <div className="p-6 border-b border-[#2D2A26]">
-          <h1 className="text-2xl font-serif text-white">Tsuyanouchi</h1>
+          <h1 className="text-2xl font-serif text-white">TsuyaNoUchi</h1>
           <p className="text-xs text-[#786B59] uppercase tracking-widest mt-1">Admin Portal</p>
         </div>
         
