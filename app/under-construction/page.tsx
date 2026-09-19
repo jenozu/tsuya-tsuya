@@ -2,8 +2,8 @@ import { WaitlistForm } from './waitlist-form';
 import { OwnerAccessForm } from './owner-access-form';
 
 export const metadata = {
-  title: 'Coming Soon | Tsuyanouchi',
-  description: 'Tsuyanouchi is under construction. Join the waitlist to be notified when we launch.',
+  title: 'Coming Soon | TsuyaNoUchi',
+  description: 'TsuyaNoUchi is under construction. Join the waitlist to be notified when we launch.',
 };
 
 export default function UnderConstructionPage() {
