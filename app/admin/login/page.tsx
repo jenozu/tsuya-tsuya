@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#2D2A26]">
       <div className="bg-[#F9F8F4] p-8 border border-[#E5E0D8] max-w-md w-full">
-        <h1 className="text-2xl font-serif text-[#2D2A26] mb-2 text-center">Tsuyanouchi</h1>
+        <h1 className="text-2xl font-serif text-[#2D2A26] mb-2 text-center">TsuyaNoUchi</h1>
         <p className="text-sm text-[#786B59] text-center mb-8 uppercase tracking-wider">Admin Portal</p>
         
         <form onSubmit={handleSubmit}>
