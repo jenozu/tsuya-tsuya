@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
             image_url: incomingUsesPlaceholder ? existing.image_url : product.image_url,
             stock: product.stock,
             sizes: product.sizes,
+            product_type: product.product_type,
           });
 
           if (updatedProduct) {
@@ -88,6 +89,7 @@ export async function POST(request: NextRequest) {
           image_url: product.image_url,
           stock: product.stock,
           sizes: product.sizes,
+          product_type: product.product_type,
         });
 
         if (newProduct) {
@@ -139,6 +141,7 @@ export async function GET() {
   return NextResponse.json({
     template: {
       requiredHeaders: ['name', 'category', 'stock'],
+      requiredProductType: 'Each row must identify 1-piece, 2-piece, or 3-piece using productType (legacy set_pieces is also accepted).',
       requiredPricing: 'At least one price_8x10 ... price_24x36 column must contain a positive price',
       optionalHeaders: ['imageUrl', 'description', 'videoUrl', 'cost_8x10 ... cost_24x36'],
       sizeVariations: [
@@ -153,7 +156,8 @@ export async function GET() {
       ],
       example: {
         name: 'Mountain Landscape Print',
-        category: 'Art Prints',
+        category: 'Naruto',
+        productType: '1-piece',
         price: 189,
         stock: 50,
         imageUrl: '',
