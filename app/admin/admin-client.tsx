@@ -305,8 +305,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       return;
     }
 
-    const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
-    const avgCost = Math.round(sizesWithPrice.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizesWithPrice.length);
+    const roundCurrency = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+    const avgPrice = roundCurrency(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
+    const avgCost = roundCurrency(sizesWithPrice.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizesWithPrice.length);
     const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : '/product-placeholder.svg';
     const productData = {
       name,
@@ -926,12 +927,12 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Category</label>
+                        <label className="text-sm font-medium text-[#4A4036]">Anime Series / Category</label>
                         <input 
                           value={category} 
                           onChange={(e) => setCategory(e.target.value)}
                           className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Home Decor"
+                          placeholder="e.g. Naruto, Jujutsu Kaisen"
                         />
                       </div>
                       <div className="space-y-2">
@@ -1114,8 +1115,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                             </div>
                           </td>
                           <td className="p-4 text-[#4A4036] text-sm">{product.category}</td>
-                          <td className="p-4 text-right text-[#786B59] text-sm">${product.cost || 0}</td>
-                          <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price}</td>
+                          <td className="p-4 text-right text-[#786B59] text-sm">${(product.cost || 0).toFixed(2)}</td>
+                          <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price.toFixed(2)}</td>
                           <td className="p-4 text-right">
                             <span className={`px-2 py-1 text-xs ${product.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
                               {product.stock}
