@@ -7,6 +7,9 @@ import { ProductSize } from './types'
 export interface CSVRow {
   name: string;
   category: string;
+  productType?: string;
+  product_type?: string;
+  set_pieces?: string | number;
   stock: string | number;
   imageUrl?: string;
   description?: string;
@@ -43,6 +46,7 @@ export interface ParsedProduct {
   stock: number;
   sizes: ProductSize[];
   video_url?: string;
+  product_type: string;
 }
 
 /**
@@ -100,6 +104,14 @@ function validateRow(row: any, rowIndex: number): { valid: boolean; error?: stri
     }
   }
 
+  const productType = normalizeProductType(row.productType ?? row.product_type ?? row.set_pieces);
+  if (!productType) {
+    return {
+      valid: false,
+      error: `Row ${rowIndex + 2}: Missing or invalid productType. Use "1-piece", "2-piece", or "3-piece".`,
+    };
+  }
+
   // Validate stock is numeric
   const stock = parseInt(String(row.stock));
   if (isNaN(stock) || stock < 0) {
@@ -145,6 +157,14 @@ function validateRow(row: any, rowIndex: number): { valid: boolean; error?: stri
  */
 function roundCurrency(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+function normalizeProductType(value: unknown): '1-piece' | '2-piece' | '3-piece' | null {
+  const normalized = String(value ?? '').trim().toLowerCase().replace(/_/g, '-');
+  if (['1', '1pc', '1-pc', '1 piece', '1-piece'].includes(normalized)) return '1-piece';
+  if (['2', '2pc', '2-pc', '2 piece', '2-piece', '2-piece set'].includes(normalized)) return '2-piece';
+  if (['3', '3pc', '3-pc', '3 piece', '3-piece', '3-piece set'].includes(normalized)) return '3-piece';
+  return null;
 }
 
 function createSizeVariationsFromRow(row: CSVRow): ProductSize[] {
@@ -201,6 +221,8 @@ function parseProductFromRow(row: CSVRow): ParsedProduct {
     ? roundCurrency(sizes.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizes.length)
     : 0;
 
+  const productType = normalizeProductType(row.productType ?? row.product_type ?? row.set_pieces)!;
+
   return {
     name: String(row.name).trim(),
     category: row.category && String(row.category).trim() !== '' ? String(row.category).trim() : 'Art Prints',
@@ -211,6 +233,7 @@ function parseProductFromRow(row: CSVRow): ParsedProduct {
     stock,
     sizes,
     video_url: row.videoUrl ? String(row.videoUrl).trim() : undefined,
+    product_type: productType,
   };
 }
 
@@ -268,7 +291,7 @@ export function parseCSV(
 
     // All possible headers
     const allHeaders = [
-      'name', 'category', 'stock', 'imageUrl', 'description', 'videoUrl',
+      'name', 'category', 'productType', 'product_type', 'set_pieces', 'stock', 'imageUrl', 'description', 'videoUrl',
       'price_8x10', 'cost_8x10', 'price_11x14', 'cost_11x14',
       'price_12x18', 'cost_12x18', 'price_16x20', 'cost_16x20',
       'price_18x24', 'cost_18x24', 'price_20x30', 'cost_20x30',
