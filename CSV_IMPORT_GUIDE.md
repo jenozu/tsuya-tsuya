@@ -4,12 +4,12 @@ Tsuyanouchi imports product data into Neon PostgreSQL and uses Cloudflare R2 for
 
 ## Batch workflow
 
-1. Put image files in `product-images/1`, `product-images/2`, or `product-images/3`.
-2. Upload that folder to R2 with `npm run upload-images-1`, `npm run upload-images-2`, or `npm run upload-images-3`.
-3. Put the matching R2 filename/path in the CSV `imageUrl` column.
-4. In the admin portal, open Products and choose Import CSV.
+1. In the admin portal, open Products and choose Import CSV.
+2. The `imageUrl` field is optional. Leave it blank if you want to upload images manually after import.
+3. Edit each imported product and use Product Images to upload JPG, PNG, or WebP files from your computer. The first image is the primary image.
+4. Alternatively, for pre-uploaded R2 images, put the matching R2 filename/path in the CSV `imageUrl` column.
 
-The CSV importer does not upload a local file merely because its filename is listed. The corresponding object must already exist in R2.
+The CSV importer does not upload a local image merely because a filename is listed. A non-blank filename/path must already exist in R2.
 
 ## Image URLs
 
@@ -46,7 +46,7 @@ price_24x36
 cost_24x36
 ```
 
-Each row needs `name`, `stock`, `imageUrl`, and at least one positive size price. Keep the `category` header in the file; a blank row value defaults to `Art Prints`.
+Each row needs `name`, `stock`, and at least one positive size price. Keep the `category` header in the file; use it for the anime series/title. `imageUrl` may be blank, in which case the product uses a placeholder until you upload images manually in admin.
 
 ## Templates
 
@@ -61,3 +61,8 @@ Use one of these root-level files as a starting point:
 ## After import
 
 Confirm the product appears in admin, the product row exists in Neon, its image URL is publicly readable from R2, and the primary image renders in the shop and product detail page.
+
+
+## Currency precision
+
+CSV prices and costs are stored to two decimal places. For example, `87.99` remains `87.99` instead of being rounded to `88`.
