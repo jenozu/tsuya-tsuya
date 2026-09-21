@@ -64,9 +64,30 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   // CSV Upload Ref and State
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   React.useEffect(() => { setProducts(initialProducts); }, [initialProducts]);
   React.useEffect(() => { setOrders(initialOrders); }, [initialOrders]);
+
+  const allProductsSelected = products.length > 0 && selectedProductIds.size === products.length;
+
+  const toggleProductSelection = (id: string) => {
+    setSelectedProductIds(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllProducts = () => {
+    setSelectedProductIds(
+      allProductsSelected ? new Set() : new Set(products.map(product => product.id))
+    );
+  };
+
+  const clearProductSelection = () => setSelectedProductIds(new Set());
 
   // --- Calculations for Dashboard ---
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
@@ -287,6 +308,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         });
         
         if (response.ok) {
+          setSelectedProductIds(current => {
+            const next = new Set(current);
+            next.delete(id);
+            return next;
+          });
           refreshData();
         } else {
           alert('Failed to delete product');
@@ -298,7 +324,44 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }
   };
 
-  const handleSave = async () => {
+  const handleBulkDelete = async () => {
+    const ids = Array.from(selectedProductIds);
+    if (ids.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Delete ${ids.length} selected product${ids.length === 1 ? '' : 's'}? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setIsBulkDeleting(true);
+    try {
+      const response = await fetch('/api/products/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        alert(result.error || 'Failed to delete selected products');
+        return;
+      }
+
+      clearProductSelection();
+      await refreshData();
+
+      if (result.failed > 0) {
+        alert(`Deleted ${result.deleted} product(s). ${result.failed} could not be deleted.`);
+      }
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      alert('Failed to delete selected products');
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
+    const handleSave = async () => {
     if (isUploadingImages) {
       alert('Please wait for image uploads to finish.');
       return;
@@ -894,6 +957,25 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
               <div className="flex justify-between items-center">
                 <h2 className="text-3xl font-serif text-[#2D2A26]">Product Management</h2>
                 <div className="flex gap-3">
+                  {selectedProductIds.size > 0 && (
+                    <>
+                      <Button
+                        variant="secondary"
+                        onClick={clearProductSelection}
+                        disabled={isBulkDeleting}
+                      >
+                        Clear Selection
+                      </Button>
+                      <Button
+                        onClick={handleBulkDelete}
+                        disabled={isBulkDeleting}
+                        className="bg-[#8C3F3F] hover:bg-[#733333] text-white"
+                      >
+                        <Trash2 size={16} className="mr-2" />
+                        {isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedProductIds.size})`}
+                      </Button>
+                    </>
+                  )}
                   <input
                     type="file"
                     accept=".csv"
@@ -1119,6 +1201,16 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   <table className="w-full text-left">
                     <thead className="bg-[#F2EFE9] text-[#786B59] text-xs uppercase tracking-wider">
                       <tr>
+                        <th className="p-4 w-12">
+                          <input
+                            type="checkbox"
+                            checked={allProductsSelected}
+                            onChange={toggleSelectAllProducts}
+                            aria-label={allProductsSelected ? 'Deselect all products' : 'Select all products'}
+                            title={allProductsSelected ? 'Deselect all products' : 'Select all products'}
+                            className="h-4 w-4 cursor-pointer accent-[#2D2A26]"
+                          />
+                        </th>
                         <th className="p-4 font-medium">Product</th>
                         <th className="p-4 font-medium">Category</th>
                         <th className="p-4 font-medium text-right">Cost</th>
@@ -1129,7 +1221,19 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     </thead>
                     <tbody className="divide-y divide-[#E5E0D8]">
                       {products.map((product) => (
-                        <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
+                        <tr
+                          key={product.id}
+                          className={`transition-colors group ${selectedProductIds.has(product.id) ? 'bg-[#F2EFE9]' : 'hover:bg-[#F9F8F4]'}`}
+                        >
+                          <td className="p-4 w-12">
+                            <input
+                              type="checkbox"
+                              checked={selectedProductIds.has(product.id)}
+                              onChange={() => toggleProductSelection(product.id)}
+                              aria-label={`Select ${product.name}`}
+                              className="h-4 w-4 cursor-pointer accent-[#2D2A26]"
+                            />
+                          </td>
                           <td className="p-4">
                             <div className="flex items-center gap-3">
                               <img src={parseImageUrls(product.image_url)[0] || '/product-placeholder.svg'} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
