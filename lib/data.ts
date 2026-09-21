@@ -120,6 +120,25 @@ export async function getProduct(id: string): Promise<Product | null> {
   }
 }
 
+
+export async function getProductByName(name: string): Promise<Product | null> {
+  try {
+    const sql = getDb()
+    const normalizedName = name.trim()
+    const rows = (await sql`
+      SELECT id, name, description, price, cost, category, image_url, stock, sizes, product_type, created_at, updated_at
+      FROM products
+      WHERE LOWER(name) = LOWER(${normalizedName})
+      ORDER BY created_at ASC
+      LIMIT 1
+    `) as unknown as Row[]
+    return rows[0] ? mapProduct(rows[0]) : null
+  } catch (error) {
+    console.error('Error fetching product by name from Neon:', error)
+    return null
+  }
+}
+
 export async function createProduct(product: Omit<Product, 'id' | 'created_at' | 'updated_at'>): Promise<Product | null> {
   try {
     const sql = getDb()
