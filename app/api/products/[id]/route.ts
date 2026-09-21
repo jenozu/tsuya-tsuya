@@ -45,6 +45,7 @@ export async function PUT(
     if (body.price !== undefined) updates.price = parseFloat(body.price)
     if (body.cost !== undefined) updates.cost = parseFloat(body.cost)
     if (body.category !== undefined) updates.category = body.category
+    if (body.product_type !== undefined) updates.product_type = body.product_type
     if (body.image_url !== undefined) updates.image_url = body.image_url
     if (body.imageUrl !== undefined) updates.image_url = body.imageUrl
     if (body.stock !== undefined) updates.stock = parseInt(body.stock)
