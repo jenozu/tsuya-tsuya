@@ -37,8 +37,10 @@ export function ShopClient({ products }: ShopClientProps) {
     const filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
       const nameLower = product.name.toLowerCase();
+      const productType = (product.product_type || '').toLowerCase();
       const matchesPiece =
         pieceFilter === 'all' ||
+        productType === pieceFilter ||
         (pieceFilter === '1-piece' && (nameLower.includes('1-piece') || nameLower.includes('1 piece'))) ||
         (pieceFilter === '2-piece' && (nameLower.includes('2-piece') || nameLower.includes('2 piece'))) ||
         (pieceFilter === '3-piece' && (nameLower.includes('3-piece') || nameLower.includes('3 piece')));
