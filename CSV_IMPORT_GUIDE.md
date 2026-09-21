@@ -24,6 +24,7 @@ Supported image extensions: JPG/JPEG, PNG, and WebP.
 ```text
 name
 category
+productType
 stock
 imageUrl
 description
@@ -46,7 +47,11 @@ price_24x36
 cost_24x36
 ```
 
-Each row needs `name`, `stock`, and at least one positive size price. Keep the `category` header in the file; use it for the anime series/title. `imageUrl` may be blank, in which case the product uses a placeholder until you upload images manually in admin.
+Each row needs `name`, `stock`, a valid `productType`, and at least one positive size price. Use `category` for the anime series/title. Valid `productType` values are `1-piece`, `2-piece`, and `3-piece`. The legacy `set_pieces` values `1`, `2`, and `3` are also accepted for older files. `imageUrl` may be blank, in which case the product uses a placeholder until you upload images manually in admin.
+
+## Product set type
+
+The shop's 1-Piece / 2-Piece Set / 3-Piece Set filters use the stored product type, not the product name. Re-importing a row with the same product name updates the existing product's type without creating a duplicate.
 
 ## Templates
 
