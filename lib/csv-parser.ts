@@ -8,7 +8,7 @@ export interface CSVRow {
   name: string;
   category: string;
   stock: string | number;
-  imageUrl: string;
+  imageUrl?: string;
   description?: string;
   videoUrl?: string;
   // Individual size prices and costs
@@ -73,6 +73,7 @@ function isValidImageUrl(url: string): boolean {
  */
 function normalizeImageUrl(imageUrlOrFilename: string): string {
   const trimmed = imageUrlOrFilename.trim();
+  if (!trimmed) return '/product-placeholder.svg';
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) return trimmed;
 
   const publicBase = process.env.R2_PUBLIC_URL?.replace(/\/+$/, '');
@@ -88,7 +89,7 @@ function normalizeImageUrl(imageUrlOrFilename: string): string {
  */
 function validateRow(row: any, rowIndex: number): { valid: boolean; error?: string } {
   // Check basic required fields (category is optional, defaults to "Art Prints")
-  const basicRequired = ['name', 'stock', 'imageUrl'];
+  const basicRequired = ['name', 'stock'];
   
   for (const field of basicRequired) {
     if (!row[field] || String(row[field]).trim() === '') {
@@ -126,8 +127,9 @@ function validateRow(row: any, rowIndex: number): { valid: boolean; error?: stri
     };
   }
 
-  // Validate image URL
-  if (!isValidImageUrl(row.imageUrl)) {
+  // Validate image URL only when one is supplied.
+  // Blank imageUrl values use the product placeholder so images can be uploaded manually later.
+  if (row.imageUrl && String(row.imageUrl).trim() !== '' && !isValidImageUrl(String(row.imageUrl))) {
     return {
       valid: false,
       error: `Row ${rowIndex + 2}: Invalid imageUrl "${row.imageUrl}" (must end with .jpg, .jpeg, .png, or .webp)`,
@@ -141,6 +143,10 @@ function validateRow(row: any, rowIndex: number): { valid: boolean; error?: stri
  * Creates size variations from individual CSV price columns
  * @param row - CSV row with individual size prices/costs
  */
+function roundCurrency(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
 function createSizeVariationsFromRow(row: CSVRow): ProductSize[] {
   const sizeMapping = {
     '8" x 10"': { price: 'price_8x10', cost: 'cost_8x10' },
@@ -169,8 +175,8 @@ function createSizeVariationsFromRow(row: CSVRow): ProductSize[] {
       if (!isNaN(price) && price > 0) {
         variations.push({
           label: sizeLabel,
-          price: Math.round(price),
-          cost: Math.round(cost),
+          price: roundCurrency(price),
+          cost: roundCurrency(cost),
         });
       }
     }
@@ -187,12 +193,12 @@ function parseProductFromRow(row: CSVRow): ParsedProduct {
   const sizes = createSizeVariationsFromRow(row);
 
   // Calculate average price and total cost from variations
-  const avgPrice = sizes.length > 0 
-    ? Math.round(sizes.reduce((sum, s) => sum + s.price, 0) / sizes.length)
+  const avgPrice = sizes.length > 0
+    ? roundCurrency(sizes.reduce((sum, s) => sum + s.price, 0) / sizes.length)
     : 0;
-  
+
   const avgCost = sizes.length > 0
-    ? Math.round(sizes.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizes.length)
+    ? roundCurrency(sizes.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizes.length)
     : 0;
 
   return {
@@ -201,7 +207,7 @@ function parseProductFromRow(row: CSVRow): ParsedProduct {
     description: row.description ? String(row.description).trim() : '',
     price: avgPrice,
     cost: avgCost,
-    image_url: normalizeImageUrl(String(row.imageUrl)),
+    image_url: normalizeImageUrl(row.imageUrl ? String(row.imageUrl) : ''),
     stock,
     sizes,
     video_url: row.videoUrl ? String(row.videoUrl).trim() : undefined,
@@ -242,7 +248,7 @@ export function parseCSV(
     const headers = headerLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
 
     // Validate basic required headers
-    const requiredHeaders = ['name', 'category', 'stock', 'imageUrl'];
+    const requiredHeaders = ['name', 'category', 'stock'];
     const missingHeaders = requiredHeaders.filter(
       required => !headers.some(h => h.toLowerCase() === required.toLowerCase())
     );
