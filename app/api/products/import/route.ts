@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csv-parser';
-import { createProduct } from '@/lib/data'
+import { createProduct, getProductByName, updateProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
 
@@ -51,10 +51,34 @@ export async function POST(request: NextRequest) {
 
     // Import products to database
     const importedProducts: string[] = [];
+    const updatedProducts: string[] = [];
     const failedProducts: string[] = [];
 
     for (const product of result.products) {
       try {
+        const existing = await getProductByName(product.name);
+        const incomingUsesPlaceholder = product.image_url === '/product-placeholder.svg';
+
+        if (existing) {
+          const updatedProduct = await updateProduct(existing.id, {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            cost: product.cost,
+            category: product.category,
+            image_url: incomingUsesPlaceholder ? existing.image_url : product.image_url,
+            stock: product.stock,
+            sizes: product.sizes,
+          });
+
+          if (updatedProduct) {
+            updatedProducts.push(product.name);
+          } else {
+            failedProducts.push(`${product.name} (database update error)`);
+          }
+          continue;
+        }
+
         const newProduct = await createProduct({
           name: product.name,
           description: product.description,
@@ -85,8 +109,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: `Successfully imported ${importedProducts.length} items`,
+        message: `Created ${importedProducts.length} and updated ${updatedProducts.length} items`,
         imported: importedProducts.length,
+        updated: updatedProducts.length,
         failed: failedProducts.length,
         skipped: result.skipped,
         errors: result.errors,
