@@ -20,6 +20,21 @@ export function ProductCard({ product }: ProductCardProps) {
   const imageUrls = getImageUrls(product);
   const primaryImage = imageUrls[0] || product.image_url;
   const pricedSizes = (product.sizes || []).filter(size => Number.isFinite(size.price) && size.price > 0);
+  const formatPrice = (value: number) => `${value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+  const priceLabel = pricedSizes.length > 0
+    ? (() => {
+        const prices = pricedSizes.map(size => size.price);
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        return minPrice === maxPrice
+          ? formatPrice(minPrice)
+          : `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`;
+      })()
+    : formatPrice(product.price);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -77,10 +92,7 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-[#4A4036] font-medium">
-          {pricedSizes.length > 0
-            ? `From $${Math.min(...pricedSizes.map(s => s.price)).toLocaleString()}`
-            : `$${product.price.toLocaleString()}`
-          }
+          {priceLabel}
         </p>
       </div>
     </Link>
