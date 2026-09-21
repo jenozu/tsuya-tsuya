@@ -113,9 +113,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     template: {
-      requiredHeaders: ['name', 'category', 'stock', 'imageUrl'],
+      requiredHeaders: ['name', 'category', 'stock'],
       requiredPricing: 'At least one price_8x10 ... price_24x36 column must contain a positive price',
-      optionalHeaders: ['description', 'videoUrl', 'cost_8x10 ... cost_24x36'],
+      optionalHeaders: ['imageUrl', 'description', 'videoUrl', 'cost_8x10 ... cost_24x36'],
       sizeVariations: [
         '8" x 10"',
         '11" x 14"',
@@ -131,7 +131,7 @@ export async function GET() {
         category: 'Art Prints',
         price: 189,
         stock: 50,
-        imageUrl: 'https://example.com/image.jpg',
+        imageUrl: '',
         description: 'Beautiful mountain landscape',
         cost: 85,
       },
