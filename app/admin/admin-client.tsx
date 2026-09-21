@@ -45,6 +45,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [currentId, setCurrentId] = useState<string>('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
+  const [productType, setProductType] = useState<'1-piece' | '2-piece' | '3-piece'>('1-piece');
   const [description, setDescription] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
@@ -199,6 +200,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCurrentId('');
     setName('');
     setCategory('');
+    setProductType('1-piece');
     setDescription('');
     setImageUrls([]);
     setStock(0);
@@ -210,6 +212,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCurrentId(product.id);
     setName(product.name);
     setCategory(product.category);
+    setProductType(
+      product.product_type === '2-piece' || product.product_type === '3-piece'
+        ? product.product_type
+        : '1-piece'
+    );
     setDescription(product.description);
     const urls = parseImageUrls(product.image_url);
     setImageUrls(urls);
@@ -255,6 +262,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
           price: effectivePrice,
           cost: product.cost ?? 0,
           category: product.category,
+          product_type: product.product_type ?? '1-piece',
           image_url: product.image_url,
           stock: product.stock ?? 0,
           sizes: product.sizes ?? [],
@@ -315,6 +323,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       price: avgPrice,
       cost: avgCost,
       category,
+      product_type: productType,
       image_url: imageUrlValue,
       stock,
       sizes: sizesWithPrice
@@ -475,7 +484,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       if (response.ok && result.success) {
         alert(
           `✅ ${result.message}\n\n` +
-          `Imported: ${result.imported}\n` +
+          `Created: ${result.imported}\n` +
+          `Updated: ${result.updated || 0}\n` +
           `Failed: ${result.failed || 0}\n` +
           `Skipped: ${result.skipped || 0}` +
           (result.errors?.length > 0 ? `\n\nWarnings:\n${result.errors.slice(0, 5).join('\n')}` : '')
@@ -916,7 +926,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   </div>
 
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-[#4A4036]">Name</label>
                         <input 
@@ -934,6 +944,18 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
                           placeholder="e.g. Naruto, Jujutsu Kaisen"
                         />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-[#4A4036]">Set Type</label>
+                        <select
+                          value={productType}
+                          onChange={(e) => setProductType(e.target.value as '1-piece' | '2-piece' | '3-piece')}
+                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
+                        >
+                          <option value="1-piece">1-Piece</option>
+                          <option value="2-piece">2-Piece Set</option>
+                          <option value="3-piece">3-Piece Set</option>
+                        </select>
                       </div>
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-[#4A4036]">Stock</label>
