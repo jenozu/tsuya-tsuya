@@ -11,7 +11,8 @@ Establish an auditable Next.js foundation and reproducible deployment before exp
 - [x] Keep the Next.js/TypeScript application and lockfile in the canonical repository (`package.json`, `package-lock.json`). <!-- task:TSU-M1-001 -->
 - [x] Keep Vercel framework/build configuration (`vercel.json`) and deployment instructions (`README.md`). <!-- task:TSU-M1-002 -->
 - [x] Run the existing Neon/R2 infrastructure guard from the production build and pull-request workflow. <!-- task:TSU-M1-003 -->
-- [ ] Verify the current default-branch build with dependency installation, `npm run verify:infra`, typecheck, and production build; retain logs. <!-- task:TSU-M1-004 -->
+- [x] Verify the current default-branch build with dependency installation, `npm run verify:infra`, typecheck, and production build; retain logs. <!-- task:TSU-M1-004 -->
+  - Evidence (2026-09-24): GitHub Actions run [36063998982](https://github.com/jenozu/tsuya-tsuya/actions/runs/36063998982), baseline-build against `main` commit `4632b1019f05a4f9b4c8f3adea2b454f44fd6477` using Node 22: `npm ci`, `npm run verify:infra`, `tsc --noEmit`, and `npm run build` all exited successfully. Download the `tsu-m1-004-default-branch-build-36063998982` artifact for the retained command logs (14-day retention); the workflow run's job logs remain accessible on GitHub. Build emitted a nonfatal `DATABASE_URL is not configured` message during product prerendering; database integration and deployed behavior were **not** verified here, and remain covered by later tasks.
 - [ ] Fix `next.config.ts` build-error suppression; make TypeScript failures block builds and verify a clean build. <!-- task:TSU-M1-005 -->
 - [ ] Replace or repair the `next lint` script for the installed Next.js version and enforce linting in CI. <!-- task:TSU-M1-006 -->
 - [ ] Confirm Vercel production/preview projects, `main` tracking, rollback procedure, and deployed commit SHA against the live dashboard. <!-- task:TSU-M1-007 -->

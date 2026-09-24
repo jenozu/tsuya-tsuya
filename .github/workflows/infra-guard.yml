@@ -11,3 +11,70 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify current infrastructure references
         run: node scripts/assert-current-infra.mjs
+
+  # TSU-M1-004: test the actual default branch, not the proposed PR changes.
+  # Keep checks separate so a failure has an unambiguous log and status.
+  baseline-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out current default branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Record source and runtime versions
+        shell: bash
+        run: |
+          mkdir -p verification-logs
+          {
+            echo "Task: TSU-M1-004"
+            echo "Branch: $(git branch --show-current)"
+            echo "Commit: $(git rev-parse HEAD)"
+            echo "Node: $(node --version)"
+            echo "npm: $(npm --version)"
+            echo "UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } | tee verification-logs/source.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          npm ci 2>&1 | tee verification-logs/npm-ci.log
+
+      - name: Verify infrastructure
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run verify:infra 2>&1 | tee verification-logs/verify-infra.log
+
+      - name: Check types without emitting files
+        shell: bash
+        run: |
+          set -o pipefail
+          ./node_modules/.bin/tsc --noEmit 2>&1 | tee verification-logs/typecheck.log
+
+      - name: Build for production
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee verification-logs/production-build.log
+
+      - name: Retain verification logs even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsu-m1-004-default-branch-build-${{ github.run_id }}
+          path: verification-logs/
+          if-no-files-found: warn
+          retention-days: 14
