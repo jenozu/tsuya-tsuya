@@ -23,10 +23,9 @@ export function normalizeProductImageSrc(raw: string | null | undefined): string
   }
 
   if (
-    trimmed.startsWith('/') ||
+    (trimmed.startsWith('/') && !trimmed.startsWith('//')) ||
     trimmed.startsWith('data:image/') ||
-    trimmed.startsWith('https://') ||
-    trimmed.startsWith('http://')
+    trimmed.startsWith('https://')
   ) {
     return trimmed;
   }
