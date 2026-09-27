@@ -115,7 +115,7 @@ export default function CheckoutPage() {
       name: item.name,
       price: item.selectedSize?.price ?? item.price,
       quantity: item.quantity,
-      imageUrl: item.imageUrl || undefined,
+      sizeLabel: item.selectedSize?.label,
     }));
 
     try {

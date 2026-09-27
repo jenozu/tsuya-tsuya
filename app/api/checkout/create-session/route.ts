@@ -3,21 +3,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
 import { trustedCheckoutReturnUrls } from '@/lib/checkout-redirects'
+import { priceCheckoutBasket, CheckoutBasketError } from '@/lib/checkout-pricing'
+import { getProduct } from '@/lib/data'
+import { getStandardShippingForCountryAndQuantity } from '@/lib/shipping'
+import { computeTaxAmount } from '@/lib/tax'
+import { z } from 'zod'
 
 export const runtime = 'nodejs'
 
-interface ShippingAddressPayload {
-  firstName: string
-  lastName: string
-  address: string
-  addressLine2?: string
-  unitNumber?: string
-  city: string
-  state: string
-  postalCode: string
-  country: string
-  phone?: string
-}
+
+const checkoutSchema = z.object({
+  items: z.array(z.object({
+    id: z.string().min(1).max(100),
+    quantity: z.number().int().min(1).max(20),
+    sizeLabel: z.string().max(100).optional(),
+  })).min(1).max(30),
+  subtotal: z.number().finite().nonnegative(),
+  shipping: z.number().finite().nonnegative(),
+  tax: z.number().finite().nonnegative(),
+  email: z.string().email().max(254),
+  shipping_address: z.object({
+    firstName: z.string().trim().min(1).max(100),
+    lastName: z.string().trim().min(1).max(100),
+    address: z.string().trim().min(3).max(200),
+    addressLine2: z.string().max(200).optional(),
+    unitNumber: z.string().max(30).optional(),
+    city: z.string().trim().min(2).max(120),
+    state: z.string().trim().min(1).max(100),
+    postalCode: z.string().trim().min(3).max(30),
+    country: z.string().trim().length(2),
+    phone: z.string().max(30).optional(),
+  }),
+})
 
 function createShortOrderId(): string {
   const max = 36 ** 7
@@ -27,37 +44,33 @@ function createShortOrderId(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const {
-      items,
-      subtotal,
-      shipping,
-      tax,
-      country,
-      state,
-      shipping_address,
-      email,
-    } = body as {
-      items: Array<{ id: string; name: string; price: number; quantity: number; imageUrl?: string }>
-      subtotal: number
-      shipping: number
-      tax: number
-      country: string
-      state?: string
-      shipping_address: ShippingAddressPayload
-      email?: string
+    // Verify the incoming structure; never accept the client's amounts as charge authority.
+    const declaredLength = Number(request.headers.get('content-length') || 0)
+    if (declaredLength > 32_768) {
+      return NextResponse.json({ error: 'Checkout request is too large.' }, { status: 413 })
     }
-
-    if (!items?.length) {
-      return NextResponse.json({ error: 'No items in cart' }, { status: 400 })
+    const parsed = checkoutSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Please check your checkout details.' }, { status: 400 })
     }
+    const { items, subtotal, shipping, tax, shipping_address, email } = parsed.data
+    const priced = await priceCheckoutBasket(items, getProduct)
+    const country = shipping_address.country.toUpperCase()
+    const state = shipping_address.state.toUpperCase()
+    const shippingCents = Math.round(getStandardShippingForCountryAndQuantity(country, priced.quantity) * 100)
+    const taxCents = Math.round(
+      computeTaxAmount((priced.subtotalCents + shippingCents) / 100, country, state) * 100,
+    )
 
-    if (typeof subtotal !== 'number' || typeof shipping !== 'number' || typeof tax !== 'number') {
-      return NextResponse.json({ error: 'Missing or invalid subtotal, shipping, or tax' }, { status: 400 })
-    }
-
-    if (!shipping_address || typeof shipping_address !== 'object') {
-      return NextResponse.json({ error: 'Missing shipping_address' }, { status: 400 })
+    // An edited price, expired variant or stale rate stops checkout instead
+    // of silently charging an amount different from the displayed cart.
+    const clientCents = [subtotal, shipping, tax].map(value => Math.round(value * 100))
+    if ([priced.subtotalCents, shippingCents, taxCents].some((value, index) =>
+      !Number.isSafeInteger(value) || value < 0 || Math.abs(value - clientCents[index]) > 1)) {
+      return NextResponse.json(
+        { error: 'Your cart totals changed. Please refresh checkout before paying.' },
+        { status: 409 },
+      )
     }
 
     const orderId = createShortOrderId()
@@ -69,64 +82,39 @@ export async function POST(request: NextRequest) {
       requestOrigin: request.nextUrl.origin,
     })
 
-    const STRIPE_MAX_IMAGE_URL = 2048
-    const safeImageUrl = (url: string | undefined): string | undefined => {
-      if (!url || typeof url !== 'string') return undefined
-      if (url.length <= STRIPE_MAX_IMAGE_URL) return url
-      try {
-        const parsed = new URL(url)
-        const base = `${parsed.origin}${parsed.pathname}`
-        return base.length <= STRIPE_MAX_IMAGE_URL ? base : undefined
-      } catch {
-        return undefined
-      }
-    }
-
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => {
-      const unitAmount = Math.round((item.price ?? 0) * 100)
-      const imageUrl = safeImageUrl(item.imageUrl)
-      return {
-        price_data: {
-          currency: 'usd',
-          unit_amount: unitAmount,
-          product_data: {
-            name: item.name,
-            ...(imageUrl ? { images: [imageUrl] } : {}),
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = priced.lines.map(item => ({
+      price_data: {
+        currency: 'usd',
+        unit_amount: item.unitCents,
+        product_data: {
+          name: item.name,
+          ...(item.sizeLabel ? { description: `Print size: ${item.sizeLabel}` } : {}),
+          metadata: {
+            productId: item.productId,
+            sizeLabel: item.sizeLabel ?? '',
           },
         },
-        quantity: item.quantity,
-      }
+      },
+      quantity: item.quantity,
+    }))
+    if (shippingCents > 0) lineItems.push({
+      price_data: {
+        currency: 'usd',
+        unit_amount: shippingCents,
+        product_data: { name: 'Shipping' },
+      },
+      quantity: 1,
+    })
+    if (taxCents > 0) lineItems.push({
+      price_data: {
+        currency: 'usd',
+        unit_amount: taxCents,
+        product_data: { name: 'Tax' },
+      },
+      quantity: 1,
     })
 
-    const shippingCents = Math.round(shipping * 100)
-    if (shippingCents > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'usd',
-          unit_amount: shippingCents,
-          product_data: {
-            name: 'Shipping',
-          },
-        },
-        quantity: 1,
-      })
-    }
-
-    const taxCents = Math.round(tax * 100)
-    if (taxCents > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'usd',
-          unit_amount: taxCents,
-          product_data: {
-            name: 'Tax',
-          },
-        },
-        quantity: 1,
-      })
-    }
-
-    const addr = shipping_address as ShippingAddressPayload
+    const addr = shipping_address
     const metadata: Record<string, string> = {
       orderId,
       addr_firstName: (addr.firstName ?? '').slice(0, 500),
@@ -143,7 +131,6 @@ export async function POST(request: NextRequest) {
 
     const paymentIntentMetadata: Record<string, string> = {
       orderId,
-      ...(email && typeof email === 'string' && email.includes('@') ? { email } : {}),
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -153,7 +140,7 @@ export async function POST(request: NextRequest) {
       success_url: success,
       cancel_url: cancel,
       customer_creation: 'always',
-      ...(email && typeof email === 'string' && email.includes('@') ? { customer_email: email } : {}),
+      customer_email: email,
       metadata,
       payment_intent_data: {
         metadata: paymentIntentMetadata,
@@ -166,7 +153,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url, sessionId: session.id, orderId })
   } catch (error) {
-    console.error('Checkout session error:', error)
+    if (error instanceof CheckoutBasketError) {
+      return NextResponse.json({ error: error.message }, { status: 409 })
+    }
+    console.error('Checkout session failed:', error instanceof Error ? error.name : 'unknown')
     return NextResponse.json(
       { error: 'Unable to start checkout. Please try again.' },
       { status: 500 }
