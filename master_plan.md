@@ -15,7 +15,8 @@ Establish an auditable Next.js foundation and reproducible deployment before exp
   - Evidence (2026-09-24): GitHub Actions run [36063998982](https://github.com/jenozu/tsuya-tsuya/actions/runs/36063998982), baseline-build against `main` commit `4632b1019f05a4f9b4c8f3adea2b454f44fd6477` using Node 22: `npm ci`, `npm run verify:infra`, `tsc --noEmit`, and `npm run build` all exited successfully. Download the `tsu-m1-004-default-branch-build-36063998982` artifact for the retained command logs (14-day retention); the workflow run's job logs remain accessible on GitHub. Build emitted a nonfatal `DATABASE_URL is not configured` message during product prerendering; database integration and deployed behavior were **not** verified here, and remain covered by later tasks.
 - [x] Fix `next.config.ts` build-error suppression; make TypeScript failures block builds and verify a clean build. <!-- task:TSU-M1-005 -->
   - Evidence (2026-09-27): [GitHub Actions run 36345958274](https://github.com/jenozu/tsuya-tsuya/actions/runs/36345958274) passed infrastructure verification, locked dependency install, explicit `tsc --noEmit`, and `npm run build` for PR #5 with `ignoreBuildErrors` removed; Next.js build log now includes `Running TypeScript ...` and completed successfully. The `tsu-m1-005-candidate-build-36345958274` artifact retains logs for 14 days, with Actions job logs thereafter. The isolated build logged `DATABASE_URL is not configured` during product prerendering; live database/deployment verification remains pending under other roadmap tasks.
-- [ ] Replace or repair the `next lint` script for the installed Next.js version and enforce linting in CI. <!-- task:TSU-M1-006 -->
+- [x] Replace or repair the `next lint` script for the installed Next.js version and enforce linting in CI. <!-- task:TSU-M1-006 -->
+  - Evidence (2026-09-27): PR #14 updated `package.json` / `package-lock.json` with ESLint 9 and `eslint-config-next` 16.1.6, replaced the removed `next lint` command with `eslint .`, and enforced lint in the existing candidate CI job. [GitHub Actions run 36350526823](https://github.com/jenozu/tsuya-tsuya/actions/runs/36350526823) passed locked install, lint, regression tests, typecheck, and production build; Vercel preview reached READY. Pre-existing CSV `any` types and legacy external-state effects remain visible lint **warnings** pending targeted refactors; lint errors fail CI.
 - [x] Confirm Vercel production/preview projects, `main` tracking, rollback procedure, and deployed commit SHA against the live dashboard. <!-- task:TSU-M1-007 -->
   - Evidence (2026-09-27): Connected Vercel project `tsuya-tsuya` (`prj_xY975XUZMyiou8E0HAA6RAcPqkle`), READY production deployment `dpl_HxPEwcKskeRceyE83p6fmvxojTEE` from `main` SHA `818f78fdb5eb31ef6c6703819749808276b13468`, READY preview deployment `dpl_6im68bYtMaXjoE8fT2bTFSspULXs` from PR #5, and production aliases for `tsuyanouchi.com` / `www.tsuyanouchi.com`. The documented rollback procedure and compatibility caution are in `AUTONOMOUS_EXECUTION_PLAN.md`; executing a live rollback, checking DNS and verifying actual payments remain separate release/recovery tasks. Recheck these dated SHA values after future merges.
 - [x] Consolidate historical setup notes around `MASTER_LIST.md` and this roadmap without treating historical claims as fresh verification. <!-- task:TSU-M1-008 -->
@@ -115,7 +116,8 @@ Manage secure, fast, and traceable storefront artwork assets.
 - [ ] Reverify live admin upload, URL rendering, object deletion, ordering, and CSV-import mapping on the current deployment. <!-- task:TSU-M8-003 -->
 - [ ] Constrain file byte signatures, pixel dimensions, total upload rate, and object ownership; reject masquerading formats. <!-- task:TSU-M8-004 -->
 - [ ] Define and implement derivative generation, thumbnails, image compression, responsive sizes, and safe caching. <!-- task:TSU-M8-005 -->
-- [ ] Restrict `next.config.ts` remote-image hosts to trusted domains and remove blanket HTTP wildcard allowance. <!-- task:TSU-M8-006 -->
+- [x] Restrict `next.config.ts` remote-image hosts to trusted domains and remove blanket HTTP wildcard allowance. <!-- task:TSU-M8-006 -->
+  - Evidence (2026-09-27): PR #11 replaced blanket HTTP/HTTPS wildcard image optimizer permissions with exact HTTPS hosts derived from `R2_PUBLIC_URL` and the documented fixed sample host, rejected insecure protocol-relative/HTTP product sources, and removed random cart-image fallbacks. [Actions run 36349860305](https://github.com/jenozu/tsuya-tsuya/actions/runs/36349860305) passed tests, typecheck and production build; live R2 asset rendering still requires separate deployed smoke testing.
 - [ ] Define orphan cleanup, image replacement safeguards, watermark/licensing workflow, and an R2 recovery plan. <!-- task:TSU-M8-007 -->
 
 ## M9: Cart and checkout preparation
@@ -127,7 +129,8 @@ Keep cart behavior predictable and make checkout inputs trustworthy.
 - [x] Implement localStorage-backed cart persistence, variant-aware item grouping, and quantity controls. <!-- task:TSU-M9-001 -->
 - [x] Provide checkout address UI with form validation and a shipping-rate request. <!-- task:TSU-M9-002 -->
 - [ ] Test cart persistence across refreshes, variant changes, multi-tab edits, invalid cached items, quantity limits, and mobile checkout. <!-- task:TSU-M9-003 -->
-- [ ] Requery current catalog/variant prices and availability when entering checkout; never trust stored cart prices. <!-- task:TSU-M9-004 -->
+- [x] Requery current catalog/variant prices and availability when entering checkout; never trust stored cart prices. <!-- task:TSU-M9-004 -->
+  - Evidence (2026-09-27): PR #10 added server-side Neon product/variant repricing and shared-product-stock preflight before opening a Stripe Checkout Session; stale/edited totals fail with HTTP 409. [Actions run 36347422040](https://github.com/jenozu/tsuya-tsuya/actions/runs/36347422040) passed tests, typecheck and production build. A preflight check is **not** a transactional stock reservation; M6-006 remains open.
 - [ ] Validate checkout email/address and destination values on the server using shared schemas. <!-- task:TSU-M9-005 -->
 - [ ] Prevent duplicate checkout submissions and handle session expiry, cancellation, and returning shoppers. <!-- task:TSU-M9-006 -->
 
@@ -138,9 +141,12 @@ Make sandbox checkout provably correct before enabling real payments.
 
 ### Implementation
 - [x] Implement Stripe Checkout Session creation, signed webhook verification, and initial paid-order persistence logic. <!-- task:TSU-M10-001 -->
-- [ ] Replace client-submitted item names/prices/subtotal/shipping/tax in `/api/checkout/create-session` with validated, server-derived catalog and policy totals. <!-- task:TSU-M10-002 -->
-- [ ] Lock down `successUrl`/`cancelUrl` to approved site origins and remove untrusted origin-based redirects. <!-- task:TSU-M10-003 -->
-- [ ] Disable or fully harden client-amount-driven `/api/payments/create-intent` and `/api/payments/update-intent` endpoints. <!-- task:TSU-M10-004 -->
+- [x] Replace client-submitted item names/prices/subtotal/shipping/tax in `/api/checkout/create-session` with validated, server-derived catalog and policy totals. <!-- task:TSU-M10-002 -->
+  - Evidence (2026-09-27): PR #10 ignores caller-supplied item names/prices as Stripe charge authority and computes canonical line-item amounts, shipping and tax on the server using existing Neon/catalog and application-rate modules, rejecting mismatched client totals. [Actions run 36347422040](https://github.com/jenozu/tsuya-tsuya/actions/runs/36347422040) passed. Shipping eligibility/tax policy correctness, persistent order uniqueness and Stripe sandbox/end-to-end verification remain separate unchecked tasks.
+- [x] Lock down `successUrl`/`cancelUrl` to approved site origins and remove untrusted origin-based redirects. <!-- task:TSU-M10-003 -->
+  - Evidence (2026-09-27): PR #8 removed caller-supplied Stripe return URLs and request-Origin-based production redirects in favor of server-configured HTTPS site/validated Vercel preview or local development origins; regression tests cover hostile and malformed redirect hosts. [Actions run 36347162859](https://github.com/jenozu/tsuya-tsuya/actions/runs/36347162859) passed.
+- [x] Disable or fully harden client-amount-driven `/api/payments/create-intent` and `/api/payments/update-intent` endpoints. <!-- task:TSU-M10-004 -->
+  - Evidence (2026-09-27): PR #8 retired both unrestricted client-amount-driven PaymentIntent mutation endpoints with HTTP 410. The storefront's Checkout Session path is independent. [Actions run 36347162859](https://github.com/jenozu/tsuya-tsuya/actions/runs/36347162859) verified candidate build; live payment testing is not claimed.
 - [ ] Persist authoritative order line items with product ID, variant/SKU, unit price, currency, and captured shipping/tax breakdown. <!-- task:TSU-M10-005 -->
 - [ ] Run and document sandbox cases: paid, failed, canceled, duplicate submission, changed price, stale stock, invalid destination, and manipulated requests. <!-- task:TSU-M10-006 -->
 - [ ] Reverify sandbox webhook→Neon→Resend outcome after completing server-side pricing changes. <!-- task:TSU-M10-007 -->
@@ -263,8 +269,10 @@ Make the shop discoverable, fast, and usable across devices and browsers.
 - [x] Provide root-level Next.js metadata and image components in the current application. <!-- task:TSU-M19-001 -->
 - [ ] Audit keyboard navigation, focus visibility, form labels/errors, dialog semantics, contrast, alt text, and screen-reader announcements. <!-- task:TSU-M19-002 -->
 - [ ] Test current Chrome, Edge, Firefox, Safari, and mobile browsers; fix documented incompatibilities. <!-- task:TSU-M19-003 -->
-- [ ] Add per-product canonical metadata, Open Graph images, descriptive titles, and indexing control for admin/preview pages. <!-- task:TSU-M19-004 -->
-- [ ] Generate sitemap and robots rules, Product/Breadcrumb structured data, and an intentional URL migration policy. <!-- task:TSU-M19-005 -->
+- [x] Add per-product canonical metadata, Open Graph images, descriptive titles, and indexing control for admin/preview pages. <!-- task:TSU-M19-004 -->
+  - Evidence (2026-09-27): PR #12 added product-specific canonical metadata, titles, description and available HTTPS Open Graph images; PR #15 added explicit noindex to admin/cart/checkout/favourites/thank-you layouts and the mock preview response (alongside preview/under-construction global noindex). [Actions run 36350008171](https://github.com/jenozu/tsuya-tsuya/actions/runs/36350008171) and [run 36350418932](https://github.com/jenozu/tsuya-tsuya/actions/runs/36350418932) passed. Production indexing/Search Console verification remains a separate release task.
+- [x] Generate sitemap and robots rules, Product/Breadcrumb structured data, and an intentional URL migration policy. <!-- task:TSU-M19-005 -->
+  - Evidence (2026-09-27): PR #12 added a production-only, dynamically generated product-ID sitemap and robots rules; safely escaped Product/Breadcrumb JSON-LD with current variant price/stock; and `docs/SEO_URL_POLICY.md` preserves existing ID URLs until permanent redirects are prepared for any future slug migration. [Actions run 36350008171](https://github.com/jenozu/tsuya-tsuya/actions/runs/36350008171) passed; actual live database and crawler behavior need a separate production check.
 - [ ] Implement privacy-conscious analytics with verified consent handling, ecommerce event measurement, and search-console registration. <!-- task:TSU-M19-006 -->
 - [ ] Measure Core Web Vitals and optimize image loading, remote image patterns, cache strategy, font loading, and JS bundle. <!-- task:TSU-M19-007 -->
 
