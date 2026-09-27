@@ -1,4 +1,5 @@
 import type { Order } from '@/lib/types'
+import { escapeHtml } from '@/lib/html-escape'
 
 /**
  * Order confirmation email template (customer-facing).
@@ -119,10 +120,3 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
 </html>`
 }
 
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
