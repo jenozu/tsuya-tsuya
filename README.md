@@ -6,6 +6,7 @@ A luxury e-commerce storefront built with Next.js and TypeScript for Japanese-in
 
 - [`master_plan.md`](./master_plan.md) is the canonical **current** implementation and verification roadmap for the Voyages/Roadmap tool. Completed tasks require the evidence specified there.
 - [`AUTONOMOUS_EXECUTION_PLAN.md`](./AUTONOMOUS_EXECUTION_PLAN.md) sequences repository-only work, safe sandbox tasks and actions awaiting owner/provider/legal approval; it also records the current verified deployment SHA and rollback procedure.
+- [`docs/ADMIN_ACCESS_RECOVERY.md`](./docs/ADMIN_ACCESS_RECOVERY.md) documents the current shared-admin limitations, authorized credential recovery and catalog change procedure.
 - [`docs/SERVICE_ACCESS_RUNBOOK.md`](./docs/SERVICE_ACCESS_RUNBOOK.md) assigns service ownership roles and least-privilege, rotation and incident-response procedures. Actual account grants must be verified separately.
 - [`MASTER_LIST.md`](./MASTER_LIST.md) is a historical operational snapshot last updated September 18, 2026. Its past claims are **not** fresh evidence that current production configuration or checkout works.
 - [`NEON_R2_SETUP.md`](./NEON_R2_SETUP.md), [`SETUP.md`](./SETUP.md), [`ENV_TEMPLATE.md`](./ENV_TEMPLATE.md) and [`CSV_IMPORT_GUIDE.md`](./CSV_IMPORT_GUIDE.md) are setup/reference documents, not independent task lists.
