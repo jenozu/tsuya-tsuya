@@ -8,34 +8,10 @@ import { priceCheckoutBasket, CheckoutBasketError } from '@/lib/checkout-pricing
 import { getProduct } from '@/lib/data'
 import { getStandardShippingForCountryAndQuantity } from '@/lib/shipping'
 import { computeTaxAmount } from '@/lib/tax'
-import { z } from 'zod'
+import { checkoutRequestSchema } from '@/lib/checkout-schema'
 
 export const runtime = 'nodejs'
 
-
-const checkoutSchema = z.object({
-  items: z.array(z.object({
-    id: z.string().min(1).max(100),
-    quantity: z.number().int().min(1).max(20),
-    sizeLabel: z.string().max(100).optional(),
-  })).min(1).max(30),
-  subtotal: z.number().finite().nonnegative(),
-  shipping: z.number().finite().nonnegative(),
-  tax: z.number().finite().nonnegative(),
-  email: z.string().email().max(254),
-  shipping_address: z.object({
-    firstName: z.string().trim().min(1).max(100),
-    lastName: z.string().trim().min(1).max(100),
-    address: z.string().trim().min(3).max(200),
-    addressLine2: z.string().max(200).optional(),
-    unitNumber: z.string().max(30).optional(),
-    city: z.string().trim().min(2).max(120),
-    state: z.string().trim().min(1).max(100),
-    postalCode: z.string().trim().min(3).max(30),
-    country: z.string().trim().length(2),
-    phone: z.string().max(30).optional(),
-  }),
-})
 
 function createShortOrderId(): string {
   const max = 36 ** 7
@@ -51,7 +27,7 @@ export async function POST(request: NextRequest) {
     if (declaredLength > 32_768) {
       return NextResponse.json({ error: 'Checkout request is too large.' }, { status: 413 })
     }
-    const parsed = checkoutSchema.safeParse(await request.json())
+    const parsed = checkoutRequestSchema.safeParse(await request.json())
     if (!parsed.success) {
       return NextResponse.json({ error: 'Please check your checkout details.' }, { status: 400 })
     }
