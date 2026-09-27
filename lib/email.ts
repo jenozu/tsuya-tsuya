@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { Order } from './types'
 import { renderOrderConfirmationHtml } from './email-templates/order-confirmation'
+import { escapeHtml } from './html-escape'
 
 if (!process.env.RESEND_API_KEY) {
   console.warn('RESEND_API_KEY is not set - email functionality will be disabled')
@@ -8,16 +9,16 @@ if (!process.env.RESEND_API_KEY) {
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'TsuyaNoUchi <orders@tsuyanouchi.com>'
-const ADMIN_EMAIL = process.env.ORDER_NOTIFICATION_EMAIL || 'admin@tsuyanouchi.com'
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL
+const ADMIN_EMAIL = process.env.ORDER_NOTIFICATION_EMAIL
 
 export async function sendOrderConfirmation(
   customerEmail: string,
   orderId: string,
   order: Order
 ): Promise<boolean> {
-  if (!resend) {
-    console.warn('Resend not configured - skipping order confirmation email')
+  if (!resend || !FROM_EMAIL) {
+    console.warn('Order email configuration incomplete - skipping order confirmation')
     return false
   }
 
@@ -32,14 +33,14 @@ export async function sendOrderConfirmation(
     })
 
     if (error) {
-      console.error('Error sending order confirmation email:', error)
+      console.error('Order confirmation email send failed')
       return false
     }
 
-    console.log('Order confirmation email sent to:', customerEmail)
+    console.log('Order confirmation email sent')
     return true
   } catch (error) {
-    console.error('Error sending order confirmation email:', error)
+    console.error('Order confirmation email send failed')
     return false
   }
 }
@@ -48,8 +49,8 @@ export async function sendOrderNotification(
   orderId: string,
   order: Order
 ): Promise<boolean> {
-  if (!resend) {
-    console.warn('Resend not configured - skipping admin notification email')
+  if (!resend || !FROM_EMAIL || !ADMIN_EMAIL) {
+    console.warn('Owner email configuration incomplete - skipping order notification')
     return false
   }
 
@@ -58,7 +59,7 @@ export async function sendOrderNotification(
       .map(
         (item) =>
           `<li style="padding: 8px 0; border-bottom: 1px solid #E5E0D8; color: #2D2A26;">
-            <span style="font-weight: 600;">${item.productName}</span> 
+            <span style="font-weight: 600;">${escapeHtml(item.productName)}</span> 
             <span style="color: #786B59;">(Qty: ${item.quantity})</span> — 
             <span style="font-weight: 600;">$${(item.price * item.quantity).toFixed(2)}</span>
           </li>`
@@ -71,28 +72,28 @@ export async function sendOrderNotification(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>New Order - ${orderId}</title>
+  <title>New Order - ${escapeHtml(orderId)}</title>
 </head>
 <body style="font-family: Georgia, Cambria, 'Times New Roman', Times, serif; line-height: 1.7; color: #2D2A26; max-width: 600px; margin: 0 auto; padding: 0; background: #F2EFE9;">
   <div style="background: #2D2A26; color: #F9F8F4; padding: 40px 30px; text-align: center;">
     <h1 style="margin: 0; font-size: 28px; font-weight: 400;">New Order Received</h1>
-    <p style="margin: 12px 0 0; opacity: 0.85; font-size: 14px;">Order ${orderId}</p>
+    <p style="margin: 12px 0 0; opacity: 0.85; font-size: 14px;">Order ${escapeHtml(orderId)}</p>
   </div>
   
   <div style="background: #F9F8F4; padding: 40px 30px;">
     <div style="background: white; padding: 24px; margin: 0 0 30px; border-left: 3px solid #5C7C66;">
       <h3 style="margin-top: 0; color: #2D2A26; font-size: 18px; font-weight: 400;">Customer Information</h3>
-      <p style="margin: 12px 0 0; color: #4A4036;"><strong>Email:</strong> ${order.email}</p>
-      <p style="margin: 8px 0 0; color: #4A4036;"><strong>Name:</strong> ${order.shipping_address.firstName} ${order.shipping_address.lastName}</p>
+      <p style="margin: 12px 0 0; color: #4A4036;"><strong>Email:</strong> ${escapeHtml(order.email)}</p>
+      <p style="margin: 8px 0 0; color: #4A4036;"><strong>Name:</strong> ${escapeHtml(order.shipping_address.firstName)} ${escapeHtml(order.shipping_address.lastName)}</p>
       <p style="margin: 12px 0 0; color: #4A4036;"><strong>Address:</strong></p>
       <p style="margin: 4px 0 0; color: #786B59;">
-        ${order.shipping_address.address}<br>
-        ${order.shipping_address.addressLine2 ? `${order.shipping_address.addressLine2}<br>` : ''}
-        ${order.shipping_address.unitNumber ? `Unit ${order.shipping_address.unitNumber}<br>` : ''}
-        ${order.shipping_address.city}, ${order.shipping_address.state} ${order.shipping_address.postalCode}<br>
-        ${order.shipping_address.country}
+        ${escapeHtml(order.shipping_address.address)}<br>
+        ${order.shipping_address.addressLine2 ? `${escapeHtml(order.shipping_address.addressLine2)}<br>` : ''}
+        ${order.shipping_address.unitNumber ? `Unit ${escapeHtml(order.shipping_address.unitNumber)}<br>` : ''}
+        ${escapeHtml(order.shipping_address.city)}, ${escapeHtml(order.shipping_address.state)} ${escapeHtml(order.shipping_address.postalCode)}<br>
+        ${escapeHtml(order.shipping_address.country)}
       </p>
-      ${order.shipping_address.phone ? `<p style="margin: 8px 0 0; color: #4A4036;"><strong>Phone:</strong> ${order.shipping_address.phone}</p>` : ''}
+      ${order.shipping_address.phone ? `<p style="margin: 8px 0 0; color: #4A4036;"><strong>Phone:</strong> ${escapeHtml(order.shipping_address.phone)}</p>` : ''}
     </div>
     
     <div style="background: white; padding: 24px; margin: 0 0 30px;">
@@ -138,14 +139,14 @@ export async function sendOrderNotification(
     })
 
     if (error) {
-      console.error('Error sending admin notification email:', error)
+      console.error('Owner notification email send failed')
       return false
     }
 
     console.log('Admin notification email sent')
     return true
   } catch (error) {
-    console.error('Error sending admin notification email:', error)
+    console.error('Owner notification email send failed')
     return false
   }
 }
