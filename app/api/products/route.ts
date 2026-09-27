@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getProducts, createProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
+import { createProductSchema, updateProductSchema, normalizedProductFields } from '@/lib/product-validation'
+
 
 // GET /api/products - Get all products
 export async function GET() {
@@ -23,27 +25,23 @@ export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
-    const body = await request.json()
-    
-    // Validate required fields (price == null check allows price:0)
-    if (!body.name || body.price == null || !body.category) {
-      return NextResponse.json(
-        { error: 'Missing required fields: name, price, category' },
-        { status: 400 }
-      )
+    const parsed = createProductSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid product data', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
-    
+    const product = normalizedProductFields(parsed.data)
     const newProduct = await createProduct({
-      name: body.name,
-      description: body.description || '',
-      price: parseFloat(body.price),
-      cost: body.cost ? parseFloat(body.cost) : undefined,
-      category: body.category,
-      image_url: body.image_url || body.imageUrl || '',
-      stock: parseInt(body.stock) || 0,
-      sizes: body.sizes || [],
+      name: product.name,
+      description: product.description ?? '',
+      price: product.price,
+      cost: product.cost ?? undefined,
+      category: product.category,
+      image_url: product.image_url ?? '/product-placeholder.svg',
+      stock: product.stock ?? 0,
+      sizes: product.sizes ?? [],
+      product_type: product.product_type ?? undefined,
     })
-    
+
     if (!newProduct) {
       return NextResponse.json(
         { error: 'Failed to create product' },
