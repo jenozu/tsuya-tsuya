@@ -50,7 +50,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 return (
                   <div key={itemKey} className="flex gap-4">
                     <div className="h-24 w-24 flex-shrink-0 overflow-hidden border border-[#E5E0D8] relative">
-                      <SafeProductImage src={item.imageUrl || 'https://picsum.photos/96/96'} alt={item.name} fill className="object-cover mix-blend-multiply" />
+                      <SafeProductImage src={item.imageUrl || '/product-placeholder.svg'} alt={item.name} fill className="object-cover mix-blend-multiply" />
                     </div>
                     <div className="flex flex-1 flex-col justify-between">
                       <div>
