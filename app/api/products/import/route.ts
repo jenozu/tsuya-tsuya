@@ -1,6 +1,8 @@
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csv-parser';
+import { CSV_CONFIG } from '@/lib/print-sizes';
+import { createProductSchema } from '@/lib/product-validation';
 import { createProduct, getProductByName, updateProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
@@ -15,10 +17,10 @@ export async function POST(request: NextRequest) {
   try {
     // Parse form data
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get('file');
     const useMultipliers = formData.get('useMultipliers') === 'true';
 
-    if (!file) {
+    if (!(file instanceof File)) {
       return NextResponse.json(
         { error: 'No file provided' },
         { status: 400 }
@@ -30,6 +32,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'File must be a CSV (.csv extension)' },
         { status: 400 }
+      );
+    }
+
+    if (file.size === 0 || file.size > CSV_CONFIG.MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'CSV must be between 1 byte and 5 MB' }, { status: 413 },
       );
     }
 
@@ -58,6 +66,22 @@ export async function POST(request: NextRequest) {
 
     for (const product of result.products) {
       try {
+        const checked = createProductSchema.safeParse({
+          name: product.name,
+          category: product.category,
+          price: product.price,
+          cost: product.cost,
+          stock: product.stock,
+          sizes: product.sizes,
+          description: product.description,
+          image_url: product.image_url,
+          product_type: product.product_type,
+        });
+        if (!checked.success) {
+          failedProducts.push(`${product.name} (invalid product fields)`);
+          continue;
+        }
+
         const existing = await getProductByName(product.name);
         const incomingUsesPlaceholder = product.image_url === '/product-placeholder.svg';
 
@@ -100,9 +124,9 @@ export async function POST(request: NextRequest) {
           failedProducts.push(`${product.name} (database error)`);
         }
       } catch (error) {
-        console.error(`Failed to import product ${product.name}:`, error);
+        console.error('Product import failed:', error instanceof Error ? error.name : 'unknown');
         failedProducts.push(
-          `${product.name} (${error instanceof Error ? error.message : 'unknown error'})`
+          `${product.name} (database operation failed)`
         );
       }
     }
@@ -124,11 +148,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('CSV import error:', error);
+    console.error('CSV import failed:', error instanceof Error ? error.name : 'unknown');
     return NextResponse.json(
       {
         error: 'Failed to process CSV import',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        details: 'Check CSV format and storage configuration.',
       },
       { status: 500 }
     );
