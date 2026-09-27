@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CANONICAL_ORIGIN, publicIndexingEnabled } from '@/lib/seo';
 import { Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/lib/cart-context';
@@ -10,7 +11,15 @@ const headerFont = Cormorant_Garamond({
   variable: '--font-header',
 });
 
+const indexingAllowed = publicIndexingEnabled({
+  deploymentEnvironment: process.env.VERCEL_ENV,
+  underConstruction: process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true',
+});
+
 export const metadata: Metadata = {
+  metadataBase: new URL(CANONICAL_ORIGIN),
+  robots: { index: indexingAllowed, follow: indexingAllowed },
+  openGraph: { siteName: 'TsuyaNoUchi', type: 'website', locale: 'en_US' },
   title: 'TsuyaNoUchi',
   description: 'A curated collection of luxury lifestyle goods for the discerning individual.',
 };
