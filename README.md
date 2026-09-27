@@ -2,6 +2,15 @@
 
 A luxury e-commerce storefront built with Next.js and TypeScript for Japanese-inspired art and lifestyle goods.
 
+## Project status and change control
+
+- [`master_plan.md`](./master_plan.md) is the canonical **current** implementation and verification roadmap for the Voyages/Roadmap tool. Completed tasks require the evidence specified there.
+- [`AUTONOMOUS_EXECUTION_PLAN.md`](./AUTONOMOUS_EXECUTION_PLAN.md) sequences repository-only work, safe sandbox tasks and actions awaiting owner/provider/legal approval; it also records the current verified deployment SHA and rollback procedure.
+- [`MASTER_LIST.md`](./MASTER_LIST.md) is a historical operational snapshot last updated September 18, 2026. Its past claims are **not** fresh evidence that current production configuration or checkout works.
+- [`NEON_R2_SETUP.md`](./NEON_R2_SETUP.md), [`SETUP.md`](./SETUP.md), [`ENV_TEMPLATE.md`](./ENV_TEMPLATE.md) and [`CSV_IMPORT_GUIDE.md`](./CSV_IMPORT_GUIDE.md) are setup/reference documents, not independent task lists.
+
+Check GitHub Actions and Vercel preview status before merging. `npm run build` includes the infrastructure guard and Next.js TypeScript validation; separate `npx tsc --noEmit` catches issues without emitting artifacts. No CI run without production credentials proves database or payment integration.
+
 ## Current architecture
 
 - **Framework / hosting:** Next.js 16 + React 19 on Vercel
