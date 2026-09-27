@@ -46,7 +46,7 @@ export async function inspectImageUpload(body: Buffer, declaredType: string): Pr
     throw new InvalidImageError('Image contents do not match a supported JPG, PNG, or WebP file')
   }
 
-  let info: sharp.Metadata
+  let info: { format?: string; width?: number; height?: number; pages?: number }
   try {
     info = await sharp(body, {
       limitInputPixels: MAX_IMAGE_PIXELS,
