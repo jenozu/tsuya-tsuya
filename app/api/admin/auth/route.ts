@@ -1,7 +1,9 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
 import { ADMIN_SESSION_MAX_AGE, createAdminSessionToken } from '@/lib/admin-session'
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   try {
     const { password } = await request.json()
     const adminPassword = process.env.ADMIN_PASSWORD
@@ -29,7 +31,8 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   const response = NextResponse.json({ success: true })
   response.cookies.set('admin_session', '', {
     httpOnly: true,

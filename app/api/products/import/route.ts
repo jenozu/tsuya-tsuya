@@ -1,3 +1,4 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server';
 import { parseCSV } from '@/lib/csv-parser';
 import { createProduct, getProductByName, updateProduct } from '@/lib/data'
@@ -9,6 +10,7 @@ import { revalidatePath } from 'next/cache'
  * Bulk import products from CSV file
  */
 export async function POST(request: NextRequest) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     // Parse form data

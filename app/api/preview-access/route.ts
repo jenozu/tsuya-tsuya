@@ -1,9 +1,11 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
 import { createPreviewSessionToken, PREVIEW_SESSION_MAX_AGE } from '@/lib/preview-session'
 
 const PREVIEW_PASSWORD = process.env.PREVIEW_PASSWORD
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!PREVIEW_PASSWORD || !process.env.ADMIN_SESSION_SECRET) {
     return NextResponse.json(
       { error: 'Preview access is not configured.' },
