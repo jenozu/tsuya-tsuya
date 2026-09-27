@@ -103,7 +103,8 @@ Secure and verify the tools used to maintain the store.
 - [ ] Add login throttling, strong credential policy, session revocation, inactivity timeout, and production-safe secret separation. <!-- task:TSU-M7-004 -->
 - [ ] Apply explicit server-side authorization and method/origin/CSRF checks to every admin mutation and preview-management endpoint. <!-- task:TSU-M7-005 -->
 - [ ] Validate product payloads consistently with schemas and verify forbidden/invalid requests cannot change data. <!-- task:TSU-M7-006 -->
-- [ ] Document administrator access recovery, staff permissions (if needed), audit logs, and a change-management procedure. <!-- task:TSU-M7-007 -->
+- [x] Document administrator access recovery, staff permissions (if needed), audit logs, and a change-management procedure. <!-- task:TSU-M7-007 -->
+  - Evidence (2026-09-27): `docs/ADMIN_ACCESS_RECOVERY.md` describes the current shared-admin access model, verified recovery sequence, account/staff and audit-log gaps, product change-management approvals and release checks. This is documentation, **not** evidence that distributed throttling, inactivity expiry, per-staff audit logs, or live recovery drills are implemented; those remain separate unchecked roadmap tasks.
 
 ## M8: Image uploads and object storage
 
