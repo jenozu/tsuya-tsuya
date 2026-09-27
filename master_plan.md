@@ -86,7 +86,8 @@ Create a single authoritative SKU, price, and stock model.
 - [x] Store a base price, overall stock, and per-size pricing data in the product model. <!-- task:TSU-M6-001 -->
 - [x] Expose size selection and size-dependent displayed pricing in the product-detail UI. <!-- task:TSU-M6-002 -->
 - [ ] Define unique sellable SKUs and whether stock is shared or per-size; implement the approved model. <!-- task:TSU-M6-003 -->
-- [ ] Validate variant structure, supported print sizes, price precision, and stock bounds server-side in admin and import endpoints. <!-- task:TSU-M6-004 -->
+- [x] Validate variant structure, supported print sizes, price precision, and stock bounds server-side in admin and import endpoints. <!-- task:TSU-M6-004 -->
+  - Evidence (2026-09-27): PR #19 introduced strict shared Zod schemas across admin product create/update and CSV import for allowed unique print sizes, positive two-decimal variant prices, bounded nonnegative integer stock and safe image fields. CSV numeric parsing no longer truncates malformed inventory or overprecise prices. [Candidate CI run 36351775450](https://github.com/jenozu/tsuya-tsuya/actions/runs/36351775450) passed tests, typecheck and production build, with a successful preview deployment. Live admin/import workflow and transaction-safe reimport remain separate tasks.
 - [ ] Keep listings, cart, checkout, and admin inventory consistent after edits and discontinued variants. <!-- task:TSU-M6-005 -->
 - [ ] Atomically reserve/decrement available inventory at the correct payment stage; prevent overselling and release failed/expired holds. <!-- task:TSU-M6-006 -->
 - [ ] Document catalog price changes, out-of-stock rules, and manual stock reconciliation. <!-- task:TSU-M6-007 -->
@@ -101,7 +102,8 @@ Secure and verify the tools used to maintain the store.
 - [x] Implement admin product creation, edit/delete handlers, a bulk-delete route, and an admin dashboard UI. <!-- task:TSU-M7-002 -->
 - [ ] Verify create/edit/delete/bulk-delete behavior on the deployed admin, including undo/safeguards and downstream image/order references. <!-- task:TSU-M7-003 -->
 - [ ] Add login throttling, strong credential policy, session revocation, inactivity timeout, and production-safe secret separation. <!-- task:TSU-M7-004 -->
-- [ ] Apply explicit server-side authorization and method/origin/CSRF checks to every admin mutation and preview-management endpoint. <!-- task:TSU-M7-005 -->
+- [x] Apply explicit server-side authorization and method/origin/CSRF checks to every admin mutation and preview-management endpoint. <!-- task:TSU-M7-005 -->
+  - Evidence (2026-09-27): PR #17 applied same-origin/Fetch Metadata browser CSRF checks before session/body handling to product mutation routes, CSV import/bulk delete, admin R2 upload/delete, admin login/logout, preview-access, orders, checkout and waitlist. Existing admin session checks protect mutation operations; unsupported HTTP methods are not exported by the relevant Next route handlers, while Stripe webhooks use signature verification instead. [Candidate CI run 36351404362](https://github.com/jenozu/tsuya-tsuya/actions/runs/36351404362) passed the Origin/CSRF regression tests, lint, types and build with a ready preview. Distributed login throttling and end-to-end unauthorized database mutation tests remain separate tasks.
 - [ ] Validate product payloads consistently with schemas and verify forbidden/invalid requests cannot change data. <!-- task:TSU-M7-006 -->
 - [x] Document administrator access recovery, staff permissions (if needed), audit logs, and a change-management procedure. <!-- task:TSU-M7-007 -->
   - Evidence (2026-09-27): `docs/ADMIN_ACCESS_RECOVERY.md` describes the current shared-admin access model, verified recovery sequence, account/staff and audit-log gaps, product change-management approvals and release checks. This is documentation, **not** evidence that distributed throttling, inactivity expiry, per-staff audit logs, or live recovery drills are implemented; those remain separate unchecked roadmap tasks.
@@ -116,6 +118,7 @@ Manage secure, fast, and traceable storefront artwork assets.
 - [x] Provide stored-image URL metadata and an image upload helper for the admin. <!-- task:TSU-M8-002 -->
 - [ ] Reverify live admin upload, URL rendering, object deletion, ordering, and CSV-import mapping on the current deployment. <!-- task:TSU-M8-003 -->
 - [ ] Constrain file byte signatures, pixel dimensions, total upload rate, and object ownership; reject masquerading formats. <!-- task:TSU-M8-004 -->
+  - Partial evidence: PR #18 verifies image magic bytes and decoded JPEG/PNG/WebP format, metadata dimensions, page count and byte bounds before R2 writes. Distributed upload-rate limiting and proof of historical object ownership are still required.
 - [ ] Define and implement derivative generation, thumbnails, image compression, responsive sizes, and safe caching. <!-- task:TSU-M8-005 -->
 - [x] Restrict `next.config.ts` remote-image hosts to trusted domains and remove blanket HTTP wildcard allowance. <!-- task:TSU-M8-006 -->
   - Evidence (2026-09-27): PR #11 replaced blanket HTTP/HTTPS wildcard image optimizer permissions with exact HTTPS hosts derived from `R2_PUBLIC_URL` and the documented fixed sample host, rejected insecure protocol-relative/HTTP product sources, and removed random cart-image fallbacks. [Actions run 36349860305](https://github.com/jenozu/tsuya-tsuya/actions/runs/36349860305) passed tests, typecheck and production build; live R2 asset rendering still requires separate deployed smoke testing.
@@ -130,9 +133,11 @@ Keep cart behavior predictable and make checkout inputs trustworthy.
 - [x] Implement localStorage-backed cart persistence, variant-aware item grouping, and quantity controls. <!-- task:TSU-M9-001 -->
 - [x] Provide checkout address UI with form validation and a shipping-rate request. <!-- task:TSU-M9-002 -->
 - [ ] Test cart persistence across refreshes, variant changes, multi-tab edits, invalid cached items, quantity limits, and mobile checkout. <!-- task:TSU-M9-003 -->
+  - Partial evidence: PR #20 sanitizes persisted cart state, synchronizes cross-tab edits and adds unit tests for invalid cached items, prices, quantities and duplicates. Actual refresh/multi-tab/mobile end-to-end browser coverage remains.
 - [x] Requery current catalog/variant prices and availability when entering checkout; never trust stored cart prices. <!-- task:TSU-M9-004 -->
   - Evidence (2026-09-27): PR #10 added server-side Neon product/variant repricing and shared-product-stock preflight before opening a Stripe Checkout Session; stale/edited totals fail with HTTP 409. [Actions run 36347422040](https://github.com/jenozu/tsuya-tsuya/actions/runs/36347422040) passed tests, typecheck and production build. A preflight check is **not** a transactional stock reservation; M6-006 remains open.
 - [ ] Validate checkout email/address and destination values on the server using shared schemas. <!-- task:TSU-M9-005 -->
+  - Partial evidence: PR #22 shares the browser/server shipping-address, email and checkout request schemas with regression tests. Country *format* is checked, but owner-approved destination eligibility and geographic address verification have not been implemented.
 - [ ] Prevent duplicate checkout submissions and handle session expiry, cancellation, and returning shoppers. <!-- task:TSU-M9-006 -->
 
 ## M10: Stripe test checkout and order integrity
@@ -242,6 +247,7 @@ Protect buyers, prevent abuse, and publish appropriate business disclosures.
 - [ ] Inventory all cookies/localStorage, analytics, processors, and international data transfers; implement appropriate consent controls. <!-- task:TSU-M17-002 -->
 - [ ] Set customer/marketing data retention, deletion/export requests, least-privilege access, and incident handling procedures. <!-- task:TSU-M17-003 -->
 - [ ] Add rate limiting, request-size limits, strong input validation, security headers, origin checks, and CSRF defenses on state changes. <!-- task:TSU-M17-004 -->
+  - Partial evidence: PR #17 adds Origin/Fetch Metadata checks for all first-party mutation routes, and PR #18 hardens image byte validation. Distributed rate limits and complete route-by-route size/security-header validation remain required.
 - [ ] Eliminate logging of sensitive order data and payment metadata; redact errors returned to public endpoints. <!-- task:TSU-M17-005 -->
 - [ ] Review dependencies, R2 bucket exposure, image upload abuse, preview access, and admin session fallback behavior. <!-- task:TSU-M17-006 -->
 - [ ] Rotate compromised/old secrets through provider dashboards, verify revoked credentials no longer work, and document routine rotation. <!-- task:TSU-M17-007 -->
@@ -254,7 +260,8 @@ Prevent regressions and demonstrate that critical checkout behavior works.
 
 ### Implementation
 - [x] Run the repository's existing infrastructure-reference guard on pull requests. <!-- task:TSU-M18-001 -->
-- [ ] Add unit tests for tax, shipping, variant pricing, cart calculations, address validation, and CSV parsing. <!-- task:TSU-M18-002 -->
+- [x] Add unit tests for tax, shipping, variant pricing, cart calculations, address validation, and CSV parsing. <!-- task:TSU-M18-002 -->
+  - Evidence (2026-09-27): Deterministic Node tests now cover provisional shipping/tax calculations and country-scoped overrides (PR #21), canonical variant pricing (PR #10/#19), cart sanitation and cent-based totals (PR #20), shared address/email validation (PR #22), and strict CSV parsing/import values (PR #19). [Candidate CI run 36352047444](https://github.com/jenozu/tsuya-tsuya/actions/runs/36352047444) reported 45 tests passed, 0 failed, 0 skipped; lint, typecheck, build and preview also succeeded. Integration/browser/live-provider tests remain separately unchecked.
 - [ ] Add integration tests for product CRUD, authorized/unauthorized admin actions, order creation, R2 upload validation, and test database migration. <!-- task:TSU-M18-003 -->
 - [ ] Add Stripe sandbox/webhook tests for tampered prices, invalid destinations, retries, concurrent duplicates, refunds, and out-of-order events. <!-- task:TSU-M18-004 -->
 - [ ] Add end-to-end browser tests covering mobile storefront, cart, checkout, admin operations, email test doubles, and error states. <!-- task:TSU-M18-005 -->
