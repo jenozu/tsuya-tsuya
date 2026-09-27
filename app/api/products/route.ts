@@ -1,3 +1,4 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { getProducts, createProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
@@ -19,6 +20,7 @@ export async function GET() {
 
 // POST /api/products - Create new product
 export async function POST(request: NextRequest) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const body = await request.json()

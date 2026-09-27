@@ -1,3 +1,4 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasAdminSession } from '@/lib/admin-session'
 import { deleteR2Object, objectKeyFromPublicUrl, putR2Object } from '@/lib/r2'
@@ -12,6 +13,7 @@ const EXTENSION_BY_TYPE: Record<string, string> = {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -51,6 +53,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

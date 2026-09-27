@@ -1,3 +1,4 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Resend } from 'resend'
@@ -9,6 +10,7 @@ const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'TsuyaNoUchi <orders@tsuyano
 const ADMIN_EMAIL = process.env.ORDER_NOTIFICATION_EMAIL || 'admin@tsuyanouchi.com'
 
 export async function POST(request: Request) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   try {
     const parsed = bodySchema.safeParse(await request.json())
     if (!parsed.success) {

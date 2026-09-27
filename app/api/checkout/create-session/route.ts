@@ -1,3 +1,4 @@
+import { isSameOriginMutation } from '@/lib/same-origin'
 import { randomInt } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
@@ -43,6 +44,7 @@ function createShortOrderId(): string {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   try {
     // Verify the incoming structure; never accept the client's amounts as charge authority.
     const declaredLength = Number(request.headers.get('content-length') || 0)
