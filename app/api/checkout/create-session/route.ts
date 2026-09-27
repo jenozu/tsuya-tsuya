@@ -2,6 +2,7 @@ import { randomInt } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
+import { trustedCheckoutReturnUrls } from '@/lib/checkout-redirects'
 
 export const runtime = 'nodejs'
 
@@ -36,8 +37,6 @@ export async function POST(request: NextRequest) {
       state,
       shipping_address,
       email,
-      successUrl,
-      cancelUrl,
     } = body as {
       items: Array<{ id: string; name: string; price: number; quantity: number; imageUrl?: string }>
       subtotal: number
@@ -47,8 +46,6 @@ export async function POST(request: NextRequest) {
       state?: string
       shipping_address: ShippingAddressPayload
       email?: string
-      successUrl?: string
-      cancelUrl?: string
     }
 
     if (!items?.length) {
@@ -63,42 +60,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing shipping_address' }, { status: 400 })
     }
 
-    const origin = request.headers.get('origin') || request.nextUrl?.origin || ''
     const orderId = createShortOrderId()
-
-    const MAX_URL_LENGTH = 2048
-
-    const buildSafeUrl = (rawUrl: string | undefined, fallbackBase: string) => {
-      const candidate = rawUrl && typeof rawUrl === 'string' ? rawUrl : fallbackBase
-
-      if (candidate.length <= MAX_URL_LENGTH) {
-        return candidate
-      }
-
-      try {
-        const parsed = new URL(candidate)
-        const baseOnly = `${parsed.origin}${parsed.pathname}`
-        if (baseOnly.length <= MAX_URL_LENGTH) {
-          return baseOnly
-        }
-      } catch {
-        // ignore parse errors and fall back below
-      }
-
-      if (fallbackBase.length <= MAX_URL_LENGTH) {
-        return fallbackBase
-      }
-
-      return fallbackBase.slice(0, MAX_URL_LENGTH)
-    }
-
-    const defaultSuccessBase = origin ? `${origin}/thank-you` : '/thank-you'
-    const defaultCancelBase = origin ? `${origin}/checkout` : '/checkout'
-
-    const successWithOrder = `${defaultSuccessBase}?orderId=${encodeURIComponent(orderId)}`
-
-    const success = buildSafeUrl(successUrl ?? successWithOrder, defaultSuccessBase)
-    const cancel = buildSafeUrl(cancelUrl, defaultCancelBase)
+    const { success, cancel } = trustedCheckoutReturnUrls(orderId, {
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
+      vercelUrl: process.env.VERCEL_URL,
+      siteUrl: process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL,
+      requestOrigin: request.nextUrl.origin,
+    })
 
     const STRIPE_MAX_IMAGE_URL = 2048
     const safeImageUrl = (url: string | undefined): string | undefined => {
@@ -199,7 +168,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Checkout session error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create checkout session' },
+      { error: 'Unable to start checkout. Please try again.' },
       { status: 500 }
     )
   }
