@@ -11,20 +11,14 @@ import { ArrowLeft, Lock } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { checkoutEmailSchema, shippingAddressSchema } from '@/lib/checkout-schema';
 import { computeTaxAmount } from '@/lib/tax';
 
-const checkoutSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  address: z.string().min(5, 'Address must be at least 5 characters'),
-  addressLine2: z.string().max(100, 'Address line 2 is too long').optional(),
-  unitNumber: z.string().max(30, 'Unit number is too long').optional(),
-  city: z.string().min(2, 'City must be at least 2 characters'),
-  state: z.string().min(1, 'State/Province is required'),
-  postalCode: z.string().min(3, 'Postal Code / Zipcode is required'),
-  country: z.string().min(2, 'Country is required'),
-  phone: z.string().max(30, 'Phone number is too long').optional(),
+const checkoutSchema = shippingAddressSchema.extend({
+  firstName: z.string().trim().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().trim().min(2, 'Last name must be at least 2 characters'),
+  address: z.string().trim().min(5, 'Address must be at least 5 characters'),
+  email: checkoutEmailSchema,
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
