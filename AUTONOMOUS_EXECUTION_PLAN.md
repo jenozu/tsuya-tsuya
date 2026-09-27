@@ -57,3 +57,26 @@ The connected Vercel project `tsuya-tsuya` (project ID `prj_xY975XUZMyiou8E0HAA6
 Reference: https://vercel.com/docs/deployments/rollback-production-deployment
 
 Owner signoff, live payment smoke tests, backup restore drills and emergency access verification are separate roadmap tasks.
+
+## Implementation checkpoint — 2026-09-27 (later audit)
+
+This checkpoint supersedes the earlier *dated SHA* noted above. GitHub `main` was independently checked at `a8e32a32ba975051c8ee7af9e3727101e202894c` after PRs #17–23. At that moment, Vercel's latest production deploy `dpl_Qw2EAnsTiNY6oag1jZNTmXDLPujx` was still **BUILDING**. The previous `main` SHA `e37c3dba44c09487bc7c5c7effd660bee0768b9b` had a READY production deployment `dpl_FDDf7AejH18MVERiPwPLL6Ztdpfa`. Verify the **latest** production state and commit SHA again before any live smoke-test or release claim; no live payment/provider test was performed.
+
+Merged, candidate-CI-verified work:
+- PR #17: same-origin/Fetch Metadata browser mutation guards; signed Stripe webhook remains the independent verified-signature exception.
+- PR #18: image magic-byte + decoded pixel-format/dimension checks and generic public storage errors.
+- PR #19: strict catalog create/edit/CSV validation and regression tests.
+- PR #20: normalized, capped, cross-tab-synchronized cart state and pure cart unit tests.
+- PR #21: scoped existing provisional tax overrides by country and tested shipping/tax numerical behavior. These existing rate *values* are not legal/tax approval.
+- PR #22: shared checkout address/email/request schemas across server and browser with regression coverage; allowed destination policy remains undecided.
+- PR #23: factual admin recovery/change-control documentation, including explicit shared-account and revocation gaps.
+
+Roadmap task completion is documented with implementation PRs/Actions evidence in `master_plan.md`. Incomplete tasks are not marked complete simply because a related helper or unit test now exists.
+
+### Next repository-only tranche
+
+1. Add isolated integration-style tests for route authorization, invalid requests and catalog mutations; keep any mock database separate from production. Re-test same-origin enforcement with realistic request headers in a deployable preview.
+2. Eliminate remaining lint **warnings** with deliberate narrow refactors, prioritizing external-state hydration and explicit CSV types; keep tests green rather than globally disabling rules.
+3. Prepare non-destructive, ordered migration infrastructure and transaction/retry tests for Stripe event and order/email idempotency. Do not deploy code requiring new production tables until schema/backups and an isolated DB upgrade have been verified.
+4. Add upload-abuse throttling and object-ownership safeguards using a confirmed persistent store. Do not claim per-instance in-memory counters provide distributed protection.
+5. Complete browser accessibility/cart/admin smoke tests and compile a precise owner-only verification list. Provider-connected Stripe sandbox, qualified tax/shipping policy review, and live charge/refund remain separate gates.
