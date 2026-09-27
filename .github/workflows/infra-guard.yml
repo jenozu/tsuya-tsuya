@@ -120,6 +120,12 @@ jobs:
           set -o pipefail
           npm run verify:infra 2>&1 | tee candidate-verification-logs/verify-infra.log
 
+      - name: Run repository regression tests
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee candidate-verification-logs/tests.log
+
       - name: Check types without emitting files
         shell: bash
         run: |
