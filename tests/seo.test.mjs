@@ -48,5 +48,5 @@ test('structured JSON cannot close its script with untrusted product names', () 
     ...product, name: '</script><script>alert(1)</script>',
   }))
   assert.equal(serialized.includes('</script>'), false)
-  assert.match(serialized, /\\u003c\\/script>/)
+  assert.ok(serialized.includes(String.fromCharCode(92) + 'u003c/script>'))
 })
