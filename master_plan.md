@@ -32,7 +32,8 @@ Set up deployment-specific integrations without exposing credential values.
 - [ ] Audit production and preview variable *names and scopes* in Vercel without retrieving or committing values; confirm missing-variable handling. <!-- task:TSU-M2-003 -->
 - [ ] Independently verify production Neon connection, R2 read/write/delete access, Stripe mode, Resend sender/domain, and preview isolation. <!-- task:TSU-M2-004 -->
 - [ ] Remove any reliance on sample fallback destinations, sender values, or placeholder account details in production. <!-- task:TSU-M2-005 -->
-- [ ] Document ownership, least-privilege access, credential rotation, incident revocation, and a safe configuration checklist. <!-- task:TSU-M2-006 -->
+- [x] Document ownership, least-privilege access, credential rotation, incident revocation, and a safe configuration checklist. <!-- task:TSU-M2-006 -->
+  - Evidence (2026-09-27): `docs/SERVICE_ACCESS_RUNBOOK.md` assigns accountable *roles*, defines environment-specific least privilege, rotation and revocation steps, incident escalation and a safe names/scopes-only configuration checklist. Actual named owners, live provider grants and completed rotations must be verified privately before launch under the separate provider/launch roadmap tasks; no secret values are stored here.
 
 ## M3: Database schema and migrations
 
