@@ -25,7 +25,7 @@ export function FavouritesClient({ products }: FavouritesClientProps) {
         {favoriteProducts.length === 0 ? (
           <div className="text-center py-20">
             <Heart size={64} className="mx-auto text-[#E5E0D8] mb-4" />
-            <p className="text-[#786B59] mb-6">You haven't added any favourites yet</p>
+            <p className="text-[#786B59] mb-6">You haven&apos;t added any favourites yet</p>
             <Link href="/shop">
               <Button>Explore Collection</Button>
             </Link>
