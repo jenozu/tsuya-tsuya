@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
+import { createPreviewSessionToken, PREVIEW_SESSION_MAX_AGE } from '@/lib/preview-session'
 
 const PREVIEW_PASSWORD = process.env.PREVIEW_PASSWORD
 
 export async function POST(request: Request) {
-  if (!PREVIEW_PASSWORD) {
+  if (!PREVIEW_PASSWORD || !process.env.ADMIN_SESSION_SECRET) {
     return NextResponse.json(
       { error: 'Preview access is not configured.' },
       { status: 500 },
@@ -29,12 +30,12 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json({ success: true })
-    response.cookies.set('preview_access', 'granted', {
+    response.cookies.set('preview_access', await createPreviewSessionToken(), {
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 4,
+      maxAge: PREVIEW_SESSION_MAX_AGE,
     })
 
     return response
