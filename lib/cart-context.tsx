@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { calculateCartTotal, normalizeCart, parseStoredCart } from './cart-sanitizer';
 
 export interface ProductSize {
   label: string;
@@ -39,13 +40,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (stored) {
-        setCartItems(JSON.parse(stored));
+        setCartItems(parseStoredCart(stored));
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
     } finally {
       setIsInitialized(true);
     }
+  }, []);
+
+  // Keep other tabs in sync. Treat StorageEvent contents as untrusted input.
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.storageArea === localStorage &&
+          (event.key === CART_STORAGE_KEY || event.key === null)) {
+        setCartItems(parseStoredCart(event.newValue));
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
   // Save cart to localStorage whenever it changes
@@ -60,27 +73,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cartItems, isInitialized]);
 
   const addToCart = (item: Omit<CartItem, 'quantity'>) => {
-    setCartItems((prev) => {
-      // Check if item exists with same ID and size
-      const existingIndex = prev.findIndex(
-        (cartItem) =>
-          cartItem.id === item.id &&
-          cartItem.selectedSize?.label === item.selectedSize?.label
+    const [validated] = normalizeCart([{ ...item, quantity: 1 }]);
+    if (!validated) return;
+    setCartItems(prev => {
+      const count = prev.reduce((sum, line) => sum + line.quantity, 0);
+      if (count >= 100) return prev;
+      const existingIndex = prev.findIndex(line =>
+        line.id === validated.id && line.selectedSize?.label === validated.selectedSize?.label
       );
-
       if (existingIndex >= 0) {
-        // Item exists, increment quantity
-        const newItems = [...prev];
-        newItems[existingIndex] = {
-          ...newItems[existingIndex],
-          ...item,
-          quantity: newItems[existingIndex].quantity + 1,
-        };
-        return newItems;
-      } else {
-        // New item, add to cart
-        return [...prev, { ...item, quantity: 1 }];
+        if (prev[existingIndex].quantity >= 20) return prev;
+        const next = [...prev];
+        next[existingIndex] = { ...validated, quantity: prev[existingIndex].quantity + 1 };
+        return next;
       }
+      return prev.length < 30 ? [...prev, validated] : prev;
     });
   };
 
@@ -94,30 +101,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const updateQuantity = (id: string, quantity: number, sizeLabel?: string) => {
+    if (!Number.isInteger(quantity)) return;
     if (quantity <= 0) {
       removeFromCart(id, sizeLabel);
       return;
     }
 
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.selectedSize?.label === sizeLabel
-          ? { ...item, quantity }
-          : item
-      )
-    );
+    setCartItems(prev => {
+      const otherItems = prev.reduce((sum, line) =>
+        line.id === id && line.selectedSize?.label === sizeLabel ? sum : sum + line.quantity, 0);
+      const nextQuantity = Math.min(20, quantity, Math.max(0, 100 - otherItems));
+      if (nextQuantity < 1) return prev;
+      return prev.map(line =>
+        line.id === id && line.selectedSize?.label === sizeLabel
+          ? { ...line, quantity: nextQuantity }
+          : line
+      );
+    });
   };
 
   const clearCart = () => {
     setCartItems([]);
   };
 
-  const getCartTotal = () => {
-    return cartItems.reduce((total, item) => {
-      const price = item.selectedSize?.price || item.price;
-      return total + price * item.quantity;
-    }, 0);
-  };
+  const getCartTotal = () => calculateCartTotal(cartItems);
 
   const getCartCount = () => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
