@@ -3,6 +3,7 @@ import { OwnerAccessForm } from './owner-access-form';
 
 export const metadata = {
   title: 'Coming Soon | TsuyaNoUchi',
+  robots: { index: false, follow: false },
   description: 'TsuyaNoUchi is under construction. Join the waitlist to be notified when we launch.',
 };
 

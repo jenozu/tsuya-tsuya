@@ -1,10 +1,16 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ShopClient } from './shop-client';
 import { getProducts } from '@/lib/data'
 
 export const revalidate = 300;
+
+export const metadata: Metadata = {
+  title: 'Shop Art Prints | TsuyaNoUchi',
+  alternates: { canonical: '/shop' },
+};
 
 export default async function ShopPage() {
   const products = await getProducts();
