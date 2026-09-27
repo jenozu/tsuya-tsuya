@@ -36,7 +36,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
         amount_total?: number | null
         price?: {
           unit_amount?: number | null
-          product?: { name?: string }
+          product?: { name?: string; metadata?: Record<string, string> }
           recurring?: unknown
         } | null
         description?: string | null
@@ -111,10 +111,11 @@ async function processCompletedCheckoutSession(sessionId: string) {
   })
 
   const items = productLineItems.map((li) => ({
-    productId: '',
+    productId: li.price?.product?.metadata?.productId ?? '',
     productName: li.price?.product?.name ?? li.description ?? 'Item',
     quantity: li.quantity ?? 1,
     price: (li.price?.unit_amount ?? 0) / 100,
+    selectedSize: li.price?.product?.metadata?.sizeLabel || undefined,
     imageUrl: undefined,
   }))
 
