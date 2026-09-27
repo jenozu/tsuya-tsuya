@@ -50,7 +50,7 @@ export function getStandardShippingRate(countryCode: string): StandardShippingRa
     return DEFAULT_REST_OF_WORLD
   }
   const code = countryCode.toUpperCase().trim()
-  if (code in STANDARD_SHIPPING_BY_COUNTRY) {
+  if (/^[A-Z]{2}$/.test(code) && Object.prototype.hasOwnProperty.call(STANDARD_SHIPPING_BY_COUNTRY, code)) {
     return STANDARD_SHIPPING_BY_COUNTRY[code]
   }
   return DEFAULT_REST_OF_WORLD
@@ -64,7 +64,7 @@ export function getStandardShippingForCountryAndQuantity(
   countryCode: string,
   quantity: number
 ): number {
-  const q = Math.max(1, Math.floor(quantity))
+  const q = Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1
   const rate = getStandardShippingRate(countryCode)
   return rate.firstItem + (q - 1) * rate.additionalItem
 }
