@@ -78,3 +78,65 @@ jobs:
           path: verification-logs/
           if-no-files-found: warn
           retention-days: 14
+
+  # TSU-M1-005: unlike baseline-build, this checks the proposed PR merge.
+  # A TypeScript failure must fail both this explicit check and next build.
+  candidate-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out proposed changes
+        uses: actions/checkout@v4
+
+      - name: Record candidate source
+        shell: bash
+        run: |
+          mkdir -p candidate-verification-logs
+          {
+            echo "Task: TSU-M1-005"
+            echo "Commit: $(git rev-parse HEAD)"
+            echo "UTC: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } | tee candidate-verification-logs/source.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          npm ci 2>&1 | tee candidate-verification-logs/npm-ci.log
+
+      - name: Verify infrastructure
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run verify:infra 2>&1 | tee candidate-verification-logs/verify-infra.log
+
+      - name: Check types without emitting files
+        shell: bash
+        run: |
+          set -o pipefail
+          ./node_modules/.bin/tsc --noEmit 2>&1 | tee candidate-verification-logs/typecheck.log
+
+      - name: Build for production with TypeScript errors enforced
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee candidate-verification-logs/production-build.log
+
+      - name: Retain candidate verification logs even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsu-m1-005-candidate-build-${{ github.run_id }}
+          path: candidate-verification-logs/
+          if-no-files-found: warn
+          retention-days: 14
