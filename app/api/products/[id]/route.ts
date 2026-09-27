@@ -4,6 +4,8 @@ import { getProduct, updateProduct, deleteProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
 import type { Product } from '@/lib/types'
+import { createProductSchema, updateProductSchema, normalizedProductFields } from '@/lib/product-validation'
+
 
 // GET /api/products/[id] - Get single product
 export async function GET(
@@ -40,20 +42,16 @@ export async function PUT(
   if (!(await hasAdminSession(request))) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   try {
     const { id } = await context.params;
-    const body = await request.json()
-    
-    const updates: Partial<Product> = {}
-    if (body.name !== undefined) updates.name = body.name
-    if (body.description !== undefined) updates.description = body.description
-    if (body.price !== undefined) updates.price = parseFloat(body.price)
-    if (body.cost !== undefined) updates.cost = parseFloat(body.cost)
-    if (body.category !== undefined) updates.category = body.category
-    if (body.product_type !== undefined) updates.product_type = body.product_type
-    if (body.image_url !== undefined) updates.image_url = body.image_url
-    if (body.imageUrl !== undefined) updates.image_url = body.imageUrl
-    if (body.stock !== undefined) updates.stock = parseInt(body.stock)
-    if (body.sizes !== undefined) updates.sizes = body.sizes
-    
+    const parsed = updateProductSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid product data', fields: parsed.error.flatten().fieldErrors }, { status: 400 })
+    }
+    const { cost, ...rest } = normalizedProductFields(parsed.data)
+    const updates: Partial<Product> = {
+      ...rest,
+      ...(cost !== undefined ? { cost: cost ?? undefined } : {}),
+    }
+
     const updatedProduct = await updateProduct(id, updates)
     
     if (!updatedProduct) {
