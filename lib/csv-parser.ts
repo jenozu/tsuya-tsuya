@@ -1,5 +1,5 @@
-import { CSV_CONFIG, STANDARD_PRINT_SIZES, SIZE_MULTIPLIERS } from './print-sizes';
-import { ProductSize } from './types'
+import { CSV_CONFIG, STANDARD_PRINT_SIZES, SIZE_MULTIPLIERS } from './print-sizes.ts';
+import type { ProductSize } from './types'
 
 /**
  * CSV Row Interface - Updated for individual size prices
@@ -66,6 +66,7 @@ export interface CSVImportResult {
 function isValidImageUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
   
+  if (/^http:\/\//i.test(url) || url.startsWith('//') || url.includes('..')) return false;
   const lowerUrl = url.toLowerCase().split('?')[0].split('#')[0];
   return CSV_CONFIG.VALID_IMAGE_EXTENSIONS.some(ext => lowerUrl.endsWith(ext));
 }
@@ -78,7 +79,7 @@ function isValidImageUrl(url: string): boolean {
 function normalizeImageUrl(imageUrlOrFilename: string): string {
   const trimmed = imageUrlOrFilename.trim();
   if (!trimmed) return '/product-placeholder.svg';
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) return trimmed;
+  if (trimmed.startsWith('https://') || (trimmed.startsWith('/') && !trimmed.startsWith('//'))) return trimmed;
 
   const publicBase = process.env.R2_PUBLIC_URL?.replace(/\/+$/, '');
   if (!publicBase) throw new Error('R2_PUBLIC_URL is required when CSV imageUrl contains a filename');
@@ -112,30 +113,40 @@ function validateRow(row: any, rowIndex: number): { valid: boolean; error?: stri
     };
   }
 
-  // Validate stock is numeric
-  const stock = parseInt(String(row.stock));
-  if (isNaN(stock) || stock < 0) {
-    return {
-      valid: false,
-      error: `Row ${rowIndex + 2}: Invalid stock "${row.stock}" (must be a non-negative number)`,
-    };
+  // Reject decimal, signed, malformed, or overflowing inventory values rather
+  // than silently accepting parseInt('3.5') or parseInt('3bad') as 3.
+  const stockText = String(row.stock).trim();
+  const stock = Number(stockText);
+  if (!/^(0|[1-9]\d*)$/.test(stockText) || !Number.isSafeInteger(stock) || stock > 1_000_000) {
+    return { valid: false, error: `Row ${rowIndex + 2}: Invalid stock; use a whole number from 0 to 1000000` };
   }
 
-  // Validate at least one size price is provided
   const sizePriceFields = [
     'price_8x10', 'price_11x14', 'price_12x18', 'price_16x20',
-    'price_18x24', 'price_20x30', 'price_24x32', 'price_24x36'
+    'price_18x24', 'price_20x30', 'price_24x32', 'price_24x36',
   ];
-  
-  const hasSizePrice = sizePriceFields.some(field => {
-    const value = row[field];
-    return value && String(value).trim() !== '' && !isNaN(parseFloat(String(value)));
-  });
-  
-  if (!hasSizePrice) {
+  const decimal = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/;
+  let hasValidPrice = false;
+  for (const field of sizePriceFields) {
+    const priceText = String(row[field] ?? '').trim();
+    const costText = String(row[field.replace('price_', 'cost_')] ?? '').trim();
+    if (priceText) {
+      const price = Number(priceText);
+      if (!decimal.test(priceText) || !Number.isFinite(price) || price < 0.01 || price > 1_000_000) {
+        return { valid: false, error: `Row ${rowIndex + 2}: Invalid price in ${field}; use a positive amount with at most two decimals` };
+      }
+      hasValidPrice = true;
+    }
+    if (costText && (!decimal.test(costText) || !Number.isFinite(Number(costText)) ||
+        Number(costText) > 1_000_000)) {
+      return { valid: false, error: `Row ${rowIndex + 2}: Invalid cost in ${field.replace('price_', 'cost_')}` };
+    }
+  }
+
+  if (!hasValidPrice) {
     return {
       valid: false,
-      error: `Row ${rowIndex + 2}: At least one size price must be provided (e.g., price_8x10, price_11x14, etc.)`,
+      error: `Row ${rowIndex + 2}: At least one positive size price is required`,
     };
   }
 
