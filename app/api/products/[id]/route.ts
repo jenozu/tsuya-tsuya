@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getProduct, updateProduct, deleteProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
+import type { Product } from '@/lib/types'
 
 // GET /api/products/[id] - Get single product
 export async function GET(
@@ -39,7 +40,7 @@ export async function PUT(
     const { id } = await context.params;
     const body = await request.json()
     
-    const updates: any = {}
+    const updates: Partial<Product> = {}
     if (body.name !== undefined) updates.name = body.name
     if (body.description !== undefined) updates.description = body.description
     if (body.price !== undefined) updates.price = parseFloat(body.price)

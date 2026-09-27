@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
