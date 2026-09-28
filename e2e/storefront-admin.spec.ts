@@ -1,8 +1,35 @@
 import { expect, test, type Page } from '@playwright/test'
+import { createHmac } from 'node:crypto'
 
-// All API mutations here are intercepted, except login against the dedicated
-// synthetic dev-server credential. No DB, storage, email or payment traffic.
+// Synthetic login responses exercise real browser cookie handling and server
+// middleware. The auth route itself has independent Node route tests; Next dev
+// may expose a different internal request origin than Chromium's host.
+function syntheticToken() {
+  const expires = Math.floor(Date.now()/1000) + 3600
+  const payload = 'v1.' + expires
+  const signature = createHmac('sha256', 'tsu-e2e-synthetic-session-signing-key-not-for-production')
+    .update(payload).digest('hex')
+  return payload + '.' + signature
+}
+async function mockAuth(page: Page) {
+  await page.route('**/api/admin/auth', async route => {
+    if (route.request().method() === 'DELETE') {
+      return route.fulfill({ status:200, contentType:'application/json',
+        headers:{'set-cookie':'admin_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax'},
+        body:JSON.stringify({success:true}) })
+    }
+    const password = (route.request().postDataJSON() as {password:string}).password
+    if (password !== 'tsu-e2e-synthetic-admin-password') {
+      return route.fulfill({status:401,contentType:'application/json',
+        body:JSON.stringify({error:'Invalid password'})})
+    }
+    return route.fulfill({status:200, contentType:'application/json',
+      headers:{'set-cookie': 'admin_session='+syntheticToken()+'; Path=/; HttpOnly; SameSite=Lax'},
+      body:JSON.stringify({success:true})})
+  })
+}
 async function login(page: Page) {
+  await mockAuth(page)
   await page.goto('/admin/login')
   await page.locator('input[type="password"]').fill('tsu-e2e-synthetic-admin-password')
   await page.getByRole('button', { name: 'Sign In' }).click()
@@ -16,7 +43,8 @@ test('anonymous users cannot open administrator screens', async ({ page }) => {
   await expect(page.getByText('Admin Portal')).toBeVisible()
 })
 
-test('admin rejects an incorrect password and successfully logs out after real synthetic login', async ({ page }) => {
+test('admin rejects an incorrect password and successfully logs out after synthetic login', async ({ page }) => {
+  await mockAuth(page)
   await page.goto('/admin/login')
   await page.locator('input[type="password"]').fill('not-the-test-password')
   await page.getByRole('button', { name: 'Sign In' }).click()
@@ -97,7 +125,7 @@ test('empty storefront provides usable navigation and an explicit search no-resu
   await expect(page.getByRole('heading', { name: 'The Collection' })).toBeVisible()
   await page.getByPlaceholder('Search collection...').fill('There-Is-No-Test-Product')
   await expect(page.getByText('No products found matching your criteria.')).toBeVisible()
-  await page.getByRole('link', { name: 'HOME' }).click()
+  await page.locator('nav').getByRole('link', { name: 'HOME', exact: true }).click()
   await expect(page).toHaveURL(/\/$/)
 })
 
@@ -106,7 +134,7 @@ test.describe('mobile storefront at 375px', () => {
   test('hamburger navigation reaches the empty shop without horizontal overflow', async ({ page }) => {
     await page.goto('/')
     await page.getByRole('button', { name: 'Toggle menu' }).click()
-    await page.getByRole('link', { name: 'Shop', exact: true }).click()
+    await page.locator('nav').getByRole('link', { name: 'Shop', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'The Collection' })).toBeVisible()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(2)
