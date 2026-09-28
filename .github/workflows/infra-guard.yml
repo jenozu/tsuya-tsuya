@@ -120,6 +120,24 @@ jobs:
           set -o pipefail
           npm run verify:infra 2>&1 | tee candidate-verification-logs/verify-infra.log
 
+      - name: Check formatting hygiene
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run format:check 2>&1 | tee candidate-verification-logs/format-check.log
+
+      - name: Run static security policy checks
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run security:check 2>&1 | tee candidate-verification-logs/security-check.log
+
+      - name: Audit production dependencies for high/critical vulnerabilities
+        shell: bash
+        run: |
+          set -o pipefail
+          npm audit --omit=dev --audit-level=high 2>&1 | tee candidate-verification-logs/npm-audit.log
+
       - name: Lint source tree
         shell: bash
         run: |
