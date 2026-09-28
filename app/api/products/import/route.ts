@@ -6,6 +6,7 @@ import { createProductSchema } from '@/lib/product-validation';
 import { createProduct, getProductByName, updateProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
+import { reportServerError } from '@/lib/safe-server-log'
 
 /**
  * POST /api/products/import
@@ -124,7 +125,7 @@ export async function POST(request: NextRequest) {
           failedProducts.push(`${product.name} (database error)`);
         }
       } catch (error) {
-        console.error('Product import failed:', error instanceof Error ? error.name : 'unknown');
+        reportServerError('api.product_import.item_failure');
         failedProducts.push(
           `${product.name} (database operation failed)`
         );
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('CSV import failed:', error instanceof Error ? error.name : 'unknown');
+    reportServerError('api.product_import.request_failure');
     return NextResponse.json(
       {
         error: 'Failed to process CSV import',

@@ -28,11 +28,13 @@ NEXT_PUBLIC_UNDER_CONSTRUCTION=false
 
 # Email
 RESEND_API_KEY=re_...
-ORDER_NOTIFICATION_EMAIL=admin@tsuyanouchi.com
-RESEND_FROM_EMAIL=Tsuyanouchi <orders@tsuyanouchi.com>
+## Replace both placeholders with verified real mailboxes. The app deliberately refuses
+## example/.invalid/.test/localhost destinations and will not silently fall back.
+ORDER_NOTIFICATION_EMAIL=owner@your-verified-domain.example
+RESEND_FROM_EMAIL=TsuyaNoUchi <orders@your-verified-domain.example>
 
 # Gemini descriptions
 GEMINI_API_KEY=...
 
 # Optional; if unset, order emails omit an unverified support destination.
-SUPPORT_EMAIL=verified-support-address@your-domain.example
+SUPPORT_EMAIL=support@your-verified-domain.example

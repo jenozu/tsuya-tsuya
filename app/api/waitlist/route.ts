@@ -4,12 +4,11 @@ import { z } from 'zod'
 import { Resend } from 'resend'
 import { addWaitlistEmail } from '@/lib/data'
 import { escapeHtml } from '@/lib/html-escape'
-import { reportServerError } from '@/lib/safe-server-log'
+import { reportServerError, reportServerWarn } from '@/lib/safe-server-log'
+import { getConfiguredEmailDelivery } from '@/lib/email-config'
 
 const bodySchema = z.object({ email: z.string().email('Please enter a valid email address') })
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL
-const ADMIN_EMAIL = process.env.ORDER_NOTIFICATION_EMAIL
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
@@ -23,13 +22,16 @@ export async function POST(request: Request) {
     const result = await addWaitlistEmail(email)
     if (result === 'duplicate') return NextResponse.json({ error: 'This email is already on the list.' }, { status: 409 })
 
-    if (resend && FROM_EMAIL && ADMIN_EMAIL) {
+    const delivery = getConfiguredEmailDelivery()
+    if (resend && delivery?.owner) {
       resend.emails.send({
-        from: FROM_EMAIL,
-        to: ADMIN_EMAIL,
+        from: delivery.from,
+        to: delivery.owner,
         subject: 'New Waitlist Signup — TsuyaNoUchi',
         html: `<p style="font-family: Georgia, serif; color: #2D2A26;">A new visitor has joined the waitlist:</p><p style="font-family: Georgia, serif; font-size: 18px; color: #2D2A26;"><strong>${escapeHtml(email)}</strong></p>`,
       }).catch(() => reportServerError('api.waitlist.notification_failure'))
+    } else {
+      reportServerWarn('api.waitlist.notification_configuration_incomplete')
     }
 
     return NextResponse.json({ ok: true })
