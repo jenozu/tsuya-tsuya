@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "migrations": [
+    {
+      "version": "0001",
+      "name": "baseline_neon_r2_schema",
+      "file": "002_neon_r2_schema.sql"
+    },
+    {
+      "version": "0002",
+      "name": "product_type_and_sizes_metadata",
+      "file": "001_add_product_type_and_update_sizes.sql"
+    }
+  ]
+}
