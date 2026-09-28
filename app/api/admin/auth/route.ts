@@ -1,3 +1,4 @@
+import { PUBLIC_API_FAILURE } from '@/lib/public-api-failure'
 import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
@@ -10,7 +11,10 @@ export async function POST(request: Request) {
     const adminPassword = process.env.ADMIN_PASSWORD
 
     if (!adminPassword) {
-      return NextResponse.json({ error: 'Admin password not configured' }, { status: 500 })
+      reportServerError('api.admin_auth.failure')
+      return NextResponse.json({ error: PUBLIC_API_FAILURE.authentication }, {
+        status: 500, headers: { 'Cache-Control': 'no-store' },
+      })
     }
 
     if (password !== adminPassword) {
@@ -28,7 +32,9 @@ export async function POST(request: Request) {
     return response
   } catch {
     reportServerError('api.admin_auth.failure')
-    return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.authentication }, {
+      status: 500, headers: { 'Cache-Control': 'no-store' },
+    })
   }
 }
 
