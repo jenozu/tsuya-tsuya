@@ -24,7 +24,8 @@ const checkoutSchema = shippingAddressSchema.extend({
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
-  const { cartItems, getCartTotal } = useCart();
+  const { cartItems, getCartTotal, reconcileCart } = useCart();
+  const [catalogVerified, setCatalogVerified] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shippingCost, setShippingCost] = useState<number | null>(null);
@@ -53,6 +54,36 @@ export default function CheckoutPage() {
   const taxableAmount = subtotal + resolvedShipping;
   const taxes = computeTaxAmount(taxableAmount, watchedCountry || 'US', watchedState || undefined);
   const total = subtotal + resolvedShipping + taxes;
+
+  // On checkout entry and whenever the selected cart changes, fetch current
+  // product/variant prices and stock. Never clear a cart on an empty/error
+  // catalog response; a failed catalog check blocks starting payment.
+  useEffect(() => {
+    let canceled = false
+    if (!cartItems.length) return
+    async function verifyCurrentCart() {
+      setCatalogVerified(false)
+      try {
+        const response = await fetch('/api/products', { cache: 'no-store' })
+        if (!response.ok) throw new Error('Catalog lookup failed')
+        const products: unknown = await response.json()
+        if (!Array.isArray(products) || products.length === 0) {
+          throw new Error('Current catalog is unavailable')
+        }
+        if (canceled) return
+        const changed = reconcileCart(products)
+        if (changed) {
+          setError('Your cart was updated to current prices or availability. Please review it before paying.')
+        } else {
+          setCatalogVerified(true)
+        }
+      } catch {
+        if (!canceled) setError('Unable to verify current stock and prices. Please refresh checkout.')
+      }
+    }
+    void verifyCurrentCart()
+    return () => { canceled = true }
+  }, [reconcileCart, cartItems.length])
 
   useEffect(() => {
     if (!watchedCountry) {
@@ -83,6 +114,10 @@ export default function CheckoutPage() {
   }, [watchedCountry, totalQuantity]);
 
   const onSubmit = async (data: CheckoutFormData) => {
+    if (!catalogVerified) {
+      setError('Please wait while current prices and stock are confirmed, then review your cart.')
+      return
+    }
     if (cartItems.length === 0) {
       setError('Your cart is empty');
       return;
@@ -321,11 +356,11 @@ export default function CheckoutPage() {
                 )}
                 <Button
                   type="submit"
-                  disabled={isRedirecting || shippingCost === null}
+                  disabled={isRedirecting || shippingCost === null || !catalogVerified}
                   className="w-full flex items-center justify-center gap-2 py-3"
                 >
                   <Lock size={18} />
-                  {isRedirecting ? 'Redirecting to payment…' : 'Proceed to payment'}
+                  {isRedirecting ? 'Redirecting to payment…' : !catalogVerified ? 'Verifying current stock and prices…' : 'Proceed to payment'}
                 </Button>
                 <p className="text-xs text-[#786B59] text-center mt-3">Secure payment by Stripe. We never store your card details.</p>
               </div>

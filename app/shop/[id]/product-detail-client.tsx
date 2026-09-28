@@ -37,8 +37,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   }, [product]);
 
   const currentPrice = selectedSize ? selectedSize.price : product.price;
+  const canPurchase = product.stock > 0 && (availableSizes.length === 0 || Boolean(selectedSize));
 
   const handleAddToCart = () => {
+    if (!canPurchase) return;
     addToCart({
       id: product.id,
       name: product.name,
@@ -135,11 +137,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
             <div className="pt-6 flex gap-4">
               <Button 
-                onClick={handleAddToCart} 
+                onClick={handleAddToCart}
+                disabled={!canPurchase} 
                 className="flex-1 md:flex-none md:min-w-[200px] flex items-center justify-center gap-2"
               >
                 <ShoppingBag size={20} />
-                Add to Cart
+                {product.stock <= 0 ? 'Out of stock' : 'Add to Cart'}
               </Button>
               
               <button 
