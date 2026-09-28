@@ -71,10 +71,14 @@ export const createProductSchema = fields.extend({
   }
 })
 
-export const updateProductSchema = fields.refine(
-  input => Object.values(input).some(value => value !== undefined),
-  'No fields were supplied',
-)
+export const updateProductSchema = fields.superRefine((input, ctx) => {
+  if (!Object.values(input).some(value => value !== undefined)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'No fields were supplied' })
+  }
+  if (input.image_url && input.imageUrl && input.image_url !== input.imageUrl) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Conflicting image sources', path: ['image_url'] })
+  }
+})
 
 export function normalizedProductFields<T extends {
   image_url?: string
