@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
-import { reportServerError } from '@/lib/safe-server-log'
+import { reportServerError, reportServerInfo } from '@/lib/safe-server-log'
 import { verifyWebhookSignature, stripe } from '@/lib/stripe'
 import { updateOrderStatus, getOrder, createOrder } from '@/lib/data'
 import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
@@ -62,13 +62,13 @@ async function processCompletedCheckoutSession(sessionId: string) {
   }
 
   if (session.payment_status && session.payment_status !== 'paid') {
-    console.info('Checkout Session deferred pending payment')
+    reportServerInfo('stripe.checkout.deferred_pending_payment')
     return
   }
 
   const existing = await getOrder(orderId)
   if (existing?.payment_status === 'paid') {
-    console.info('Checkout Session already processed')
+    reportServerInfo('stripe.checkout.already_processed')
     return
   }
 
@@ -157,7 +157,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
   const confirmationSent = await sendOrderConfirmation(email, orderId, created)
   const notificationSent = await sendOrderNotification(orderId, created)
 
-  console.info('Checkout processing complete:', { confirmationSent, notificationSent })
+  reportServerInfo(confirmationSent && notificationSent ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
 }
 
 export async function POST(request: Request) {
@@ -166,7 +166,7 @@ export async function POST(request: Request) {
   const signature = headersList.get('stripe-signature')
 
   if (!signature) {
-    console.error('No Stripe signature found')
+    reportServerError('stripe.webhook.signature_missing')
     return NextResponse.json({ error: 'No signature' }, { status: 400 })
   }
 
@@ -182,7 +182,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    console.info('Stripe webhook received')
+    reportServerInfo('stripe.webhook.received')
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -199,7 +199,7 @@ export async function POST(request: Request) {
           const existing = await getOrder(orderId)
           if (existing) {
             await updateOrderStatus(orderId, 'processing', 'paid')
-            console.info('Existing order marked paid')
+            reportServerInfo('stripe.webhook.order_marked_paid')
             break
           }
         }
@@ -223,7 +223,7 @@ export async function POST(request: Request) {
         const { orderId } = paymentIntent.metadata
 
         if (!orderId) {
-          console.error('No orderId in failed PaymentIntent metadata')
+          reportServerError('stripe.webhook.failed_payment_order_reference_missing')
           break
         }
 
@@ -242,7 +242,7 @@ export async function POST(request: Request) {
       }
 
       default:
-        console.log('Unhandled event type:', event.type)
+        reportServerInfo('stripe.webhook.event_ignored')
     }
 
     return NextResponse.json({ received: true })
