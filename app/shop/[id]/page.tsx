@@ -16,14 +16,14 @@ export const revalidate = 300;
 
 interface ProductPageProps {
   params: Promise<{
-    slug: string;
+    id: string;
   }>;
 }
 
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params
-  const product = await getProduct(slug)
+  const { id } = await params
+  const product = await getProduct(id)
   if (!product) return { title: 'Product unavailable', robots: { index: false, follow: false } }
 
   const image = getImageUrls(product).find(url => {
@@ -48,8 +48,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug } = await params;
-  const product = await getProduct(slug);
+  const { id } = await params;
+  const product = await getProduct(id);
 
   if (!product) {
     notFound();
