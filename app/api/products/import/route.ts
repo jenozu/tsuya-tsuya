@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
     const importedProducts: string[] = [];
     const updatedProducts: string[] = [];
     const failedProducts: string[] = [];
+    const updatedIds: string[] = [];
 
     for (const product of result.products) {
       try {
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
           });
 
           if (updatedProduct) {
+            updatedIds.push(existing.id);
             updatedProducts.push(product.name);
           } else {
             failedProducts.push(`${product.name} (database update error)`);
@@ -134,6 +136,7 @@ export async function POST(request: NextRequest) {
     // Return summary
     revalidatePath('/')
     revalidatePath('/shop')
+    for (const id of updatedIds) revalidatePath(`/shop/${id}`)
     return NextResponse.json(
       {
         success: true,
