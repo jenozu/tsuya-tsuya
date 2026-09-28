@@ -2,9 +2,9 @@
 
 **Canonical host:** `https://tsuyanouchi.com`; `www.tsuyanouchi.com` remains a deployed alias. Confirm that Vercel redirects the alternate host to the canonical host before final SEO signoff.
 
-**Existing product URL contract:** `/shop/[slug]` currently resolves the product's database **ID**, not a human-readable slug. Published links containing IDs must remain valid. The new product metadata, sitemap, breadcrumbs and schema use the existing ID URL.
+**Existing product URL contract:** `/shop/[id]` resolves the product's database **ID**; this explicit parameter name avoids implying that customer-facing readable slugs already exist. Published links containing IDs must remain valid. The new product metadata, sitemap, breadcrumbs and schema use the existing ID URL.
 
-**Changing to readable slugs:** Only after a dedicated, reviewed migration introduces durable unique slugs and collision handling. Before deployment:
+**Changing to readable slugs in the future:** Only after a dedicated, reviewed migration introduces durable unique slugs and collision handling. Before deployment:
 1. Save the mapping of each public product ID URL to its new URL; preserve deleted-product behavior.
 2. Add permanent server-side redirects from every historical ID URL to its corresponding slug URL; test direct navigation and old inbound links.
 3. Deploy redirects and canonical metadata together and revalidate the sitemap.
