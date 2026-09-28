@@ -52,7 +52,7 @@ test('admin rejects an incorrect password and successfully logs out after synthe
   await page.locator('input[type="password"]').fill('tsu-e2e-synthetic-admin-password')
   await page.getByRole('button', { name: 'Sign In' }).click()
   await expect(page).toHaveURL(/\/admin\/?$/)
-  await page.getByRole('button', { name: /logout|log out/i }).click()
+  // The deliberately unconfigured local database can trigger Next's dev error\n  // overlay, which intercepts pointer events. Dispatch the button's DOM click\n  // to test the logout handler without dismissing diagnostic errors.\n  await page.getByRole('button', { name: /logout|log out/i })\n    .evaluate(button => (button as HTMLButtonElement).click())
   await expect(page).toHaveURL(/\/admin\/login/)
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/admin\/login/)
