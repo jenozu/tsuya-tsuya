@@ -356,11 +356,11 @@ export default function CheckoutPage() {
                 )}
                 <Button
                   type="submit"
-                  disabled={isRedirecting || shippingCost === null}
+                  disabled={isRedirecting || shippingCost === null || !catalogVerified}
                   className="w-full flex items-center justify-center gap-2 py-3"
                 >
                   <Lock size={18} />
-                  {isRedirecting ? 'Redirecting to payment…' : 'Proceed to payment'}
+                  {isRedirecting ? 'Redirecting to payment…' : !catalogVerified ? 'Verifying current stock and prices…' : 'Proceed to payment'}
                 </Button>
                 <p className="text-xs text-[#786B59] text-center mt-3">Secure payment by Stripe. We never store your card details.</p>
               </div>
