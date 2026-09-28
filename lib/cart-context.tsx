@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { calculateCartTotal, normalizeCart, parseStoredCart } from './cart-sanitizer';
 import { reconcileCartWithCatalog } from './cart-reconcile';
 import type { Product } from './types';
@@ -127,11 +127,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems([]);
   };
 
-  const reconcileCart = (products: Product[]) => {
+  const reconcileCart = useCallback((products: Product[]) => {
     const reconciled = reconcileCartWithCatalog(cartItems, products);
     if (reconciled.changed) setCartItems(reconciled.items);
     return reconciled.changed;
-  };
+  }, [cartItems]);
 
   const getCartTotal = () => calculateCartTotal(cartItems);
 
