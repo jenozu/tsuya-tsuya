@@ -273,7 +273,8 @@ Prevent regressions and demonstrate that critical checkout behavior works.
 - [ ] Add integration tests for product CRUD, authorized/unauthorized admin actions, order creation, R2 upload validation, and test database migration. <!-- task:TSU-M18-003 -->
 - [ ] Add Stripe sandbox/webhook tests for tampered prices, invalid destinations, retries, concurrent duplicates, refunds, and out-of-order events. <!-- task:TSU-M18-004 -->
 - [ ] Add end-to-end browser tests covering mobile storefront, cart, checkout, admin operations, email test doubles, and error states. <!-- task:TSU-M18-005 -->
-- [ ] Expand CI to run format/lint, typecheck, unit/integration suites, clean build, and required security checks on every PR. <!-- task:TSU-M18-006 -->
+- [x] Expand CI to run format/lint, typecheck, unit/integration suites, clean build, and required security checks on every PR. <!-- task:TSU-M18-006 -->
+  - Evidence (2026-09-28): the current PR workflow runs changed-file whitespace/patch formatting, the static `verify:security` regression gate, ESLint, ordered-migration verification, the unit regression suite, isolated admin CRUD authorization integration tests, independent TypeScript checking, and a production Next.js build on every PR. [Actions run 36427212286](https://github.com/jenozu/tsuya-tsuya/actions/runs/36427212286) passed every candidate and baseline job. Provider-specific live integration tests remain separately tracked.
 - [ ] Require passing checks and a documented release checklist before merging or promoting production. <!-- task:TSU-M18-007 -->
 
 ## M19: Accessibility, SEO, and performance
