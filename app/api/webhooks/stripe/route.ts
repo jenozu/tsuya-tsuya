@@ -1,3 +1,4 @@
+import { PUBLIC_API_FAILURE } from '@/lib/public-api-failure'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
@@ -58,7 +59,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
     session.metadata?.email
 
   if (!email) {
-    throw new Error(`No customer email found for Checkout Session ${session.id}`)
+    throw new Error('Stripe Checkout Session is missing a customer email')
   }
 
   if (session.payment_status && session.payment_status !== 'paid') {
@@ -151,7 +152,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
   })
 
   if (!created) {
-    throw new Error(`Failed to persist order ${orderId}`)
+    throw new Error('Could not persist paid checkout order')
   }
 
   const confirmationSent = await sendOrderConfirmation(email, orderId, created)
@@ -161,7 +162,15 @@ async function processCompletedCheckoutSession(sessionId: string) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.text()
+  let body: string
+  try {
+    body = await request.text()
+  } catch {
+    reportServerError('stripe.webhook.request_read_failure')
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.webhookRequest }, {
+      status: 400, headers: { 'Cache-Control': 'no-store' },
+    })
+  }
   const headersList = await headers()
   const signature = headersList.get('stripe-signature')
 
@@ -176,7 +185,9 @@ export async function POST(request: Request) {
   } catch {
     reportServerError('stripe.webhook.invalid_signature')
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Misconfigured webhook secret' }, { status: 500 })
+      return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
+        status: 500, headers: { 'Cache-Control': 'no-store' },
+      })
     }
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
@@ -248,6 +259,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true })
   } catch {
     reportServerError('stripe.webhook.processing_failure')
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
+      status: 500, headers: { 'Cache-Control': 'no-store' },
+    })
   }
 }

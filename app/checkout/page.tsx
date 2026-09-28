@@ -187,8 +187,7 @@ export default function CheckoutPage() {
 
       setError('Invalid response from server.');
       setIsRedirecting(false);
-    } catch (err) {
-      console.error('Checkout error:', err);
+    } catch {
       setError('Something went wrong. Please try again.');
       setIsRedirecting(false);
     }

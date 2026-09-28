@@ -2,7 +2,12 @@
 // Does not claim a real database transaction/integration has been tested.
 export const writes = []
 export function resetWrites() { writes.length = 0 }
-export async function getProducts() { return [] }
+let readFailure = null
+export function failCatalogReadsWith(message) { readFailure = message }
+export async function getProducts() {
+  if (readFailure !== null) throw new Error(readFailure)
+  return []
+}
 export async function getProduct(id) {
   return { id, name: 'Known product', price: 12.5, category: 'Art Prints',
     stock: 3, sizes: [{ label: '8" x 10"', price: 12.5 }], image_url: '/product-placeholder.svg' }
