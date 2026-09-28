@@ -13,7 +13,8 @@
     "upload-images-2": "node scripts/bulk-upload-images.js 2",
     "upload-images-3": "node scripts/bulk-upload-images.js 3",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "migrations:check": "node scripts/migrate.mjs --plan"
+    "migrations:check": "node scripts/migrate.mjs --plan",
+    "verify:security": "node scripts/check-security-baseline.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1129.0",
