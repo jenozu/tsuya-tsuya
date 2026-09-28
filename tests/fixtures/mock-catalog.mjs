@@ -1,7 +1,10 @@
 // Isolated in-memory stand-in for verifying ROUTE write boundaries only.
 // Does not claim a real database transaction/integration has been tested.
 export const writes = []
-export function resetWrites() { writes.length = 0 }
+const existingByName = new Map()
+export function resetWrites() { writes.length = 0; existingByName.clear() }
+export function setExistingProductByName(name, product) { existingByName.set(name, product) }
+export async function getProductByName(name) { return existingByName.get(name) ?? null }
 let readFailure = null
 export function failCatalogReadsWith(message) { readFailure = message }
 export async function getProducts() {
