@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { deleteProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+
+// Reject malformed *entire* bulk-delete requests before performing any deletion.
+const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().trim().min(1).max(100)).min(1).max(500),
+}).strict()
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
@@ -12,15 +18,12 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json().catch(() => ({})) as { ids?: unknown }
-    const ids = Array.isArray(body.ids)
-      ? body.ids.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
-      : []
-
-    const uniqueIds = Array.from(new Set(ids)).slice(0, 500)
-    if (uniqueIds.length === 0) {
-      return NextResponse.json({ error: 'No product IDs provided' }, { status: 400 })
+    const parsed = bulkDeleteSchema.safeParse(await request.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid product IDs' }, { status: 400 })
     }
+
+    const uniqueIds = Array.from(new Set(parsed.data.ids))
 
     const results = await Promise.all(
       uniqueIds.map(async id => ({ id, success: await deleteProduct(id) }))
