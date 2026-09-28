@@ -6,6 +6,7 @@ A luxury e-commerce storefront built with Next.js and TypeScript for Japanese-in
 
 - [`master_plan.md`](./master_plan.md) is the canonical **current** implementation and verification roadmap for the Voyages/Roadmap tool. Completed tasks require the evidence specified there.
 - [`AUTONOMOUS_EXECUTION_PLAN.md`](./AUTONOMOUS_EXECUTION_PLAN.md) sequences repository-only work, safe sandbox tasks and actions awaiting owner/provider/legal approval; it also records the current verified deployment SHA and rollback procedure.
+- [`docs/CI_QUALITY_GATES.md`](./docs/CI_QUALITY_GATES.md) describes the mandatory PR verification, dependency security checks and separate owner-controlled release gates.
 - [`docs/CATALOG_PRICE_INVENTORY.md`](./docs/CATALOG_PRICE_INVENTORY.md) documents current price/stock behavior and approved-change/reconciliation safety checks.
 - [`docs/PAYMENT_INCIDENT_RESPONSE.md`](./docs/PAYMENT_INCIDENT_RESPONSE.md) documents incident escalation, Stripe-to-Neon reconciliation and replay limitations.
 - [`docs/DAILY_ORDER_RECOVERY.md`](./docs/DAILY_ORDER_RECOVERY.md) documents current daily processing, exception routing and missing-order investigations.
