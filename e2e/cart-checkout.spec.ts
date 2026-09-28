@@ -13,12 +13,18 @@ function cartLine(size=firstSize, quantity=1) {
 }
 
 async function seedCart(page: Page, lines: unknown) {
+  // Seed before React hydration rather than racing the first empty-cart write.
+  // Session storage makes this a one-time seed: refreshes and checkout
+  // navigation must preserve actual cart changes, not reinstate the fixture.
+  await page.addInitScript(({ key, value }) => {
+    const marker = '__playwright_cart_seeded'
+    if (!sessionStorage.getItem(marker)) {
+      localStorage.setItem(key, value)
+      sessionStorage.setItem(marker, 'true')
+    }
+  }, { key: storageKey, value: JSON.stringify(lines) })
   await page.goto('/cart')
   await expect(page.getByRole('heading', { name: 'Shopping Cart' })).toBeVisible()
-  await page.evaluate(({key,value}) => localStorage.setItem(key, value), {
-    key: storageKey, value: JSON.stringify(lines),
-  })
-  await page.reload()
 }
 
 async function waitForCart(page: Page) {
@@ -121,7 +127,8 @@ test.describe('mobile checkout — mocked catalog and no provider calls', () => 
     await seedCart(page,[cartLine(firstSize)])
     await page.goto('/checkout')
     await expect(page.getByText('Your cart is empty')).toBeVisible()
-    const saved=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)??'[]'),storageKey)
-    expect(saved).toEqual([])
+    await expect.poll(async () => page.evaluate(
+      key => JSON.parse(localStorage.getItem(key) ?? '[]'), storageKey,
+    )).toEqual([])
   })
 })
