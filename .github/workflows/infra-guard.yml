@@ -132,6 +132,12 @@ jobs:
           set -o pipefail
           npm test 2>&1 | tee candidate-verification-logs/tests.log
 
+      - name: Test admin CRUD route authorization with isolated persistence
+        shell: bash
+        run: |
+          set -o pipefail
+          node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test tests/route-authorization.integration.mjs 2>&1 | tee candidate-verification-logs/admin-route-integration.log
+
       - name: Check types without emitting files
         shell: bash
         run: |
