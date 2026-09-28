@@ -239,6 +239,12 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Exercise cart/mobile checkout with mocked providers
         run: npm run test:e2e
+      - name: Print bounded browser failure context (synthetic fixtures only)
+        if: failure()
+        shell: bash
+        run: |
+          find test-results -name error-context.md -print -exec sh -c 'head -80 "$1"' sh {} \; | head -350 || true
+
       - name: Keep failed screenshots, traces, and test report
         if: always()
         uses: actions/upload-artifact@v4
