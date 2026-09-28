@@ -30,7 +30,7 @@ export const generateProductDescription = async (name: string, category: string,
 
         return response.text || "Could not generate description.";
     } catch (error) {
-        console.error("Gemini Error:", error);
+        console.error("Gemini generation failed");
         return "Error generating description. Please check your API key.";
     }
 };

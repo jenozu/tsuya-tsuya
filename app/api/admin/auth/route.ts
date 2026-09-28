@@ -1,3 +1,4 @@
+import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
 import { ADMIN_SESSION_MAX_AGE, createAdminSessionToken } from '@/lib/admin-session'
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     })
     return response
   } catch (error) {
-    console.error('Auth error:', error)
+    reportServerError('api.admin_auth.failure')
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
   }
 }

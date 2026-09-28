@@ -1,3 +1,4 @@
+import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { deleteProduct } from '@/lib/data'
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest) {
       failedIds,
     })
   } catch (error) {
-    console.error('Bulk product delete error:', error)
+    reportServerError('api.products_bulk_delete.failure')
     return NextResponse.json(
       { error: 'Failed to delete selected products' },
       { status: 500 }

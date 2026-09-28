@@ -1,3 +1,4 @@
+import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { randomInt } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof CheckoutBasketError) {
       return NextResponse.json({ error: error.message }, { status: 409 })
     }
-    console.error('Checkout session failed:', error instanceof Error ? error.name : 'unknown')
+    reportServerError('api.checkout_create_session.failure')
     return NextResponse.json(
       { error: 'Unable to start checkout. Please try again.' },
       { status: 500 }

@@ -357,7 +357,7 @@ export function parseCSV(
         result.imported++;
       } catch (error) {
         result.errors.push(
-          `Row ${i + 1}: Failed to parse product - ${error instanceof Error ? error.message : 'Unknown error'}`
+          `Row ${i + 1}: Failed to parse product - ${'Invalid product value'}`
         );
         result.skipped++;
       }
@@ -367,7 +367,7 @@ export function parseCSV(
     return result;
   } catch (error) {
     result.errors.push(
-      `Fatal error parsing CSV: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Fatal error parsing CSV: ${'Malformed CSV data'}`
     );
     return result;
   }

@@ -1,3 +1,4 @@
+import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { getProduct, updateProduct, deleteProduct } from '@/lib/data'
@@ -25,7 +26,7 @@ export async function GET(
     
     return NextResponse.json(product)
   } catch (error) {
-    console.error('Error fetching product:', error)
+    reportServerError('api.products_id_.failure')
     return NextResponse.json(
       { error: 'Failed to fetch product' },
       { status: 500 }
@@ -66,7 +67,7 @@ export async function PUT(
     revalidatePath(`/shop/${id}`)
     return NextResponse.json(updatedProduct)
   } catch (error) {
-    console.error('Error updating product:', error)
+    reportServerError('api.products_id_.failure')
     return NextResponse.json(
       { error: 'Failed to update product' },
       { status: 500 }
@@ -97,7 +98,7 @@ export async function DELETE(
     revalidatePath(`/shop/${id}`)
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {
-    console.error('Error deleting product:', error)
+    reportServerError('api.products_id_.failure')
     return NextResponse.json(
       { error: 'Failed to delete product' },
       { status: 500 }

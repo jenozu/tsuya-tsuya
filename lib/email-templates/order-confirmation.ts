@@ -20,6 +20,8 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
 
   const addr = order.shipping_address
   const year = new Date().getFullYear()
+  const configuredSupport = process.env.SUPPORT_EMAIL?.trim()
+  const supportEmail = configuredSupport && /^[^@\s<>]+@[^@\s<>]+\.[A-Za-z]{2,}$/.test(configuredSupport) ? configuredSupport : null
 
   return `<!DOCTYPE html>
 <html>
@@ -108,7 +110,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
     
     <div style="margin-top: 40px; padding: 30px; background: #F2EFE9; border-top: 2px solid #E5E0D8; text-align: center;">
       <p style="margin: 0; color: #786B59; font-size: 14px; font-style: italic;">You will receive a shipping confirmation once your order is dispatched.</p>
-      <p style="margin: 16px 0 0; color: #786B59; font-size: 14px;">For inquiries: <a href="mailto:support@tsuyanouchi.com" style="color: #5C7C66; text-decoration: none;">support@tsuyanouchi.com</a></p>
+      ${supportEmail ? `<p style="margin: 16px 0 0; color: #786B59; font-size: 14px;">For inquiries: <a href="mailto:${encodeURIComponent(supportEmail)}" style="color: #5C7C66; text-decoration: none;">${escapeHtml(supportEmail)}</a></p>` : ''}
     </div>
   </div>
   

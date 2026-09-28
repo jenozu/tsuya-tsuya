@@ -43,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCartItems(parseStoredCart(stored));
       }
     } catch (error) {
-      console.error('Error loading cart from localStorage:', error);
+      console.error('Error loading cart from localStorage:');
     } finally {
       setIsInitialized(true);
     }
@@ -67,7 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
       } catch (error) {
-        console.error('Error saving cart to localStorage:', error);
+        console.error('Error saving cart to localStorage:');
       }
     }
   }, [cartItems, isInitialized]);
