@@ -38,7 +38,7 @@ export default function CartPage() {
                   const itemKey = `${item.id}-${item.selectedSize?.label || 'default'}-${index}`;
                   
                   return (
-                    <div key={itemKey} className="flex gap-6 p-6 bg-white border border-[#E5E0D8]">
+                    <div key={itemKey} data-testid="cart-line" className="flex gap-6 p-6 bg-white border border-[#E5E0D8]">
                       <div className="h-32 w-32 flex-shrink-0 overflow-hidden border border-[#E5E0D8] relative">
                         <SafeProductImage src={item.imageUrl || '/product-placeholder.svg'} alt={item.name} fill className="object-cover" />
                       </div>
@@ -58,14 +58,16 @@ export default function CartPage() {
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex items-center border border-[#E5E0D8]">
                             <button 
+                              aria-label={`Decrease quantity of ${item.name}`}
                               onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedSize?.label)}
                               className="p-2 hover:bg-[#E5E0D8] disabled:opacity-50 text-[#2D2A26]"
                               disabled={item.quantity <= 1}
                             >
                               <Minus size={16} />
                             </button>
-                            <span className="px-4 text-sm text-[#2D2A26]">{item.quantity}</span>
+                            <span data-testid="cart-line-quantity" className="px-4 text-sm text-[#2D2A26]">{item.quantity}</span>
                             <button 
+                              aria-label={`Increase quantity of ${item.name}`}
                               onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedSize?.label)}
                               className="p-2 hover:bg-[#E5E0D8] text-[#2D2A26]"
                             >
@@ -73,6 +75,7 @@ export default function CartPage() {
                             </button>
                           </div>
                           <button 
+                            aria-label={`Remove ${item.name} ${item.selectedSize?.label ?? ""} from cart`}
                             onClick={() => removeFromCart(item.id, item.selectedSize?.label)}
                             className="text-sm text-[#8C3F3F] hover:text-red-700 flex items-center gap-2"
                           >
