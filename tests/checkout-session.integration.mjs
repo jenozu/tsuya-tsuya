@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { before, after, test } from 'node:test'
+import { NextRequest } from 'next/server.js'
 import { POST } from '../app/api/checkout/create-session/route.ts'
 import { computeTaxAmount } from '../lib/tax.ts'
 import { checkoutAttemptIdentity, checkoutSessionAvailability } from '../lib/checkout-attempt.ts'
@@ -36,7 +37,7 @@ function request(attempt, body=payload, options={}) {
     'content-type':'application/json',
     ...(attempt === undefined?{}:{'x-checkout-attempt':attempt}),
   }
-  return new Request('https://tsuyanouchi.com/api/checkout/create-session',{
+  return new NextRequest('https://tsuyanouchi.com/api/checkout/create-session',{
     method:'POST',headers,body:JSON.stringify(body),
   })
 }
