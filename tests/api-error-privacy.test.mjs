@@ -53,15 +53,15 @@ test('all explicitly logged route and payment events appear in the static log vo
     if (!fs.existsSync(full)) return
     if (fs.statSync(full).isDirectory()) {
       for (const entry of fs.readdirSync(full)) visit(path.posix.join(item, entry))
-    } else if (/\\.(?:ts|tsx)$/.test(item)) files.push(item)
+    } else if (/\.(?:ts|tsx)$/.test(item)) files.push(item)
   }
   roots.forEach(visit)
   let matched = 0
   for (const file of files) {
     const source = read(file)
-    assert.doesNotMatch(source, /console\\.(?:error|warn|info|log|debug)\\s*\\(/, file + ': raw API logging forbidden')
-    assert.doesNotMatch(source, /JSON\\.stringify\\s*\\(\\s*(?:error|err|order|paymentIntent)\\b/, file)
-    for (const call of source.matchAll(/reportServer(?:Error|Warn|Info)\\(\\s*(?:'([^']+)'|"([^"]+)")/g)) {
+    assert.doesNotMatch(source, /console\.(?:error|warn|info|log|debug)\s*\(/, file + ': raw API logging forbidden')
+    assert.doesNotMatch(source, /JSON\.stringify\s*\(\s*(?:error|err|order|paymentIntent)\b/, file)
+    for (const call of source.matchAll(/reportServer(?:Error|Warn|Info)\(\s*(?:'([^']+)'|"([^"]+)")/g)) {
       assert.ok(ALLOWED_SERVER_EVENTS.has(call[1] || call[2]), file + ': unapproved log event')
       matched += 1
     }
@@ -75,11 +75,11 @@ test('public configuration failure copy cannot include provider diagnostics or s
     assert.doesNotMatch(text, /(?:ADMIN_PASSWORD|PREVIEW_PASSWORD|STRIPE_WEBHOOK_SECRET|DATABASE_URL|metadata|secret|session)/i)
   }
   for (const file of ['app/checkout/page.tsx', 'app/admin/admin-client.tsx']) {
-    assert.doesNotMatch(read(file), /console\\.(?:error|log|warn)\\([^\\n]*,\\s*(?:error|err)\\b/,
+    assert.doesNotMatch(read(file), /console\.(?:error|log|warn)\([^\n]*,\s*(?:error|err)\b/,
       file + ': raw exception objects cannot enter browser logs')
   }
   const webhook = read('app/api/webhooks/stripe/route.ts')
-  assert.doesNotMatch(webhook, /throw new Error\\(\\s*\\`[^\\`]*\\$\\{(?:session\\.id|orderId)/,
+  assert.doesNotMatch(webhook, /throw new Error\(\s*\`[^\`]*\$\{(?:session\.id|orderId)/,
     'payment/order identifiers cannot be embedded in throwable error strings')
   assert.ok(webhook.includes('PUBLIC_API_FAILURE.webhook'))
 })
