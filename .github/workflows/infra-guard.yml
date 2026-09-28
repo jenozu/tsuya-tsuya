@@ -91,6 +91,8 @@ jobs:
     steps:
       - name: Check out proposed changes
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Record candidate source
         shell: bash
@@ -119,6 +121,19 @@ jobs:
         run: |
           set -o pipefail
           npm run verify:infra 2>&1 | tee candidate-verification-logs/verify-infra.log
+
+      - name: Check changed-file whitespace and patch formatting
+        shell: bash
+        run: |
+          set -o pipefail
+          git fetch origin main
+          git diff --check "$(git merge-base HEAD origin/main)"...HEAD 2>&1 | tee candidate-verification-logs/format-check.log
+
+      - name: Gate critical security regressions
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run verify:security 2>&1 | tee candidate-verification-logs/security-check.log
 
       - name: Lint source tree
         shell: bash
