@@ -2,23 +2,20 @@ import { Resend } from 'resend'
 import { Order } from './types'
 import { renderOrderConfirmationHtml } from './email-templates/order-confirmation'
 import { escapeHtml } from './html-escape'
-
-if (!process.env.RESEND_API_KEY) {
-  console.warn('RESEND_API_KEY is not set - email functionality will be disabled')
-}
+import { getConfiguredEmailDelivery } from './email-config'
+import { reportServerError, reportServerInfo, reportServerWarn } from './safe-server-log'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL
-const ADMIN_EMAIL = process.env.ORDER_NOTIFICATION_EMAIL
 
 export async function sendOrderConfirmation(
   customerEmail: string,
   orderId: string,
   order: Order
 ): Promise<boolean> {
-  if (!resend || !FROM_EMAIL) {
-    console.warn('Order email configuration incomplete - skipping order confirmation')
+  const delivery = getConfiguredEmailDelivery()
+  if (!resend || !delivery) {
+    reportServerWarn('email.order_confirmation.configuration_incomplete')
     return false
   }
 
@@ -26,21 +23,21 @@ export async function sendOrderConfirmation(
     const html = renderOrderConfirmationHtml(orderId, order)
 
     const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
+      from: delivery.from,
       to: customerEmail,
       subject: `Order Confirmation — ${orderId}`,
       html,
     })
 
     if (error) {
-      console.error('Order confirmation email send failed')
+      reportServerError('email.order_confirmation.send_failed')
       return false
     }
 
-    console.log('Order confirmation email sent')
+    reportServerInfo('email.order_confirmation.sent')
     return true
   } catch {
-    console.error('Order confirmation email send failed')
+    reportServerError('email.order_confirmation.send_failed')
     return false
   }
 }
@@ -49,8 +46,9 @@ export async function sendOrderNotification(
   orderId: string,
   order: Order
 ): Promise<boolean> {
-  if (!resend || !FROM_EMAIL || !ADMIN_EMAIL) {
-    console.warn('Owner email configuration incomplete - skipping order notification')
+  const delivery = getConfiguredEmailDelivery()
+  if (!resend || !delivery?.owner) {
+    reportServerWarn('email.owner_notification.configuration_incomplete')
     return false
   }
 
@@ -132,21 +130,21 @@ export async function sendOrderNotification(
 `
 
     const { error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: ADMIN_EMAIL,
+      from: delivery.from,
+      to: delivery.owner,
       subject: `New Order — ${orderId}`,
       html,
     })
 
     if (error) {
-      console.error('Owner notification email send failed')
+      reportServerError('email.owner_notification.send_failed')
       return false
     }
 
-    console.log('Admin notification email sent')
+    reportServerInfo('email.owner_notification.sent')
     return true
   } catch {
-    console.error('Owner notification email send failed')
+    reportServerError('email.owner_notification.send_failed')
     return false
   }
 }
