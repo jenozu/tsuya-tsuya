@@ -10,6 +10,7 @@ type SafeLevel = 'info' | 'warn' | 'error'
 // contains only harmless-looking letters, digits, dots or hyphens.
 export const ALLOWED_SERVER_EVENTS: ReadonlySet<string> = new Set([
   'api.admin_auth.failure',
+  'api.preview_access.failure',
   'api.admin_product_images.failure',
   'api.checkout_create_session.failure',
   'api.orders.persist_failed',
@@ -29,6 +30,7 @@ export const ALLOWED_SERVER_EVENTS: ReadonlySet<string> = new Set([
   'stripe.checkout.processing_complete',
   'stripe.checkout.processing_complete_email_incomplete',
   'stripe.webhook.signature_missing',
+  'stripe.webhook.request_read_failure',
   'stripe.webhook.invalid_signature',
   'stripe.webhook.received',
   'stripe.webhook.order_marked_paid',
