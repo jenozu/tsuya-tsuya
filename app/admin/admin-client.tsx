@@ -190,7 +190,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         setProducts(fresh);
       }
     } catch (err) {
-      console.error('Error refreshing products:', err);
+      console.error('Error refreshing products');
     }
     router.refresh();
   };
@@ -295,7 +295,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         alert('Failed to duplicate product');
       }
     } catch (error) {
-      console.error('Error duplicating product:', error);
+      console.error('Error duplicating product');
       alert('Error duplicating product');
     }
   };
@@ -318,7 +318,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
           alert('Failed to delete product');
         }
       } catch (error) {
-        console.error('Error deleting product:', error);
+        console.error('Error deleting product');
         alert('Error deleting product');
       }
     }
@@ -354,7 +354,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         alert(`Deleted ${result.deleted} product(s). ${result.failed} could not be deleted.`);
       }
     } catch (error) {
-      console.error('Bulk delete error:', error);
+      console.error('Bulk delete error');
       alert('Failed to delete selected products');
     } finally {
       setIsBulkDeleting(false);
@@ -410,7 +410,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         alert('Failed to save product');
       }
     } catch (error) {
-      console.error('Error saving product:', error);
+      console.error('Error saving product');
       alert('Error saving product');
     }
   };
@@ -467,7 +467,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         if (publicUrl) newUrls.push(publicUrl);
         else failures.push(file.name);
       } catch (error) {
-        console.error('Error uploading image:', error);
+        console.error('Error uploading image');
         failures.push(`${file.name}: ${error instanceof Error ? error.message : 'upload failed'}`);
       }
     }
@@ -562,7 +562,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         );
       }
     } catch (error) {
-      console.error('CSV import error:', error);
+      console.error('CSV import error');
       alert('Failed to import CSV. Please check your file format and try again.');
     } finally {
       setIsImporting(false);
@@ -575,7 +575,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       await fetch('/api/admin/auth', { method: 'DELETE' });
       router.push('/admin/login');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('Logout error');
     }
   };
 
