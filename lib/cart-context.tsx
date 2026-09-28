@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { calculateCartTotal, normalizeCart, parseStoredCart } from './cart-sanitizer';
+import { reconcileCartWithCatalog } from './cart-reconcile';
+import type { Product } from './types';
 
 export interface ProductSize {
   label: string;
@@ -23,6 +25,7 @@ interface CartContextType {
   removeFromCart: (id: string, sizeLabel?: string) => void;
   updateQuantity: (id: string, quantity: number, sizeLabel?: string) => void;
   clearCart: () => void;
+  reconcileCart: (products: Product[]) => boolean;
   getCartTotal: () => number;
   getCartCount: () => number;
 }
@@ -124,6 +127,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems([]);
   };
 
+  const reconcileCart = (products: Product[]) => {
+    const reconciled = reconcileCartWithCatalog(cartItems, products);
+    if (reconciled.changed) setCartItems(reconciled.items);
+    return reconciled.changed;
+  };
+
   const getCartTotal = () => calculateCartTotal(cartItems);
 
   const getCartCount = () => {
@@ -136,6 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     removeFromCart,
     updateQuantity,
     clearCart,
+    reconcileCart,
     getCartTotal,
     getCartCount,
   };
