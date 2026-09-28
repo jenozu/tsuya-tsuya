@@ -135,6 +135,26 @@ jobs:
           set -o pipefail
           npm run verify:security 2>&1 | tee candidate-verification-logs/security-check.log
 
+      - name: Check changed-line formatting hygiene
+        shell: bash
+        run: |
+          set -o pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git diff --check "$BASE_SHA" HEAD 2>&1 | tee candidate-verification-logs/format-check.log
+
+      - name: Run static security policy checks
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run security:check 2>&1 | tee candidate-verification-logs/security-check.log
+
+      - name: Audit production dependencies for high/critical vulnerabilities
+        shell: bash
+        run: |
+          set -o pipefail
+          npm audit --omit=dev --audit-level=high 2>&1 | tee candidate-verification-logs/npm-audit.log
+
       - name: Lint source tree
         shell: bash
         run: |
