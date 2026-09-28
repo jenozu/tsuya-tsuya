@@ -105,9 +105,9 @@ test.describe('mobile checkout — mocked catalog and no provider calls', () => 
     await page.locator('input[name="city"]').fill('Testville')
     await page.locator('input[name="state"]').fill('NY')
     await page.locator('input[name="postalCode"]').fill('10001')
-    let called=false
+    const attemptHeaders:string[]=[]
     await page.route('**/api/checkout/create-session', async route=>{
-      called=true
+      attemptHeaders.push(route.request().headers()['x-checkout-attempt'] ?? '')
       const payload=route.request().postDataJSON()
       expect(payload.items[0].sizeLabel).toBe('8" x 10"')
       expect(payload.items[0].quantity).toBe(1)
@@ -116,7 +116,12 @@ test.describe('mobile checkout — mocked catalog and no provider calls', () => 
     })
     await page.getByRole('button',{name:'Proceed to payment'}).click()
     await expect(page.getByText('Your cart totals changed. Refresh checkout.')).toBeVisible()
-    expect(called).toBe(true)
+    expect(attemptHeaders).toHaveLength(1)
+    expect(attemptHeaders[0]).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i)
+    // Explicit retry after a rejected session should retain the same attempt.
+    await page.getByRole('button',{name:'Proceed to payment'}).click()
+    await expect.poll(()=>attemptHeaders.length).toBe(2)
+    expect(attemptHeaders[1]).toBe(attemptHeaders[0])
   })
 
   test('removes a discontinued cached variation instead of silently changing the size', async ({page}) => {
