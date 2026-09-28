@@ -1,6 +1,6 @@
 import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
-import { randomInt } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import type Stripe from 'stripe'
 import { stripe } from '@/lib/stripe'
@@ -10,15 +10,10 @@ import { getProduct } from '@/lib/data'
 import { getStandardShippingForCountryAndQuantity } from '@/lib/shipping'
 import { computeTaxAmount } from '@/lib/tax'
 import { checkoutRequestSchema } from '@/lib/checkout-schema'
+import { CHECKOUT_ATTEMPT_PATTERN, checkoutAttemptIdentity, checkoutSessionAvailability } from '@/lib/checkout-attempt'
 
 export const runtime = 'nodejs'
 
-
-function createShortOrderId(): string {
-  const max = 36 ** 7
-  const code = randomInt(0, max).toString(36).toUpperCase().padStart(7, '0')
-  return `ORD-${code}`
-}
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
@@ -52,7 +47,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const orderId = createShortOrderId()
+    // Legacy clients that do not send an attempt ID still receive a fresh
+    // checkout. Updated clients persist a UUID so retries reuse one Stripe
+    // session and opaque order identity, even across refreshes.
+    const requestedAttempt = request.headers.get('x-checkout-attempt')
+    if (requestedAttempt !== null && !CHECKOUT_ATTEMPT_PATTERN.test(requestedAttempt)) {
+      return NextResponse.json({ error: 'Invalid checkout attempt.' }, { status: 400 })
+    }
+    const attemptId = requestedAttempt ?? randomUUID()
+    const { orderId, idempotencyKey } =
+      checkoutAttemptIdentity(attemptId, process.env.STRIPE_SECRET_KEY || '')
     const { success, cancel } = trustedCheckoutReturnUrls(orderId, {
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV,
@@ -124,7 +128,24 @@ export async function POST(request: NextRequest) {
       payment_intent_data: {
         metadata: paymentIntentMetadata,
       },
-    })
+    }, { idempotencyKey })
+
+    const availability = checkoutSessionAvailability(session)
+    if (availability === 'expired') {
+      return NextResponse.json({
+        error: 'Your checkout session expired. Please start checkout again.',
+        code: 'CHECKOUT_SESSION_EXPIRED',
+      }, { status: 409 })
+    }
+    if (availability === 'completed') {
+      return NextResponse.json({
+        error: 'This checkout has already been completed. Do not submit payment again.',
+        code: 'CHECKOUT_ALREADY_COMPLETED',
+      }, { status: 409 })
+    }
+    if (availability !== 'open') {
+      return NextResponse.json({ error: 'Checkout is temporarily unavailable. Please try again.' }, { status: 503 })
+    }
 
     if (!session.url) {
       return NextResponse.json({ error: 'Failed to create checkout URL' }, { status: 500 })
