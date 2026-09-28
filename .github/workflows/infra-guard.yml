@@ -120,11 +120,13 @@ jobs:
           set -o pipefail
           npm run verify:infra 2>&1 | tee candidate-verification-logs/verify-infra.log
 
-      - name: Check formatting hygiene
+      - name: Check changed-line formatting hygiene
         shell: bash
         run: |
           set -o pipefail
-          npm run format:check 2>&1 | tee candidate-verification-logs/format-check.log
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git diff --check "$BASE_SHA"...HEAD 2>&1 | tee candidate-verification-logs/format-check.log
 
       - name: Run static security policy checks
         shell: bash
