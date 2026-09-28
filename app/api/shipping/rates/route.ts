@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const rates = await getShippingRates()
     return NextResponse.json(rates)
-  } catch (error) {
+  } catch {
     reportServerError('api.shipping_rates.failure')
     return NextResponse.json(
       { error: 'Failed to fetch shipping rates' },

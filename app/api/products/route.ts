@@ -12,7 +12,7 @@ export async function GET() {
   try {
     const products = await getProducts()
     return NextResponse.json(products)
-  } catch (error) {
+  } catch {
     reportServerError('api.products.failure')
     return NextResponse.json(
       { error: 'Failed to fetch products' },
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     revalidatePath('/')
     revalidatePath('/shop')
     return NextResponse.json(newProduct, { status: 201 })
-  } catch (error) {
+  } catch {
     reportServerError('api.products.failure')
     return NextResponse.json(
       { error: 'Failed to create product' },

@@ -39,7 +39,7 @@ export async function sendOrderConfirmation(
 
     console.log('Order confirmation email sent')
     return true
-  } catch (error) {
+  } catch {
     console.error('Order confirmation email send failed')
     return false
   }
@@ -145,7 +145,7 @@ export async function sendOrderNotification(
 
     console.log('Admin notification email sent')
     return true
-  } catch (error) {
+  } catch {
     console.error('Owner notification email send failed')
     return false
   }

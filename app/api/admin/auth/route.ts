@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       path: '/',
     })
     return response
-  } catch (error) {
+  } catch {
     reportServerError('api.admin_auth.failure')
     return NextResponse.json({ error: 'Authentication failed' }, { status: 500 })
   }

@@ -25,7 +25,7 @@ export async function GET(
     }
     
     return NextResponse.json(product)
-  } catch (error) {
+  } catch {
     reportServerError('api.products_id_.failure')
     return NextResponse.json(
       { error: 'Failed to fetch product' },
@@ -66,7 +66,7 @@ export async function PUT(
     revalidatePath('/shop')
     revalidatePath(`/shop/${id}`)
     return NextResponse.json(updatedProduct)
-  } catch (error) {
+  } catch {
     reportServerError('api.products_id_.failure')
     return NextResponse.json(
       { error: 'Failed to update product' },
@@ -97,7 +97,7 @@ export async function DELETE(
     revalidatePath('/shop')
     revalidatePath(`/shop/${id}`)
     return NextResponse.json({ message: 'Product deleted successfully' })
-  } catch (error) {
+  } catch {
     reportServerError('api.products_id_.failure')
     return NextResponse.json(
       { error: 'Failed to delete product' },

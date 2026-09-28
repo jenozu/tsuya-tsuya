@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(order, { status: 201 })
-  } catch (error) {
+  } catch {
     reportServerError('api.orders.create_failure')
     return NextResponse.json(
       { error: 'Unable to create order' },

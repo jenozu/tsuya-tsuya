@@ -25,7 +25,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       if (stored) {
         setFavorites(JSON.parse(stored));
       }
-    } catch (error) {
+    } catch {
       console.error('Error loading favorites from localStorage:');
     } finally {
       setIsInitialized(true);
@@ -37,7 +37,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     if (isInitialized) {
       try {
         localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(favorites));
-      } catch (error) {
+      } catch {
         console.error('Error saving favorites to localStorage:');
       }
     }

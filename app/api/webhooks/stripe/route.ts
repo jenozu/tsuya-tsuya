@@ -173,7 +173,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event
   try {
     event = verifyWebhookSignature(body, signature)
-  } catch (err) {
+  } catch {
     reportServerError('stripe.webhook.invalid_signature')
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
       return NextResponse.json({ error: 'Misconfigured webhook secret' }, { status: 500 })
@@ -246,7 +246,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ received: true })
-  } catch (error) {
+  } catch {
     reportServerError('stripe.webhook.processing_failure')
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }

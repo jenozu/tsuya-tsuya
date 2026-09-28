@@ -60,7 +60,7 @@ export async function DELETE(request: NextRequest) {
 
     await deleteR2Object(key)
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch {
     reportServerError('api.admin_product_images.failure')
     return NextResponse.json({ error: 'Image deletion failed' }, { status: 500 })
   }

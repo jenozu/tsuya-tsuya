@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     const quantity = quantityParam ? Math.max(1, parseInt(quantityParam, 10) || 1) : 1
     const price = getStandardShippingForCountryAndQuantity(country, quantity)
     return NextResponse.json({ price })
-  } catch (error) {
+  } catch {
     reportServerError('api.shipping_rate.failure')
     return NextResponse.json(
       { error: 'Failed to fetch shipping rate' },

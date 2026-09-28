@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ok: true })
-  } catch (error) {
+  } catch {
     reportServerError('api.waitlist.request_failure')
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
   }

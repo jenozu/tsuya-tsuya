@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       failed: failedIds.length,
       failedIds,
     })
-  } catch (error) {
+  } catch {
     reportServerError('api.products_bulk_delete.failure')
     return NextResponse.json(
       { error: 'Failed to delete selected products' },

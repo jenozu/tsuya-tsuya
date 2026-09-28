@@ -355,7 +355,7 @@ export function parseCSV(
         const product = parseProductFromRow(row);
         result.products.push(product);
         result.imported++;
-      } catch (error) {
+      } catch {
         result.errors.push(
           `Row ${i + 1}: Failed to parse product - ${'Invalid product value'}`
         );
@@ -365,7 +365,7 @@ export function parseCSV(
 
     result.success = result.imported > 0;
     return result;
-  } catch (error) {
+  } catch {
     result.errors.push(
       `Fatal error parsing CSV: ${'Malformed CSV data'}`
     );
