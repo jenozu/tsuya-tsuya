@@ -56,7 +56,10 @@ test('admin rejects an incorrect password and successfully logs out after synthe
   // client has attached event handlers before testing its logout handler.
   await page.getByRole('button', { name: 'Orders', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Order Management' })).toBeVisible()
-  // The deliberately unconfigured local database can trigger Next's dev error\n  // overlay, which intercepts pointer events. Dispatch the button's DOM click\n  // to test the logout handler without dismissing diagnostic errors.\n  await page.getByRole('button', { name: /logout|log out/i })\n    .evaluate(button => (button as HTMLButtonElement).click())
+  // The deliberately unconfigured local database may trigger Next's dev overlay,
+  // so DOM-dispatch this click to exercise the handler without hiding errors.
+  await page.getByRole('button', { name: /logout|log out/i })
+    .evaluate(button => (button as HTMLButtonElement).click())
   await expect(page).toHaveURL(/\/admin\/login/)
   await page.goto('/admin')
   await expect(page).toHaveURL(/\/admin\/login/)
