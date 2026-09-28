@@ -14,3 +14,7 @@ yarn-error.log*
 pnpm-debug.log*
 tsconfig.tsbuildinfo
 .env.migration
+
+# Playwright local artifacts
+test-results/
+playwright-report/

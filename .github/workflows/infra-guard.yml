@@ -214,3 +214,44 @@ jobs:
           path: candidate-verification-logs/
           if-no-files-found: warn
           retention-days: 14
+
+  # Runs only against the proposed branch/PR merge and never accesses live
+  # provider secrets. Payment endpoints in these browser cases are mocked.
+  browser-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: candidate-build
+    permissions:
+      contents: read
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      NEXT_PUBLIC_UNDER_CONSTRUCTION: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install pinned Playwright Chromium browser and system dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Exercise cart/mobile checkout with mocked providers
+        run: npm run test:e2e
+      - name: Print bounded browser failure context (synthetic fixtures only)
+        if: failure()
+        shell: bash
+        run: |
+          find test-results -name error-context.md -print -exec sh -c 'head -80 "$1"' sh {} \; | head -350 || true
+
+      - name: Keep failed screenshots, traces, and test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tsuya-browser-e2e-${{ github.run_id }}
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 14
