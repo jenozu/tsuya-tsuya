@@ -8,6 +8,9 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
+import { verifiedSupportAddress } from '@/lib/public-business-details';
+
+const support = verifiedSupportAddress(process.env.NEXT_PUBLIC_SUPPORT_EMAIL);
 
 function ThankYouContent() {
   const searchParams = useSearchParams();
@@ -32,9 +35,11 @@ function ThankYouContent() {
         <p className="text-[#4A4036] mb-4">
           Your order confirmation email should arrive shortly with your order details.
         </p>
-        <p className="text-sm text-[#786B59]">
-          If you have any questions, please contact us at support@tsuyanouchi.com
-        </p>
+        {support && (
+          <p className="text-sm text-[#786B59]">
+            For questions, contact <a href={`mailto:${support}`} className="underline">{support}</a>.
+          </p>
+        )}
       </div>
       <div className="flex gap-4 justify-center">
         <Link href="/shop">
