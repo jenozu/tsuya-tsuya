@@ -1,0 +1,43 @@
+name: Temporary dependency lock refresh (branch only)
+on:
+  push:
+    branches:
+      - ci/independent-task-04-enforcement
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lock:
+    if: github.repository == 'jenozu/tsuya-tsuya' && contains(github.event.head_commit.message, '[audit-lock-refresh]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Safely update semver-compatible dependency lock
+        shell: bash
+        run: |
+          set +e
+          npm audit fix --package-lock-only --ignore-scripts --no-fund
+          result=$?
+          set -e
+          echo "Semver-compatible audit fix exit status: $result"
+          npm audit --omit=dev --audit-level=critical
+      - name: Commit generated lock without persisting any credentials
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json
+          if git diff --cached --quiet; then
+            echo 'Lockfile already up to date'
+            exit 0
+          fi
+          git commit -m 'chore: refresh semver-compatible dependency lock'
+          git push origin HEAD:ci/independent-task-04-enforcement
