@@ -41,3 +41,12 @@ export function getConfiguredEmailDelivery(): {
     owner: owner && isOperationalEmailAddress(owner) ? owner : null,
   }
 }
+
+/** Support links in customer HTML must use a real-looking plain mailbox only. */
+export function safeSupportEmail(raw: string | undefined): string | null {
+  const value = raw?.trim()
+  if (!value || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value)) {
+    return null
+  }
+  return isOperationalEmailAddress(value) ? value : null
+}
