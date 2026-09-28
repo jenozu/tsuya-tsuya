@@ -38,3 +38,12 @@ GEMINI_API_KEY=...
 
 # Optional; if unset, order emails omit an unverified support destination.
 SUPPORT_EMAIL=support@your-verified-domain.example
+
+# Public storefront contact values: omit until the owner has verified and approved
+# the actual mailbox, business location, and social-media profiles.
+# Placeholders under reserved .example domains never appear in the storefront.
+# NEXT_PUBLIC_SUPPORT_EMAIL=verified@your-verified-domain.example
+# NEXT_PUBLIC_BUSINESS_LOCATION=Your verified city and country
+# NEXT_PUBLIC_SOCIAL_X_URL=https://x.com/YourVerifiedAccount
+# NEXT_PUBLIC_SOCIAL_PINTEREST_URL=https://www.pinterest.com/YourVerifiedAccount/
+# NEXT_PUBLIC_SOCIAL_TUMBLR_URL=https://YourVerifiedAccount.tumblr.com/
