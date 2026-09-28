@@ -63,5 +63,5 @@ export function trustedCheckoutReturnUrls(
   const origin = trustedCheckoutOrigin(environment)
   const success = new URL('/thank-you', origin)
   success.searchParams.set('orderId', orderId)
-  return { success: success.toString(), cancel: new URL('/checkout', origin).toString() }
+  return { success: success.toString(), cancel: new URL('/checkout?canceled=1', origin).toString() }
 }
