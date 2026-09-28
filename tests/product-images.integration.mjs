@@ -102,7 +102,10 @@ test('actual deletion handler denies unauthenticated and foreign-origin requests
 
 test('actual deletion handler rejects missing or non-product keys and resolves public image URLs', async () => {
   resetR2()
-  for (const body of [{}, {key:'private/admin-key'}, {url:'https://attacker.invalid/products/a.png'}]) {
+  for (const body of [{}, {key:'private/admin-key'}, {url:'https://attacker.invalid/products/a.png'},
+    {key:'products/../secrets.txt'},
+    {key:'products//missing-segment.png'},
+    {url:'https://test-r2.example.invalid/products/%2e%2e/private.txt'}]) {
     assert.equal((await DELETE(remove(body))).status, 400)
   }
   assert.equal(writes.length, 0)
