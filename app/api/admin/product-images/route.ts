@@ -16,7 +16,8 @@ function isSafeProductKey(key: unknown): key is string {
   return typeof key === 'string' && key.length <= 1024 &&
     key.startsWith('products/') &&
     key.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..') &&
-    !/[\\\\\\x00-\\x1f\\x7f?#]/.test(key)
+    !key.includes('\\') &&
+    !/[\u0000-\u001f\u007f?#]/.test(key)
 }
 export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
