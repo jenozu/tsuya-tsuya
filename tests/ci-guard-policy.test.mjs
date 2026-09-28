@@ -71,6 +71,10 @@ test('security self-check catches unsafe Next/image rules and raw exception logg
     'app/api/webhooks/stripe/route.ts',
     text => text + '\nconsole.error(customerAddress)\n',
   )).some(problem => problem.includes('unstructured')))
+  assert.ok(securitySourceViolations(withChangedFile(
+    'app/api/orders/route.ts',
+    text => text + '\nfunction leak(error) { return { error: error.message } }\n',
+  )).some(problem => problem.includes('exception details')))
 })
 
 test('known production secret fallback is reported, not removed before owner verification', () => {
