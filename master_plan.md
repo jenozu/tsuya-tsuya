@@ -44,7 +44,8 @@ Make the current Neon data model reproducible, constrained, and safe to evolve.
 ### Implementation
 - [x] Keep baseline Neon SQL for products, orders, shipping rates, favorites, and waitlist (`migrations/002_neon_r2_schema.sql`). <!-- task:TSU-M3-001 -->
 - [x] Use parameterized Neon queries for structured product and order access (`lib/data.ts`). <!-- task:TSU-M3-002 -->
-- [ ] Introduce ordered, repeatable migrations and a migrations ledger for all subsequent schema changes. <!-- task:TSU-M3-003 -->
+- [x] Introduce ordered, repeatable migrations and a migrations ledger for all subsequent schema changes. <!-- task:TSU-M3-003 -->
+  - Evidence (2026-09-28): `scripts/migrate.mjs`, `lib/migration-plan.mjs`, and `migrations/README.md` provide a forward-only ordered migration system with SHA-256 history checks, `public.schema_migrations` ledger, gap/mutation detection, isolated baseline initialization/adoption safeguards, and transactional forward application. PR validation run [36425942145](https://github.com/jenozu/tsuya-tsuya/actions/runs/36425942145) passed the offline migration-plan check. Applying the baseline to blank/production-like databases remains separately tracked under M3-004.
 - [ ] Verify baseline schema and migrations apply cleanly to a blank test database and upgrade a production-like copy without data loss. <!-- task:TSU-M3-004 -->
 - [ ] Add normalized variant/SKU/inventory tables or rigorously validated JSONB constraints, as dictated by the selected fulfillment model. <!-- task:TSU-M3-005 -->
 - [ ] Add persistent Stripe event and email-delivery records plus order/line-item/payment uniqueness constraints for retry safety. <!-- task:TSU-M3-006 -->
@@ -73,7 +74,8 @@ Present accurate art-print offerings with discoverable detail and product images
 - [x] Render product descriptions, multi-image galleries, size selection, and add-to-cart interactions in product detail code. <!-- task:TSU-M5-002 -->
 - [x] Provide existing CSV import parsing, templates, and a protected import endpoint. <!-- task:TSU-M5-003 -->
 - [ ] Verify catalog category, sort, search/filter, availability labels, and no-results behaviors against real production catalog records. <!-- task:TSU-M5-004 -->
-- [ ] Decide and implement durable SEO-friendly slugs or rename `[slug]` to reflect its current ID lookup; preserve old product URLs. <!-- task:TSU-M5-005 -->
+- [x] Decide and implement durable SEO-friendly slugs or rename `[slug]` to reflect its current ID lookup; preserve old product URLs. <!-- task:TSU-M5-005 -->
+  - Evidence (2026-09-28): the product detail route directory is `app/shop/[id]`, explicitly matching its database-ID lookup while preserving the public `/shop/<existing-id>` URL shape. `docs/SEO_URL_POLICY.md` documents the stable ID contract and future permanent-redirect requirements for any readable-slug migration; README now reflects `/shop/[id]`.
 - [ ] Test CSV creation/update, invalid rows, duplicate names, image filename mapping, transaction safety, and re-import reporting using R2 assets. <!-- task:TSU-M5-006 -->
 - [ ] Validate catalog copy, art-print product types, image rights/licensing, and the final launch assortment. <!-- task:TSU-M5-007 -->
 
@@ -90,7 +92,8 @@ Create a single authoritative SKU, price, and stock model.
   - Evidence (2026-09-27): PR #19 introduced strict shared Zod schemas across admin product create/update and CSV import for allowed unique print sizes, positive two-decimal variant prices, bounded nonnegative integer stock and safe image fields. CSV numeric parsing no longer truncates malformed inventory or overprecise prices. [Candidate CI run 36351775450](https://github.com/jenozu/tsuya-tsuya/actions/runs/36351775450) passed tests, typecheck and production build, with a successful preview deployment. Live admin/import workflow and transaction-safe reimport remain separate tasks.
 - [ ] Keep listings, cart, checkout, and admin inventory consistent after edits and discontinued variants. <!-- task:TSU-M6-005 -->
 - [ ] Atomically reserve/decrement available inventory at the correct payment stage; prevent overselling and release failed/expired holds. <!-- task:TSU-M6-006 -->
-- [ ] Document catalog price changes, out-of-stock rules, and manual stock reconciliation. <!-- task:TSU-M6-007 -->
+- [x] Document catalog price changes, out-of-stock rules, and manual stock reconciliation. <!-- task:TSU-M6-007 -->
+  - Evidence (2026-09-28): `docs/CATALOG_PRICE_INVENTORY.md` documents reviewed catalog-price changes, current shared-stock/out-of-stock behavior, discontinued-size handling, manual stock reconciliation and explicit owner-approval boundaries without inventing a per-size SKU model.
 
 ## M7: Admin authentication and product management
 
@@ -169,7 +172,8 @@ Make payment processing idempotent, observable, and recoverable.
 - [ ] Handle out-of-order and delayed payment events, Stripe retries, request timeouts, and webhook recovery queues. <!-- task:TSU-M11-004 -->
 - [ ] Reconcile Stripe paid/refunded amounts to Neon order records with a documented scheduled or manual procedure. <!-- task:TSU-M11-005 -->
 - [ ] Verify live-mode credentials, live webhook endpoint/signature, allowed methods/currencies, fraud settings, and one controlled live purchase/refund. <!-- task:TSU-M11-006 -->
-- [ ] Document payment incident response, reprocessing steps, settlement checks, and production rollback. <!-- task:TSU-M11-007 -->
+- [x] Document payment incident response, reprocessing steps, settlement checks, and production rollback. <!-- task:TSU-M11-007 -->
+  - Evidence (2026-09-28): `docs/PAYMENT_INCIDENT_RESPONSE.md` documents incident triggers, safe Stripe→Neon settlement checks, current replay limitations, owner-authorized reprocessing, deployment/provider rollback boundaries and closeout requirements. Live-mode replay/refund verification remains under M11-006/M21-003.
 
 ## M12: Shipping, destinations, and fulfillment charges
 
@@ -209,7 +213,8 @@ Turn each verified payment into a shippable and traceable order.
 - [ ] Implement explicit fulfillment states and authorized state transitions, shipment creation, tracking numbers, and shipment timestamps. <!-- task:TSU-M14-003 -->
 - [ ] Generate a clear pick/pack/print/quality-control workflow, including artwork print-size checks and packaging instructions. <!-- task:TSU-M14-004 -->
 - [ ] Add shipment and stock reconciliation for cancellations, partial fulfillment, losses, and manual corrections. <!-- task:TSU-M14-005 -->
-- [ ] Document daily order processing, customer issue escalation, and manual recovery of paid orders lacking an order record. <!-- task:TSU-M14-006 -->
+- [x] Document daily order processing, customer issue escalation, and manual recovery of paid orders lacking an order record. <!-- task:TSU-M14-006 -->
+  - Evidence (2026-09-28): `docs/DAILY_ORDER_RECOVERY.md` documents daily paid-order intake, customer/fulfillment exception escalation, safe investigation of Stripe-paid orders missing Neon rows and private operational records, while explicitly avoiding unverified live replay or refund actions.
 
 ## M15: Transactional email and support
 
@@ -294,7 +299,8 @@ Detect production issues quickly and prove that data and orders can be restored.
 - [ ] Configure error monitoring, uptime/health checks, payment and email failure alerts, and incident ownership. <!-- task:TSU-M20-002 -->
 - [ ] Schedule Neon backups and validate an actual point-in-time or snapshot restore in an isolated environment. <!-- task:TSU-M20-003 -->
 - [ ] Enable and document R2 retention/versioning or equivalent asset backup and restore tests. <!-- task:TSU-M20-004 -->
-- [ ] Establish documented deployment rollback, DNS/domain recovery, webhook replay, manual order reconciliation, and outage communications. <!-- task:TSU-M20-005 -->
+- [x] Establish documented deployment rollback, DNS/domain recovery, webhook replay, manual order reconciliation, and outage communications. <!-- task:TSU-M20-005 -->
+  - Evidence (2026-09-28): `docs/RECOVERY_RUNBOOK.md` establishes deployment rollback, DNS/domain recovery, one-event webhook replay boundaries, manual paid-order reconciliation, R2/image recovery, outage communication and recovery-closeout procedures. Actual provider restore/replay drills remain separate verification tasks.
 - [ ] Record service costs/limits, SLOs, audit trail requirements, and periodic disaster-recovery drills. <!-- task:TSU-M20-006 -->
 
 ## M21: Launch verification and post-launch operations
@@ -308,7 +314,9 @@ Launch only after payments, fulfillment, compliance, and support work as one sys
 - [ ] Place and reconcile a controlled live transaction, test a permitted refund, and verify production Stripe/Resend alerts. <!-- task:TSU-M21-003 -->
 - [ ] Inspect live mobile/desktop browser UX, destination/tax scenarios, legal links, consent, and accessibility blockers. <!-- task:TSU-M21-004 -->
 - [ ] Create a signed launch checklist with owner, evidence links, go/no-go review, and rollback contacts. <!-- task:TSU-M21-005 -->
-- [ ] Set weekly order/payment reconciliation, customer-support review, inventory updates, backup checks, and performance monitoring. <!-- task:TSU-M21-006 -->
-- [ ] Set monthly dependency/security patching, analytics/SEO review, pricing/shipping/tax policy review, and recovery drills. <!-- task:TSU-M21-007 -->
+- [x] Set weekly order/payment reconciliation, customer-support review, inventory updates, backup checks, and performance monitoring. <!-- task:TSU-M21-006 -->
+  - Evidence (2026-09-28): `docs/OPERATIONS_CADENCE.md` sets a weekly first-business-day checklist covering payment/order reconciliation, customer-support exceptions, catalog/inventory review, backup readiness, deployment rollback readiness and reliability/performance review, with private/redacted evidence requirements.
+- [x] Set monthly dependency/security patching, analytics/SEO review, pricing/shipping/tax policy review, and recovery drills. <!-- task:TSU-M21-007 -->
+  - Evidence (2026-09-28): `docs/OPERATIONS_CADENCE.md` sets a monthly first-business-day checklist for dependency/security maintenance, analytics/SEO, pricing/shipping/tax policy review, non-production recovery drills and cost/capacity review. Policy/provider changes still require their separately tracked approvals.
 
 > Do not check off a task merely because code exists. Tasks involving third-party configuration, payments, fulfillment, security, deployment, or launch readiness are complete only after the deployed behavior has been tested and the operating procedure has been documented.
