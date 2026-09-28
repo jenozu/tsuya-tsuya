@@ -33,8 +33,10 @@ test('actual outbound template escapes product, customer, address and order refe
 test('support destination is emitted only when configured and HTML safe', () => {
   const old = process.env.SUPPORT_EMAIL
   try {
+    process.env.SUPPORT_EMAIL = 'support@my-store.com'
+    assert.ok(renderOrderConfirmationHtml('ORD-1', order).includes('support@my-store.com'))
     process.env.SUPPORT_EMAIL = 'support@my-store.example'
-    assert.ok(renderOrderConfirmationHtml('ORD-1', order).includes('support@my-store.example'))
+    assert.ok(!renderOrderConfirmationHtml('ORD-1', order).includes('mailto:'))
     process.env.SUPPORT_EMAIL = '<script>@x.example'
     assert.ok(!renderOrderConfirmationHtml('ORD-1', order).includes('mailto:'))
   } finally {

@@ -1,5 +1,6 @@
 import type { Order } from '../types'
 import { escapeHtml } from '../html-escape.ts'
+import { safeSupportEmail } from '../email-config.ts'
 
 /**
  * Order confirmation email template (customer-facing).
@@ -11,7 +12,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
       (item) =>
         `<tr>
           <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; font-family: 'TsuyaNoUchi Serif', Georgia, serif;">${escapeHtml(item.productName)}</td>
-          <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: center; font-variant-numeric: lining-nums tabular-nums;">${item.quantity}</td>
+          <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: center; font-variant-numeric: lining-nums tabular-nums;">${escapeHtml(item.quantity)}</td>
           <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: right; font-variant-numeric: lining-nums tabular-nums;">$${item.price.toFixed(2)}</td>
           <td style="padding: 12px 8px; border-bottom: 1px solid #E5E0D8; text-align: right; font-weight: 600; font-variant-numeric: lining-nums tabular-nums;">$${(item.price * item.quantity).toFixed(2)}</td>
         </tr>`
@@ -20,8 +21,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
 
   const addr = order.shipping_address
   const year = new Date().getFullYear()
-  const configuredSupport = process.env.SUPPORT_EMAIL?.trim()
-  const supportEmail = configuredSupport && /^[^@\s<>]+@[^@\s<>]+\.[A-Za-z]{2,}$/.test(configuredSupport) ? configuredSupport : null
+  const supportEmail = safeSupportEmail(process.env.SUPPORT_EMAIL)
 
   return `<!DOCTYPE html>
 <html>
@@ -110,7 +110,7 @@ export function renderOrderConfirmationHtml(orderId: string, order: Order): stri
     
     <div style="margin-top: 40px; padding: 30px; background: #F2EFE9; border-top: 2px solid #E5E0D8; text-align: center;">
       <p style="margin: 0; color: #786B59; font-size: 14px; font-style: italic;">You will receive a shipping confirmation once your order is dispatched.</p>
-      ${supportEmail ? `<p style="margin: 16px 0 0; color: #786B59; font-size: 14px;">For inquiries: <a href="mailto:${encodeURIComponent(supportEmail)}" style="color: #5C7C66; text-decoration: none;">${escapeHtml(supportEmail)}</a></p>` : ''}
+      ${supportEmail ? `<p style="margin: 16px 0 0; color: #786B59; font-size: 14px;">For inquiries: <a href="mailto:${escapeHtml(supportEmail)}" style="color: #5C7C66; text-decoration: none;">${escapeHtml(supportEmail)}</a></p>` : ''}
     </div>
   </div>
   
