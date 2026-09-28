@@ -19,6 +19,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const isProductFavorite = isFavorite(product.id);
   const imageUrls = getImageUrls(product);
   const primaryImage = imageUrls[0] || product.image_url;
+  const isSoldOut = product.stock <= 0;
   const pricedSizes = (product.sizes || []).filter(size => Number.isFinite(size.price) && size.price > 0);
   const formatPrice = (value: number) => `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -39,6 +40,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (isSoldOut) return;
     addToCart({
       id: product.id,
       name: product.name,
@@ -76,7 +78,10 @@ export function ProductCard({ product }: ProductCardProps) {
           <Heart size={18} className={isProductFavorite ? 'fill-[#8C3F3F] text-[#8C3F3F]' : 'text-[#2D2A26]'} />
         </button>
 
-        {pricedSizes.length === 0 && (
+        {isSoldOut && (
+          <span className="absolute bottom-4 left-4 bg-[#2D2A26]/90 text-white px-3 py-1.5 text-xs uppercase tracking-wide z-10">Out of stock</span>
+        )}
+        {!isSoldOut && pricedSizes.length === 0 && (
           <button
             onClick={handleAddToCart}
             className="absolute bottom-4 right-4 bg-[#F9F8F4] p-3 rounded-full shadow-md translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#2D2A26] hover:text-[#F9F8F4] z-10"
