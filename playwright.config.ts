@@ -14,7 +14,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run dev -- --hostname 127.0.0.1',
+    command: 'npm run dev -- --webpack --hostname 127.0.0.1',
     url: 'http://127.0.0.1:3000/cart',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
