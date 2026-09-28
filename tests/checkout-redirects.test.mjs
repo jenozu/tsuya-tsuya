@@ -13,7 +13,7 @@ test('production never trusts the caller Origin/Host', () => {
     }),
     {
       success: 'https://tsuyanouchi.com/thank-you?orderId=ORD-TEST',
-      cancel: 'https://tsuyanouchi.com/checkout',
+      cancel: 'https://tsuyanouchi.com/checkout?canceled=1',
     },
   )
 })

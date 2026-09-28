@@ -8,6 +8,9 @@ export async function resolve(specifier, context, nextResolve) {
   if (specifier === '@/lib/data') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-catalog.mjs')).href, shortCircuit: true }
   }
+  if (specifier === '@/lib/stripe') {
+    return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-stripe.mjs')).href, shortCircuit: true }
+  }
   if (specifier === '@/lib/r2') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-r2.mjs')).href, shortCircuit: true }
   }

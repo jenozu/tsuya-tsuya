@@ -146,6 +146,7 @@ Keep cart behavior predictable and make checkout inputs trustworthy.
 - [ ] Validate checkout email/address and destination values on the server using shared schemas. <!-- task:TSU-M9-005 -->
   - Partial evidence: PR #22 shares the browser/server shipping-address, email and checkout request schemas with regression tests. Country *format* is checked, but owner-approved destination eligibility and geographic address verification have not been implemented.
 - [ ] Prevent duplicate checkout submissions and handle session expiry, cancellation, and returning shoppers. <!-- task:TSU-M9-006 -->
+  - Partial evidence (2026-09-28, autonomous Task 9): PR #45 adds checkout double-submit guards, privacy-preserving browser attempt reuse across retries/refresh/cancellation, deterministic server-owned Stripe idempotency keys/order IDs, typed expiry/completion responses and offline route/UI-helper tests. Stripe test-mode return/replay and a durable cross-device/session/payment ledger (M11-002/003/004) are still unverified, so this task stays unchecked; see `docs/TASK_9_CHECKOUT_RECOVERY.md`.
 
 ## M10: Stripe test checkout and order integrity
 

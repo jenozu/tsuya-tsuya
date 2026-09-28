@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
 import { Navbar } from '@/components/navbar';
@@ -13,6 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { checkoutEmailSchema, shippingAddressSchema } from '@/lib/checkout-schema';
 import { computeTaxAmount } from '@/lib/tax';
+import { clearCheckoutAttempt, checkoutAttemptForPayload, payloadDigest } from '@/lib/checkout-attempt-client';
 
 const checkoutSchema = shippingAddressSchema.extend({
   firstName: z.string().trim().min(2, 'First name must be at least 2 characters'),
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
   const { cartItems, getCartTotal, reconcileCart } = useCart();
   const [catalogVerified, setCatalogVerified] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [shippingCost, setShippingCost] = useState<number | null>(null);
 
@@ -44,6 +46,16 @@ export default function CheckoutPage() {
       phone: '',
     },
   });
+
+  useEffect(() => {
+    // A canceled Stripe Checkout page doesn't mean payment occurred.
+    // Preserve the attempt so returning shoppers resume the same session
+    // rather than accidentally creating multiple open payment sessions.
+    if (new URLSearchParams(window.location.search).get('canceled') === '1') {
+      setError('Payment was canceled. Your cart is saved; you can resume checkout.');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   const watchedCountry = watch('country');
   const watchedState = watch('state');
@@ -114,6 +126,8 @@ export default function CheckoutPage() {
   }, [watchedCountry, totalQuantity]);
 
   const onSubmit = async (data: CheckoutFormData) => {
+    // React's disabled state is asynchronous; guard rapid double-clicks too.
+    if (checkoutInFlight.current) return;
     if (!catalogVerified) {
       setError('Please wait while current prices and stock are confirmed, then review your cart.')
       return
@@ -123,6 +137,7 @@ export default function CheckoutPage() {
       return;
     }
 
+    checkoutInFlight.current = true;
     setIsRedirecting(true);
     setError(null);
 
@@ -148,19 +163,19 @@ export default function CheckoutPage() {
     }));
 
     try {
+      const checkoutPayload = {
+        items, subtotal, shipping: resolvedShipping, tax: taxes,
+        shipping_address, email: data.email,
+      };
+      const digest = await payloadDigest(checkoutPayload);
+      const attemptId = checkoutAttemptForPayload(window.localStorage, digest);
       const res = await fetch('/api/checkout/create-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items,
-          subtotal,
-          shipping: resolvedShipping,
-          tax: taxes,
-          country: data.country,
-          state: data.state,
-          shipping_address,
-          email: data.email,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Checkout-Attempt': attemptId,
+        },
+        body: JSON.stringify(checkoutPayload),
       });
 
       const sessionData = await res.json().catch(() => ({}));
@@ -175,8 +190,14 @@ export default function CheckoutPage() {
             'There was a problem starting checkout. Please refresh the page and try again. If the issue persists, please contact support.';
         }
 
+        // Only rotate an expired attempt after the server has confirmed the
+        // old session cannot accept payment. Never silently retry paid sessions.
+        if (sessionData.code === 'CHECKOUT_SESSION_EXPIRED') {
+          clearCheckoutAttempt(window.localStorage);
+        }
         setError(message);
         setIsRedirecting(false);
+        checkoutInFlight.current = false;
         return;
       }
 
@@ -187,9 +208,11 @@ export default function CheckoutPage() {
 
       setError('Invalid response from server.');
       setIsRedirecting(false);
+      checkoutInFlight.current = false;
     } catch {
       setError('Something went wrong. Please try again.');
       setIsRedirecting(false);
+      checkoutInFlight.current = false;
     }
   };
 

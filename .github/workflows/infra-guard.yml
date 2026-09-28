@@ -192,7 +192,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test tests/route-authorization.integration.mjs tests/api-error-privacy.integration.mjs tests/admin-authentication.integration.mjs tests/product-mutations.integration.mjs tests/product-images.integration.mjs 2>&1 | tee candidate-verification-logs/admin-route-integration.log
+          node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test tests/route-authorization.integration.mjs tests/api-error-privacy.integration.mjs tests/admin-authentication.integration.mjs tests/product-mutations.integration.mjs tests/product-images.integration.mjs tests/checkout-session.integration.mjs 2>&1 | tee candidate-verification-logs/admin-route-integration.log
 
       - name: Check types without emitting files
         shell: bash
