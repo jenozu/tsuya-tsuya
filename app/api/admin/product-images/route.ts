@@ -8,6 +8,16 @@ import { deleteR2Object, objectKeyFromPublicUrl, putR2Object } from '@/lib/r2'
 export const runtime = 'nodejs'
 
 const MAX_INPUT_SIZE = 10 * 1024 * 1024
+
+// Reject traversal and ambiguous object identifiers before even contacting R2.
+// Existing product object names remain usable; historical ownership checks are
+// a separate migration-backed task, not inferred merely from the prefix.
+function isSafeProductKey(key: unknown): key is string {
+  return typeof key === 'string' && key.length <= 1024 &&
+    key.startsWith('products/') &&
+    key.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..') &&
+    !/[\\\\\\x00-\\x1f\\x7f?#]/.test(key)
+}
 export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) {
@@ -54,7 +64,7 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json().catch(() => ({})) as { url?: string; key?: string }
     const key = body.key || (body.url ? objectKeyFromPublicUrl(body.url) : null)
 
-    if (!key || !key.startsWith('products/')) {
+    if (!isSafeProductKey(key)) {
       return NextResponse.json({ error: 'Invalid R2 product image key' }, { status: 400 })
     }
 
