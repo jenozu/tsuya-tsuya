@@ -126,7 +126,7 @@ jobs:
           set -o pipefail
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
-          git diff --check "$BASE_SHA"...HEAD 2>&1 | tee candidate-verification-logs/format-check.log
+          git diff --check "$BASE_SHA" HEAD 2>&1 | tee candidate-verification-logs/format-check.log
 
       - name: Run static security policy checks
         shell: bash
