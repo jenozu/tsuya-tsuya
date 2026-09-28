@@ -1,5 +1,5 @@
-import type { Order } from '@/lib/types'
-import { escapeHtml } from '@/lib/html-escape'
+import type { Order } from '../types'
+import { escapeHtml } from '../html-escape.ts'
 
 /**
  * Order confirmation email template (customer-facing).
