@@ -9,6 +9,8 @@ A luxury e-commerce storefront built with Next.js and TypeScript for Japanese-in
 - [`docs/CATALOG_PRICE_INVENTORY.md`](./docs/CATALOG_PRICE_INVENTORY.md) documents current price/stock behavior and approved-change/reconciliation safety checks.
 - [`docs/PAYMENT_INCIDENT_RESPONSE.md`](./docs/PAYMENT_INCIDENT_RESPONSE.md) documents incident escalation, Stripe-to-Neon reconciliation and replay limitations.
 - [`docs/DAILY_ORDER_RECOVERY.md`](./docs/DAILY_ORDER_RECOVERY.md) documents current daily processing, exception routing and missing-order investigations.
+- [`docs/RECOVERY_RUNBOOK.md`](./docs/RECOVERY_RUNBOOK.md) covers deployment/DNS recovery, webhook replay boundaries, order reconciliation and outage communications.
+- [`docs/OPERATIONS_CADENCE.md`](./docs/OPERATIONS_CADENCE.md) sets the weekly and monthly operational review schedule.
 - [`docs/ADMIN_ACCESS_RECOVERY.md`](./docs/ADMIN_ACCESS_RECOVERY.md) documents the current shared-admin limitations, authorized credential recovery and catalog change procedure.
 - [`docs/SERVICE_ACCESS_RUNBOOK.md`](./docs/SERVICE_ACCESS_RUNBOOK.md) assigns service ownership roles and least-privilege, rotation and incident-response procedures. Actual account grants must be verified separately.
 - [`MASTER_LIST.md`](./MASTER_LIST.md) is a historical operational snapshot last updated September 18, 2026. Its past claims are **not** fresh evidence that current production configuration or checkout works.
@@ -51,7 +53,7 @@ cd tsuya-tsuya
 npm install
 ```
 
-Create `.env.local` using `ENV_TEMPLATE.md`, run `migrations/002_neon_r2_schema.sql` in the Neon SQL Editor, and then start the app:
+Create `.env.local` using `ENV_TEMPLATE.md`. Use the ordered, checksummed migration workflow in `migrations/README.md` rather than replaying historical SQL files directly. For a new **isolated** database, follow its `--init-empty` procedure; for an existing database, follow the reviewed baseline-adoption procedure. Then start the app:
 
 ```bash
 npm run dev
@@ -109,7 +111,7 @@ The guard fails the build if the current repository tree contains references to 
 
 - `/` — homepage
 - `/shop` — product catalogue
-- `/shop/[slug]` — product detail
+- `/shop/[id]` — product detail (database ID; existing public URL shape is preserved)
 - `/cart` — cart
 - `/checkout` — checkout
 - `/favourites` — saved favourites
