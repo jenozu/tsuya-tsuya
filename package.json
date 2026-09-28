@@ -17,7 +17,8 @@
     "verify:security": "node scripts/check-security-baseline.mjs",
     "ci:check": "node scripts/check-ci-workflow.mjs",
     "format:check": "node scripts/check-changed-format.mjs",
-    "test:e2e": "playwright test --project=chromium"
+    "test:e2e": "playwright test --project=chromium",
+    "test:disposable-db": "node scripts/test-disposable-neon.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1129.0",
