@@ -8,6 +8,7 @@ export async function resolve(specifier, context, nextResolve) {
   if (specifier === '@/lib/data') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-catalog.mjs')).href, shortCircuit: true }
   }
+  if (specifier === 'next/server') return nextResolve('next/server.js', context)
   if (specifier === 'next/cache') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-next-cache.mjs')).href, shortCircuit: true }
   }
