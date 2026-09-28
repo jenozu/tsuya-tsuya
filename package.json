@@ -14,7 +14,6 @@
     "upload-images-3": "node scripts/bulk-upload-images.js 3",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "migrations:check": "node scripts/migrate.mjs --plan",
-    "format:check": "node scripts/check-format.mjs",
     "security:check": "node scripts/security-check.mjs"
   },
   "dependencies": {
