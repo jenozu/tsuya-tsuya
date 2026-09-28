@@ -58,3 +58,52 @@ test('patch schema denies mass-assignment and invalid partial updates', () => {
   assert.equal(updateProductSchema.safeParse({}).success, false)
   assert.equal(updateProductSchema.safeParse({ payment_status: 'paid' }).success, false)
 })
+
+test('create and patch reject conflicting image aliases rather than silently choosing one', () => {
+  const conflict = {
+    image_url: 'https://a.example.test/print.png',
+    imageUrl: 'https://b.example.test/print.png',
+  }
+  assert.equal(createProductSchema.safeParse({ ...base, ...conflict }).success, false)
+  assert.equal(updateProductSchema.safeParse(conflict).success, false)
+  assert.equal(updateProductSchema.safeParse({
+    image_url: 'https://a.example.test/print.png',
+    imageUrl: 'https://a.example.test/print.png',
+  }).success, true)
+})
+
+test('product sizes reject unknown fields, duplicate labels and oversized selections', () => {
+  const valid = { label: '8" x 10"', price: 11.25, cost: 0 }
+  assert.equal(productSizesSchema.safeParse([{ ...valid, admin: true }]).success, false)
+  assert.equal(productSizesSchema.safeParse(Array.from({ length: 9 }, () => valid)).success, false)
+  assert.equal(productSizesSchema.safeParse([{ ...valid, price: 1000000.01 }]).success, false)
+  assert.equal(productSizesSchema.safeParse([{ ...valid, cost: -1 }]).success, false)
+})
+
+test('create accepts explicitly priced variants with zero baseline but rejects malformed fields', () => {
+  assert.equal(createProductSchema.safeParse({ ...base, price: 0 }).success, true)
+  for (const invalid of [
+    { category: ' ' },
+    { name: '' },
+    { stock: 1_000_001 },
+    { product_type: '4-piece' },
+    { description: 'x'.repeat(10_001) },
+    { sizes: [{ label: 'unknown', price: 10 }] },
+    { image_url: 'javascript:alert(1)' },
+  ]) {
+    assert.equal(createProductSchema.safeParse({ ...base, ...invalid }).success, false,
+      JSON.stringify(Object.keys(invalid)))
+  }
+})
+
+test('partial patch accepts zero stock and explicit cost removal, rejects mass assignment', () => {
+  assert.equal(updateProductSchema.safeParse({ stock: 0, cost: null }).success, true)
+  for (const patch of [
+    { id: 'forged-id' }, { order_id: 'fake-order' }, { payment_status: 'paid' },
+    { sizes: [{ label: '8" x 10"', price: '10.50' }] },
+    { stock: Number.POSITIVE_INFINITY },
+    { price: -0.01 },
+  ]) {
+    assert.equal(updateProductSchema.safeParse(patch).success, false, JSON.stringify(patch))
+  }
+})
