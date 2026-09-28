@@ -32,7 +32,8 @@ Set up deployment-specific integrations without exposing credential values.
 - [x] Use server-only Neon and R2 helper modules (`lib/db.ts`, `lib/r2.ts`). <!-- task:TSU-M2-002 -->
 - [ ] Audit production and preview variable *names and scopes* in Vercel without retrieving or committing values; confirm missing-variable handling. <!-- task:TSU-M2-003 -->
 - [ ] Independently verify production Neon connection, R2 read/write/delete access, Stripe mode, Resend sender/domain, and preview isolation. <!-- task:TSU-M2-004 -->
-- [ ] Remove any reliance on sample fallback destinations, sender values, or placeholder account details in production. <!-- task:TSU-M2-005 -->
+- [x] Remove any reliance on sample fallback destinations, sender values, or placeholder account details in production. <!-- task:TSU-M2-005 -->
+  - Evidence (2026-09-28): PR #30 added `lib/email-config.ts` so Resend sender/owner destinations reject example/test/invalid/localhost placeholders, removed runtime email fallback assumptions, made `ENV_TEMPLATE.md` placeholders explicitly non-operational, and restricted the mock confirmation preview to an authenticated admin session. [Actions run 36425942145](https://github.com/jenozu/tsuya-tsuya/actions/runs/36425942145) passed tests, integration checks, types and production build.
 - [x] Document ownership, least-privilege access, credential rotation, incident revocation, and a safe configuration checklist. <!-- task:TSU-M2-006 -->
   - Evidence (2026-09-27): `docs/SERVICE_ACCESS_RUNBOOK.md` assigns accountable *roles*, defines environment-specific least privilege, rotation and revocation steps, incident escalation and a safe names/scopes-only configuration checklist. Actual named owners, live provider grants and completed rotations must be verified privately before launch under the separate provider/launch roadmap tasks; no secret values are stored here.
 
@@ -225,7 +226,8 @@ Communicate critical order events reliably and offer accessible support.
 - [x] Implement Resend customer confirmation and owner order-notification email templates and send helpers. <!-- task:TSU-M15-001 -->
 - [x] Provide waitlist signup route and newsletter input components. <!-- task:TSU-M15-002 -->
 - [ ] Validate email delivery against current test orders; add durable send status, retry, failure alerts, and duplicate suppression. <!-- task:TSU-M15-003 -->
-- [ ] Escape customer/product fields in outbound HTML and minimize personally identifiable information in application logs. <!-- task:TSU-M15-004 -->
+- [x] Escape customer/product fields in outbound HTML and minimize personally identifiable information in application logs. <!-- task:TSU-M15-004 -->
+  - Evidence (2026-09-28): customer/product/order-reference fields in both customer and owner transactional HTML are escaped through the shared `escapeHtml` helper, with regression coverage in `tests/email-html.test.mjs`; PR #30 completed the related logging cleanup so delivery logs contain event names rather than customer addresses or provider exception payloads. [Actions run 36425942145](https://github.com/jenozu/tsuya-tsuya/actions/runs/36425942145) passed.
 - [ ] Implement shipping, cancellation, refund, failed-payment, and customer-support notification templates triggered by real status changes. <!-- task:TSU-M15-005 -->
 - [ ] Create an accessible contact form with server validation, spam controls, delivery confirmation, and a support inbox process. <!-- task:TSU-M15-006 -->
 - [ ] Document response-time targets, unsubscribe/consent handling where applicable, retention, and email sender reputation monitoring. <!-- task:TSU-M15-007 -->
@@ -253,7 +255,8 @@ Protect buyers, prevent abuse, and publish appropriate business disclosures.
 - [ ] Set customer/marketing data retention, deletion/export requests, least-privilege access, and incident handling procedures. <!-- task:TSU-M17-003 -->
 - [ ] Add rate limiting, request-size limits, strong input validation, security headers, origin checks, and CSRF defenses on state changes. <!-- task:TSU-M17-004 -->
   - Partial evidence: PR #17 adds Origin/Fetch Metadata checks for all first-party mutation routes, and PR #18 hardens image byte validation. Distributed rate limits and complete route-by-route size/security-header validation remain required.
-- [ ] Eliminate logging of sensitive order data and payment metadata; redact errors returned to public endpoints. <!-- task:TSU-M17-005 -->
+- [x] Eliminate logging of sensitive order data and payment metadata; redact errors returned to public endpoints. <!-- task:TSU-M17-005 -->
+  - Evidence (2026-09-28): server-side database, checkout, webhook, R2/admin-image, import and email failures now use redacted event-only diagnostics (`lib/safe-server-log.ts`) or controlled public error strings; PR #30 removed remaining Stripe/email/import logs that could carry arbitrary provider/user context and never returns raw provider exceptions to public callers. [Actions run 36425942145](https://github.com/jenozu/tsuya-tsuya/actions/runs/36425942145) passed.
 - [ ] Review dependencies, R2 bucket exposure, image upload abuse, preview access, and admin session fallback behavior. <!-- task:TSU-M17-006 -->
 - [ ] Rotate compromised/old secrets through provider dashboards, verify revoked credentials no longer work, and document routine rotation. <!-- task:TSU-M17-007 -->
 - [ ] Review artwork/IP commercialization rights and required consumer notices for each selling region. <!-- task:TSU-M17-008 -->
@@ -270,7 +273,8 @@ Prevent regressions and demonstrate that critical checkout behavior works.
 - [ ] Add integration tests for product CRUD, authorized/unauthorized admin actions, order creation, R2 upload validation, and test database migration. <!-- task:TSU-M18-003 -->
 - [ ] Add Stripe sandbox/webhook tests for tampered prices, invalid destinations, retries, concurrent duplicates, refunds, and out-of-order events. <!-- task:TSU-M18-004 -->
 - [ ] Add end-to-end browser tests covering mobile storefront, cart, checkout, admin operations, email test doubles, and error states. <!-- task:TSU-M18-005 -->
-- [ ] Expand CI to run format/lint, typecheck, unit/integration suites, clean build, and required security checks on every PR. <!-- task:TSU-M18-006 -->
+- [x] Expand CI to run format/lint, typecheck, unit/integration suites, clean build, and required security checks on every PR. <!-- task:TSU-M18-006 -->
+  - Evidence (2026-09-28): the current PR workflow runs changed-file whitespace/patch formatting, the static `verify:security` regression gate, ESLint, ordered-migration verification, the unit regression suite, isolated admin CRUD authorization integration tests, independent TypeScript checking, and a production Next.js build on every PR. [Actions run 36427212286](https://github.com/jenozu/tsuya-tsuya/actions/runs/36427212286) passed every candidate and baseline job. Provider-specific live integration tests remain separately tracked.
 - [ ] Require passing checks and a documented release checklist before merging or promoting production. <!-- task:TSU-M18-007 -->
 
 ## M19: Accessibility, SEO, and performance
