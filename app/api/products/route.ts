@@ -1,3 +1,4 @@
+import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { getProducts, createProduct } from '@/lib/data'
@@ -11,8 +12,8 @@ export async function GET() {
   try {
     const products = await getProducts()
     return NextResponse.json(products)
-  } catch (error) {
-    console.error('Error fetching products:', error)
+  } catch {
+    reportServerError('api.products.failure')
     return NextResponse.json(
       { error: 'Failed to fetch products' },
       { status: 500 }
@@ -52,8 +53,8 @@ export async function POST(request: NextRequest) {
     revalidatePath('/')
     revalidatePath('/shop')
     return NextResponse.json(newProduct, { status: 201 })
-  } catch (error) {
-    console.error('Error creating product:', error)
+  } catch {
+    reportServerError('api.products.failure')
     return NextResponse.json(
       { error: 'Failed to create product' },
       { status: 500 }

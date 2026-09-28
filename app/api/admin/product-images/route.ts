@@ -1,3 +1,4 @@
+import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasAdminSession } from '@/lib/admin-session'
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (error instanceof InvalidImageError) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    console.error('R2 product image upload failed:', error instanceof Error ? error.name : 'unknown')
+    reportServerError('api.admin_product_images.failure')
     return NextResponse.json({ error: 'Image upload failed' }, { status: 500 })
   }
 }
@@ -59,8 +60,8 @@ export async function DELETE(request: NextRequest) {
 
     await deleteR2Object(key)
     return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('R2 product image delete failed:', error instanceof Error ? error.name : 'unknown')
+  } catch {
+    reportServerError('api.admin_product_images.failure')
     return NextResponse.json({ error: 'Image deletion failed' }, { status: 500 })
   }
 }

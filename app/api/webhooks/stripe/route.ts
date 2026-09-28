@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import Stripe from 'stripe'
+import { reportServerError } from '@/lib/safe-server-log'
 import { verifyWebhookSignature, stripe } from '@/lib/stripe'
 import { updateOrderStatus, getOrder, createOrder } from '@/lib/data'
 import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
@@ -61,13 +62,13 @@ async function processCompletedCheckoutSession(sessionId: string) {
   }
 
   if (session.payment_status && session.payment_status !== 'paid') {
-    console.log('Checkout Session is not paid yet:', session.id, session.payment_status)
+    console.info('Checkout Session deferred pending payment')
     return
   }
 
   const existing = await getOrder(orderId)
   if (existing?.payment_status === 'paid') {
-    console.log('Checkout Session already processed:', orderId)
+    console.info('Checkout Session already processed')
     return
   }
 
@@ -156,11 +157,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
   const confirmationSent = await sendOrderConfirmation(email, orderId, created)
   const notificationSent = await sendOrderNotification(orderId, created)
 
-  console.log('Checkout processing complete:', {
-    orderId,
-    confirmationSent,
-    notificationSent,
-  })
+  console.info('Checkout processing complete:', { confirmationSent, notificationSent })
 }
 
 export async function POST(request: Request) {
@@ -176,8 +173,8 @@ export async function POST(request: Request) {
   let event: Stripe.Event
   try {
     event = verifyWebhookSignature(body, signature)
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err)
+  } catch {
+    reportServerError('stripe.webhook.invalid_signature')
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
       return NextResponse.json({ error: 'Misconfigured webhook secret' }, { status: 500 })
     }
@@ -185,7 +182,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    console.log('Received Stripe webhook:', event.type)
+    console.info('Stripe webhook received')
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -202,7 +199,7 @@ export async function POST(request: Request) {
           const existing = await getOrder(orderId)
           if (existing) {
             await updateOrderStatus(orderId, 'processing', 'paid')
-            console.log('Existing order marked paid:', orderId)
+            console.info('Existing order marked paid')
             break
           }
         }
@@ -216,7 +213,7 @@ export async function POST(request: Request) {
         if (checkoutSession) {
           await processCompletedCheckoutSession(checkoutSession.id)
         } else {
-          console.error('No Checkout Session found for PaymentIntent:', paymentIntent.id)
+          reportServerError('stripe.webhook.checkout_session_missing')
         }
         break
       }
@@ -249,8 +246,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ received: true })
-  } catch (error) {
-    console.error('Webhook error:', error)
+  } catch {
+    reportServerError('stripe.webhook.processing_failure')
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
 }

@@ -1,3 +1,4 @@
+import { reportServerError } from './safe-server-log'
 import Stripe from 'stripe'
 
 let cachedStripe: Stripe | null = null
@@ -40,7 +41,7 @@ export async function createPaymentIntent(
     
     return paymentIntent
   } catch (error) {
-    console.error('Error creating payment intent:', error)
+    reportServerError('stripe.creating_payment_intent')
     throw error
   }
 }
@@ -70,7 +71,7 @@ export async function updatePaymentIntent(
     
     return paymentIntent
   } catch (error) {
-    console.error('Error updating payment intent:', error)
+    reportServerError('stripe.updating_payment_intent')
     throw error
   }
 }
@@ -92,7 +93,7 @@ export function verifyWebhookSignature(
     
     return event
   } catch (error) {
-    console.error('Webhook signature verification failed:', error)
+    reportServerError('stripe.webhook_signature_verification_failed')
     throw error
   }
 }
@@ -104,7 +105,7 @@ export async function retrievePaymentIntent(
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
     return paymentIntent
   } catch (error) {
-    console.error('Error retrieving payment intent:', error)
+    reportServerError('stripe.retrieving_payment_intent')
     throw error
   }
 }
@@ -116,7 +117,7 @@ export async function cancelPaymentIntent(
     const paymentIntent = await stripe.paymentIntents.cancel(paymentIntentId)
     return paymentIntent
   } catch (error) {
-    console.error('Error canceling payment intent:', error)
+    reportServerError('stripe.canceling_payment_intent')
     throw error
   }
 }

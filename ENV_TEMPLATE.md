@@ -33,3 +33,6 @@ RESEND_FROM_EMAIL=Tsuyanouchi <orders@tsuyanouchi.com>
 
 # Gemini descriptions
 GEMINI_API_KEY=...
+
+# Optional; if unset, order emails omit an unverified support destination.
+SUPPORT_EMAIL=verified-support-address@your-domain.example
