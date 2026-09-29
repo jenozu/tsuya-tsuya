@@ -243,9 +243,16 @@ export async function POST(request: Request) {
 
         const checkoutSession = sessions.data[0]
         if (!checkoutSession) {
+          if (!orderId) {
+            // Other, unassociated PaymentIntents may share a Stripe account.
+            // With no order reference or matching Checkout Session there is
+            // no evidence this payment belongs to a Tsuya purchase.
+            reportServerInfo('stripe.webhook.unattributed_payment_ignored')
+            break
+          }
           reportServerError('stripe.webhook.checkout_session_missing')
-          // Never acknowledge a real paid payment we cannot reconstruct.
-          // Stripe must retry while an operator investigates.
+          // Do not acknowledge a referenced paid order we cannot reconstruct.
+          // Stripe should retry while an operator investigates.
           throw new Error('Paid payment has no recoverable checkout session')
         }
         const result = await processCompletedCheckoutSession(checkoutSession.id)
