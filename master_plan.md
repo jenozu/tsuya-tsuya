@@ -314,6 +314,7 @@ Detect production issues quickly and prove that data and orders can be restored.
 ### Implementation
 - [ ] Add structured, redacted request and order-correlation logging with actionable alerting for checkout, webhooks, R2, Neon, and email. <!-- task:TSU-M20-001 -->
 - [ ] Configure error monitoring, uptime/health checks, payment and email failure alerts, and incident ownership. <!-- task:TSU-M20-002 -->
+  - Partial evidence (autonomous Task 12): PR #48 supplies a no-store, public Git SHA fingerprint route and a local read-only two-domain release/security-header reachability checker with synthetic CI tests. It does not configure external monitoring, alerts or prove a live production or provider smoke test; retain this item unchecked. See `docs/TASK_12_RELEASE_VERIFICATION.md` and `docs/PENDING_LIVE_VERIFICATION.md`.
 - [ ] Schedule Neon backups and validate an actual point-in-time or snapshot restore in an isolated environment. <!-- task:TSU-M20-003 -->
 - [ ] Enable and document R2 retention/versioning or equivalent asset backup and restore tests. <!-- task:TSU-M20-004 -->
 - [x] Establish documented deployment rollback, DNS/domain recovery, webhook replay, manual order reconciliation, and outage communications. <!-- task:TSU-M20-005 -->
