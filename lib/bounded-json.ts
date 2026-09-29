@@ -3,12 +3,14 @@
  * Content-Length. A reverse proxy/WAF still needs its own size and rate rules.
  */
 export class RequestBodyError extends Error {
-  constructor(
-    public readonly status: 400 | 413 | 415,
-    public readonly publicMessage: string,
-  ) {
+  readonly status: 400 | 413 | 415
+  readonly publicMessage: string
+
+  constructor(status: 400 | 413 | 415, publicMessage: string) {
     super(publicMessage)
     this.name = 'RequestBodyError'
+    this.status = status
+    this.publicMessage = publicMessage
   }
 }
 
