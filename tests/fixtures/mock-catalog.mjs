@@ -31,7 +31,7 @@ export async function deleteProduct(id) {
 // Task 10 abuse tests must reject oversized waitlist requests before storage.
 export async function addWaitlistEmail() { throw new Error('Test must not persist waitlist email') }
 
- 
+
 // Synthetic order state ONLY for webhook handler tests. This does not exercise
 // PostgreSQL concurrency, migration deployment, or real payment processing.
 const orders = new Map()
