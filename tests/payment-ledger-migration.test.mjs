@@ -12,7 +12,7 @@ test('forward payment ledger is additive, checksum-addressed and retains the bas
   assert.ok(migration.statements.length >= 4)
   for (const statement of migration.statements) {
     assert.doesNotMatch(statement,/\b(?:DROP|TRUNCATE|DELETE|UPDATE|ALTER)\b/i)
-    assert.match(statement,/^CREATE (?:TABLE|INDEX) IF NOT EXISTS public\./)
+    assert.match(statement,/^CREATE (?:TABLE IF NOT EXISTS public\.|INDEX IF NOT EXISTS idx_[a-z_]+ ON public\.)/)
   }
   const baseline={ id:BASELINE_ID, statements:['SELECT 1'], checksum:migrationChecksum('frozen legacy baseline') }
   const next={ ...migration, checksum:migrationChecksum(file) }
