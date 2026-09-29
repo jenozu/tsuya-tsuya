@@ -13,3 +13,15 @@ The Vercel connection denied requests to the live pages, so the storefront could
 - [ ] Record evidence (timestamps, sanitized screenshot/test run IDs, deployment SHA), responsible reviewer and remaining issues. Never store private API keys, customer details, payment metadata or unredacted logs in this file.
 
 **After Task 10:** repeat current SHA/deployment verification. A successful CI run or READY preview is not equivalent to a production release, and a manual production promotion must not be initiated without the owner's instruction.
+
+## Checkpoint after the original 12 independent development tasks
+
+The initial production deployment snapshot above is **historical**, not proof that later Tasks 10–12 are live. Task 12 adds `/api/release` and a read-only two-domain verifier; see `docs/TASK_12_RELEASE_VERIFICATION.md` for the Windows-compatible command to run against the next **approved production deployment**.
+
+- [ ] After Task 12 merges and the appropriate approved production promotion, run the verifier with the exact reviewed new `main` SHA on apex and `www`; record the sanitized result and confirm Vercel's deployment record agrees.
+- [ ] Inspect the production security headers and test actual release URL and homepage separately; a READY deployment and successful release verifier **do not** validate populated catalog, checkout, admin, database or external provider delivery.
+- [ ] Check Task 11's staged, un-applied payment/email migration and delayed-webhook retry design against an isolated Neon test database and real Stripe test mode **before** approving any production migration or asserting durable duplicate prevention.
+- [ ] Confirm whether the Vercel Git integration builds and promotes future `main` merges automatically. The user previously had to manually deploy the release that contained Tasks 7–9.
+- [ ] Keep the rest of the original checklist above open until the named provider-connected checks have actually been completed and independently documented.
+
+No provider API keys, real customer data or production migration results belong in this public repository checklist.
