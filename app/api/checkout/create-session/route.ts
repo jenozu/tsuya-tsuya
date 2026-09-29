@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyError } from '@/lib/bounded-json'
 import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { randomUUID } from 'node:crypto'
@@ -19,11 +20,7 @@ export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   try {
     // Verify the incoming structure; never accept the client's amounts as charge authority.
-    const declaredLength = Number(request.headers.get('content-length') || 0)
-    if (declaredLength > 32_768) {
-      return NextResponse.json({ error: 'Checkout request is too large.' }, { status: 413 })
-    }
-    const parsed = checkoutRequestSchema.safeParse(await request.json())
+    const parsed = checkoutRequestSchema.safeParse(await readBoundedJson(request, 32_768))
     if (!parsed.success) {
       return NextResponse.json({ error: 'Please check your checkout details.' }, { status: 400 })
     }
@@ -153,6 +150,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url: session.url, sessionId: session.id, orderId })
   } catch (error) {
+    if (error instanceof RequestBodyError) {
+      return NextResponse.json({ error: error.publicMessage }, { status: error.status })
+    }
     if (error instanceof CheckoutBasketError) {
       return NextResponse.json({ error: error.message }, { status: 409 })
     }
