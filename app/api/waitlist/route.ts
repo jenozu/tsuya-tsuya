@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyError } from '@/lib/bounded-json'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -7,13 +8,13 @@ import { escapeHtml } from '@/lib/html-escape'
 import { reportServerError, reportServerWarn } from '@/lib/safe-server-log'
 import { getConfiguredEmailDelivery } from '@/lib/email-config'
 
-const bodySchema = z.object({ email: z.string().email('Please enter a valid email address') })
+const bodySchema = z.object({ email: z.string().trim().email('Please enter a valid email address').max(254) })
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   try {
-    const parsed = bodySchema.safeParse(await request.json())
+    const parsed = bodySchema.safeParse(await readBoundedJson(request, 2048))
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.errors[0]?.message ?? 'Invalid email' }, { status: 400 })
     }
@@ -35,7 +36,10 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ ok: true })
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      return NextResponse.json({ error: error.publicMessage }, { status: error.status })
+    }
     reportServerError('api.waitlist.request_failure')
     return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 })
   }
