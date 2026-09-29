@@ -105,6 +105,14 @@ test('signed failures update matching unpaid orders but refuse a different payme
   assert.deepEqual(orderMutations.map(x=>x.kind),['unpaid'])
 })
 
+test('an unrelated intent without a Tsuya order or Checkout Session does not trigger endless retries', async () => {
+  clear()
+  const response = await POST(event('payment_intent.succeeded',intent('pi_unrelated','')))
+  assert.equal(response.status,200)
+  assert.equal(orderMutations.length,0)
+  assert.equal(emailSends.length,0)
+})
+
 test('an unmatched paid event requests Stripe retry; its next attempt can recover a paid order', async () => {
   clear()
   const paymentEvent=event('payment_intent.succeeded',intent())
