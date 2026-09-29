@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyError } from '@/lib/bounded-json'
 import { PUBLIC_API_FAILURE } from '@/lib/public-api-failure'
 import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
@@ -17,10 +18,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const body = await request.json().catch(() => ({}))
-    const { password } = body as { password?: string }
+    const body = await readBoundedJson(request, 2048)
+    const password = body !== null && typeof body === 'object' && !Array.isArray(body)
+      ? (body as { password?: unknown }).password : undefined
 
-    if (!password) {
+    if (typeof password !== 'string' || !password) {
       return NextResponse.json(
         { error: 'Password is required.' },
         { status: 400 },
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const response = NextResponse.json({ success: true })
+    const response = NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } })
     response.cookies.set('preview_access', await createPreviewSessionToken(), {
       httpOnly: true,
       sameSite: 'lax',
@@ -44,7 +46,10 @@ export async function POST(request: Request) {
     })
 
     return response
-  } catch {
+  } catch (error) {
+    if (error instanceof RequestBodyError) {
+      return NextResponse.json({ error: error.publicMessage }, { status: error.status, headers: { 'Cache-Control': 'no-store' } })
+    }
     reportServerError('api.preview_access.failure')
     return NextResponse.json(
       { error: PUBLIC_API_FAILURE.preview },
