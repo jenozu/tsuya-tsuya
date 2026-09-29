@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "verify:infra": "node scripts/assert-current-infra.mjs",
+    "verify:release": "node scripts/verify-production-release.mjs",
     "build": "npm run verify:infra && next build",
     "start": "next start",
     "lint": "eslint .",
