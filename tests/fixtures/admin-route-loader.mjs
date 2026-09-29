@@ -11,6 +11,12 @@ export async function resolve(specifier, context, nextResolve) {
   if (specifier === '@/lib/stripe') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-stripe.mjs')).href, shortCircuit: true }
   }
+  if (specifier === '@/lib/email') {
+    return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-email.mjs')).href, shortCircuit: true }
+  }
+  if (specifier === 'next/headers') {
+    return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-next-headers.mjs')).href, shortCircuit: true }
+  }
   if (specifier === '@/lib/r2') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-r2.mjs')).href, shortCircuit: true }
   }
