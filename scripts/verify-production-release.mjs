@@ -9,6 +9,8 @@
  *   --origin https://tsuyanouchi.com --secondary https://www.tsuyanouchi.com
  */
 import { verifyRelease } from '../lib/release-verification.mjs'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 
 async function main(args) {
   const options = {}
@@ -47,7 +49,7 @@ async function main(args) {
 }
 
 // Imported tests do not make network calls or execute the CLI.
-if (process.argv[1] && import.meta.url === new URL('file://' + process.argv[1]).href) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main(process.argv.slice(2)).catch(error => {
     // Explicit operator-provided URLs, provider diagnostics and auth values
     // never appear in CI logs. Internal validators use fixed error messages.
