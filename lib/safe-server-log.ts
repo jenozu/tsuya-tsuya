@@ -36,6 +36,8 @@ export const ALLOWED_SERVER_EVENTS: ReadonlySet<string> = new Set([
   'stripe.webhook.received',
   'stripe.webhook.order_marked_paid',
   'stripe.webhook.checkout_session_missing',
+  'stripe.webhook.settled_order_preserved',
+  'stripe.webhook.unmatched_unpaid_order',
   'stripe.webhook.failed_payment_order_reference_missing',
   'stripe.webhook.event_ignored',
   'stripe.webhook.processing_failure',
