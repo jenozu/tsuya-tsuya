@@ -2,7 +2,24 @@
 // Models Stripe's key reuse and repeated-session semantics.
 export const calls = []
 const sessions = new Map()
-export function resetStripe() { calls.length = 0; sessions.clear() }
+const webhookSessions = new Map()
+const paymentSessions = new Map()
+export function resetStripe() {
+  calls.length = 0
+  sessions.clear()
+  webhookSessions.clear()
+  paymentSessions.clear()
+}
+export function setWebhookSession(session) { webhookSessions.set(session.id, session) }
+export function setPaymentSessions(paymentIntentId, sessionIds) {
+  paymentSessions.set(paymentIntentId, sessionIds.map(id => ({ id })))
+}
+// The offline stub checks a synthetic sentinel, NOT a cryptographic signature.
+// Actual webhook signature verification still requires Stripe test-mode checks.
+export function verifyWebhookSignature(body, signature) {
+  if (signature !== 'synthetic-signed-webhook-event') throw new Error('Bad synthetic signature')
+  return JSON.parse(body)
+}
 export function markSession(idempotencyKey, status) {
   const current = sessions.get(idempotencyKey)
   if (!current) throw new Error('Unknown test session')
@@ -16,6 +33,14 @@ export function expireSession(idempotencyKey) {
 export const stripe = {
   checkout: {
     sessions: {
+      async retrieve(id) {
+        const result = webhookSessions.get(id)
+        if (!result) throw new Error('Unregistered synthetic Stripe checkout session')
+        return result
+      },
+      async list({ payment_intent }) {
+        return { data: paymentSessions.get(payment_intent) ?? [] }
+      },
       async create(params, options) {
         if (!options?.idempotencyKey) throw new Error('Test requires Stripe idempotency')
         calls.push({params,options})

@@ -38,6 +38,17 @@ async function main() {
   }
   const ledger = await sql.query('SELECT version FROM public.schema_migrations ORDER BY version')
   assert.deepEqual(ledger.map(row => row.version), ['002_neon_r2_schema'])
+  // Additive payment-delivery foundation is operator-run, never applied by
+  // a Next.js build. This optional test is restricted to an EMPTY disposable
+  // Neon branch/database and reuses the existing explicit acknowledgement.
+  const forward = spawnSync(process.execPath, ['scripts/migrate.mjs', '--apply', '--confirm-reviewed-backup'], {
+    cwd: process.cwd(), encoding:'utf8', timeout:60_000,
+    env:{...process.env, DATABASE_URL:process.env.TEST_DATABASE_URL, VERCEL_ENV:'development'},
+  })
+  if (forward.status !== 0) throw new Error('Disposable forward migration failed; inspect private Neon logs')
+  const updatedLedger = await sql.query('SELECT version FROM public.schema_migrations ORDER BY version')
+  assert.ok(updatedLedger.some(row => row.version === '003_payment_delivery_foundation'))
+
   const marker = crypto.randomUUID()
   const product = await sql.query(`
     INSERT INTO products (name, category, price, stock, sizes, image_url)
@@ -76,6 +87,46 @@ async function main() {
       )
       const count = await sql.query('SELECT count(*)::int AS total FROM orders WHERE order_id=$1',[orderId])
       assert.equal(count[0].total,1)
+
+      const eventId = 'evt_disposable_'+marker
+      await sql.query(`INSERT INTO stripe_payment_events (event_id, event_type, checkout_session_id)
+        VALUES ($1, $2, $3)`,[eventId,'checkout.session.completed','cs_disposable_'+marker])
+      try {
+        const repeated = await sql.query(`INSERT INTO stripe_payment_events (event_id, event_type)
+          VALUES ($1,$2) ON CONFLICT (event_id) DO NOTHING RETURNING event_id`,[eventId,'checkout.session.completed'])
+        assert.equal(repeated.length,0,'Duplicate payment event must not be claimed twice')
+
+        const claims = await Promise.all([
+          sql.query(`UPDATE stripe_payment_events SET status='processing', attempts=attempts+1,
+            claim_expires_at=NOW()+INTERVAL '1 minute'
+            WHERE event_id=$1 AND status='pending' RETURNING event_id`,[eventId]),
+          sql.query(`UPDATE stripe_payment_events SET status='processing', attempts=attempts+1,
+            claim_expires_at=NOW()+INTERVAL '1 minute'
+            WHERE event_id=$1 AND status='pending' RETURNING event_id`,[eventId]),
+        ])
+        assert.equal(claims.reduce((n,rows)=>n+rows.length,0),1,'Concurrent event claims must have one winner')
+
+        await sql.query(`INSERT INTO order_email_deliveries (order_id, recipient_kind)
+          VALUES ($1,'customer'),($1,'owner')`,[orderId])
+        const emailAgain = await sql.query(`INSERT INTO order_email_deliveries (order_id, recipient_kind)
+          VALUES ($1,'customer') ON CONFLICT (order_id, recipient_kind) DO NOTHING
+          RETURNING recipient_kind`,[orderId])
+        assert.equal(emailAgain.length,0,'One durable email record per order/recipient kind')
+        const emailClaims = await Promise.all([
+          sql.query(`UPDATE order_email_deliveries SET status='sending', attempts=attempts+1,
+            claim_expires_at=NOW()+INTERVAL '1 minute'
+            WHERE order_id=$1 AND recipient_kind='customer' AND status='pending'
+            RETURNING recipient_kind`,[orderId]),
+          sql.query(`UPDATE order_email_deliveries SET status='sending', attempts=attempts+1,
+            claim_expires_at=NOW()+INTERVAL '1 minute'
+            WHERE order_id=$1 AND recipient_kind='customer' AND status='pending'
+            RETURNING recipient_kind`,[orderId]),
+        ])
+        assert.equal(emailClaims.reduce((n,rows)=>n+rows.length,0),1,'Concurrent email claims must have one winner')
+      } finally {
+        await sql.query('DELETE FROM order_email_deliveries WHERE order_id=$1',[orderId])
+        await sql.query('DELETE FROM stripe_payment_events WHERE event_id=$1',[eventId])
+      }
     } finally {
       await sql.query('DELETE FROM orders WHERE order_id=$1',[orderId])
     }
@@ -83,7 +134,7 @@ async function main() {
     const deleted = await sql.query('DELETE FROM products WHERE id::text = $1 RETURNING id',[id])
     assert.equal(deleted.length, 1)
   }
-  console.log('Disposable Neon test passed: baseline ledger, product CRUD, stock constraint and order uniqueness.')
+  console.log('Disposable Neon test passed: baseline/forward ledger, product CRUD, stock/order uniqueness, payment-event and email claim uniqueness.')
   console.log('The TEST database/branch is disposable. Do not treat this as production verification.')
 }
 main().catch(() => {

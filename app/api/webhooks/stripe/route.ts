@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { reportServerError, reportServerInfo } from '@/lib/safe-server-log'
 import { verifyWebhookSignature, stripe } from '@/lib/stripe'
-import { updateOrderStatus, getOrder, createOrder } from '@/lib/data'
+import { getOrder, createOrder, markUnpaidOrderPaymentState, markExistingOrderPaidForIntent } from '@/lib/data'
 import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
 
 export const runtime = 'nodejs'
@@ -53,24 +53,32 @@ async function processCompletedCheckoutSession(sessionId: string) {
   }
 
   const orderId = session.metadata?.orderId || `ORD-${session.id.slice(-7).toUpperCase()}`
+  // A completed Checkout UI is not evidence of settled funds. Delayed
+  // payment methods are handled by later paid-intent webhook retries.
+  if (session.payment_status !== 'paid') {
+    reportServerInfo('stripe.checkout.deferred_pending_payment')
+    return 'deferred' as const
+  }
+
   const email =
     session.customer_details?.email ||
     session.customer_email ||
     session.metadata?.email
 
   if (!email) {
-    throw new Error('Stripe Checkout Session is missing a customer email')
-  }
-
-  if (session.payment_status && session.payment_status !== 'paid') {
-    reportServerInfo('stripe.checkout.deferred_pending_payment')
-    return
+    throw new Error('Paid Stripe Checkout Session is missing a customer email')
   }
 
   const existing = await getOrder(orderId)
-  if (existing?.payment_status === 'paid') {
+  if (existing?.payment_intent_id && session.payment_intent &&
+      existing.payment_intent_id !== session.payment_intent) {
+    throw new Error('Checkout payment intent does not match existing order')
+  }
+  if (existing?.payment_status === 'paid' ||
+      existing?.payment_status === 'refunded' ||
+      existing?.payment_status === 'partially_refunded') {
     reportServerInfo('stripe.checkout.already_processed')
-    return
+    return 'already_processed' as const
   }
 
   const meta = session.metadata || {}
@@ -159,6 +167,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
   const notificationSent = await sendOrderNotification(orderId, created)
 
   reportServerInfo(confirmationSent && notificationSent ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
+  return 'processed' as const
 }
 
 export async function POST(request: Request) {
@@ -209,7 +218,19 @@ export async function POST(request: Request) {
         if (orderId) {
           const existing = await getOrder(orderId)
           if (existing) {
-            await updateOrderStatus(orderId, 'processing', 'paid')
+            if (existing.payment_intent_id && existing.payment_intent_id !== paymentIntent.id) {
+              throw new Error('Payment intent does not match existing order')
+            }
+            if (existing.payment_status === 'paid' ||
+                existing.payment_status === 'refunded' ||
+                existing.payment_status === 'partially_refunded') {
+              reportServerInfo('stripe.checkout.already_processed')
+              break
+            }
+            // Conditional SQL also checks current DB state, even if a
+            // concurrent webhook marks the order paid after this read.
+            const updated = await markExistingOrderPaidForIntent(orderId, paymentIntent.id)
+            if (!updated) throw new Error('Could not safely advance paid order')
             reportServerInfo('stripe.webhook.order_marked_paid')
             break
           }
@@ -221,10 +242,22 @@ export async function POST(request: Request) {
         })
 
         const checkoutSession = sessions.data[0]
-        if (checkoutSession) {
-          await processCompletedCheckoutSession(checkoutSession.id)
-        } else {
+        if (!checkoutSession) {
+          if (!orderId) {
+            // Other, unassociated PaymentIntents may share a Stripe account.
+            // With no order reference or matching Checkout Session there is
+            // no evidence this payment belongs to a Tsuya purchase.
+            reportServerInfo('stripe.webhook.unattributed_payment_ignored')
+            break
+          }
           reportServerError('stripe.webhook.checkout_session_missing')
+          // Do not acknowledge a referenced paid order we cannot reconstruct.
+          // Stripe should retry while an operator investigates.
+          throw new Error('Paid payment has no recoverable checkout session')
+        }
+        const result = await processCompletedCheckoutSession(checkoutSession.id)
+        if (result === 'deferred') {
+          throw new Error('Paid payment checkout details are not yet ready')
         }
         break
       }
@@ -238,7 +271,10 @@ export async function POST(request: Request) {
           break
         }
 
-        await updateOrderStatus(orderId, 'failed', 'failed')
+        const outcome = await markUnpaidOrderPaymentState(orderId, paymentIntent.id, 'failed')
+        if (outcome === 'error') throw new Error('Failed to record failed payment')
+        if (outcome === 'protected') reportServerInfo('stripe.webhook.settled_order_preserved')
+        if (outcome === 'missing') reportServerInfo('stripe.webhook.unmatched_unpaid_order')
         break
       }
 
@@ -247,7 +283,10 @@ export async function POST(request: Request) {
         const { orderId } = paymentIntent.metadata
 
         if (orderId) {
-          await updateOrderStatus(orderId, 'canceled', 'canceled')
+          const outcome = await markUnpaidOrderPaymentState(orderId, paymentIntent.id, 'canceled')
+          if (outcome === 'error') throw new Error('Failed to record canceled payment')
+          if (outcome === 'protected') reportServerInfo('stripe.webhook.settled_order_preserved')
+          if (outcome === 'missing') reportServerInfo('stripe.webhook.unmatched_unpaid_order')
         }
         break
       }

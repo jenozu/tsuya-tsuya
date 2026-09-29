@@ -278,6 +278,59 @@ export async function updateOrderStatus(orderId: string, status: string, payment
   }
 }
 
+/**
+ * Signed payment-failure/cancellation webhooks must never downgrade a settled
+ * order, even if another worker commits payment between reading and writing.
+ * Payment-intent binding also prevents a different attempt touching this order.
+ * This does not replace durable Stripe event claiming or transaction-safe email.
+ */
+export async function markUnpaidOrderPaymentState(
+  orderId: string,
+  paymentIntentId: string,
+  nextStatus: 'failed' | 'canceled',
+): Promise<'updated' | 'protected' | 'missing' | 'error'> {
+  try {
+    const sql = getDb()
+    const updated = (await sql`
+      UPDATE orders SET status = ${nextStatus}, payment_status = ${nextStatus}, updated_at = NOW()
+      WHERE order_id = ${orderId}
+        AND (payment_intent_id IS NULL OR payment_intent_id = ${paymentIntentId})
+        AND payment_status NOT IN ('paid', 'refunded', 'partially_refunded')
+      RETURNING id
+    `) as unknown as Row[]
+    if (updated.length) return 'updated'
+    const existing = (await sql`SELECT id FROM orders WHERE order_id = ${orderId} LIMIT 1`) as unknown as Row[]
+    return existing.length ? 'protected' : 'missing'
+  } catch {
+    reportServerError('db.updating_order_status')
+    return 'error'
+  }
+}
+
+/**
+ * An authenticated successful payment may advance only its own pending order;
+ * never rewind already-paid fulfilment or refunded payment states.
+ */
+export async function markExistingOrderPaidForIntent(orderId: string, paymentIntentId: string): Promise<boolean> {
+  try {
+    const sql = getDb()
+    const updated = (await sql`
+      UPDATE orders SET payment_status = 'paid',
+        status = CASE WHEN status IN ('shipped', 'delivered', 'fulfilled') THEN status ELSE 'processing' END,
+        payment_intent_id = COALESCE(payment_intent_id, ${paymentIntentId}),
+        updated_at = NOW()
+      WHERE order_id = ${orderId}
+        AND (payment_intent_id IS NULL OR payment_intent_id = ${paymentIntentId})
+        AND payment_status NOT IN ('paid', 'refunded', 'partially_refunded')
+      RETURNING id
+    `) as unknown as Row[]
+    return updated.length > 0
+  } catch {
+    reportServerError('db.updating_order_status')
+    return false
+  }
+}
+
 export async function updateOrderPaymentIntent(orderId: string, paymentIntentId: string): Promise<boolean> {
   try {
     const sql = getDb()
