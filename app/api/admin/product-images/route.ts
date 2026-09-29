@@ -25,6 +25,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Fast preflight for declared giant multipart requests. file.size and
+  // decoded image validation still run after parsing. Streaming multipart and
+  // distributed per-IP throttling require an upstream WAF/verified provider.
+  const declared = request.headers.get('content-length')
+  if (declared !== null &&
+      (!/^(0|[1-9][0-9]*)$/.test(declared) || Number(declared) > MAX_INPUT_SIZE + 131_072)) {
+    return NextResponse.json({ error: 'Image request is too large' }, { status: 413 })
+  }
+  const contentType = request.headers.get('content-type') ?? ''
+  if (!/^multipart\/form-data\s*;/i.test(contentType)) {
+    return NextResponse.json({ error: 'Expected multipart image upload' }, { status: 415 })
+  }
+
   try {
     const formData = await request.formData()
     const file = formData.get('file')
