@@ -27,3 +27,6 @@ export async function deleteProduct(id) {
   writes.push({ method: 'delete', id })
   return true
 }
+
+// Task 10 abuse tests must reject oversized waitlist requests before storage.
+export async function addWaitlistEmail() { throw new Error('Test must not persist waitlist email') }
