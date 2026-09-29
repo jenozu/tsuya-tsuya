@@ -9,6 +9,10 @@ test('offline migration CLI emits stable ordered baseline without needing DB acc
     encoding: 'utf8', env, timeout: 10_000,
   })
   assert.equal(result.status, 0, result.stderr)
-  assert.match(result.stdout, /^002_neon_r2_schema [a-f0-9]{64}\s*$/)
+  const lines = result.stdout.trim().split(/\r?\n/)
+  assert.deepEqual(lines.map(line => line.split(' ')[0]), [
+    '002_neon_r2_schema', '003_payment_delivery_foundation',
+  ])
+  for (const line of lines) assert.match(line, /^\d{3}_[a-z0-9_]+ [a-f0-9]{64}$/)
   assert.doesNotMatch(result.stdout, /postgres|password|secret/i)
 })
