@@ -30,3 +30,42 @@ export async function deleteProduct(id) {
 
 // Task 10 abuse tests must reject oversized waitlist requests before storage.
 export async function addWaitlistEmail() { throw new Error('Test must not persist waitlist email') }
+
+ 
+// Synthetic order state ONLY for webhook handler tests. This does not exercise
+// PostgreSQL concurrency, migration deployment, or real payment processing.
+const orders = new Map()
+export const orderMutations = []
+let failOrderWrite = false
+export function resetMockOrders() { orders.clear(); orderMutations.length = 0; failOrderWrite = false }
+export function setMockOrder(order) { orders.set(order.order_id, { ...order }) }
+export function failMockOrderWrite(value) { failOrderWrite = value }
+export async function getOrder(id) { return orders.get(id) ?? null }
+export async function createOrder(data) {
+  if (failOrderWrite) return null
+  orderMutations.push({ kind: 'create', id: data.order_id })
+  const order = { id: 'synthetic-order', ...data }
+  orders.set(data.order_id, order)
+  return order
+}
+export async function markUnpaidOrderPaymentState(id, intentId, nextStatus) {
+  if (failOrderWrite) return 'error'
+  const order = orders.get(id)
+  if (!order) return 'missing'
+  if (['paid', 'refunded', 'partially_refunded'].includes(order.payment_status) ||
+      (order.payment_intent_id && order.payment_intent_id !== intentId)) return 'protected'
+  orderMutations.push({ kind: 'unpaid', id, state: nextStatus })
+  orders.set(id, { ...order, status: nextStatus, payment_status: nextStatus })
+  return 'updated'
+}
+export async function markExistingOrderPaidForIntent(id, intentId) {
+  if (failOrderWrite) return false
+  const order = orders.get(id)
+  if (!order || ['paid', 'refunded', 'partially_refunded'].includes(order.payment_status) ||
+      (order.payment_intent_id && order.payment_intent_id !== intentId)) return false
+  orderMutations.push({ kind: 'paid', id })
+  orders.set(id, { ...order, payment_status: 'paid',
+    status: ['shipped','delivered','fulfilled'].includes(order.status) ? order.status : 'processing',
+    payment_intent_id: order.payment_intent_id || intentId })
+  return true
+}
