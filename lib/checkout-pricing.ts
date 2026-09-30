@@ -1,4 +1,5 @@
 import type { Product } from './types'
+import { purchasableSizes } from './product-availability'
 
 export interface CheckoutBasketItem {
   id: string
@@ -55,14 +56,15 @@ export async function priceCheckoutBasket(
       productCache.set(item.id, product)
     }
 
-    const availableSizes = (product.sizes ?? []).filter(
+    const allPricedSizes = (product.sizes ?? []).filter(
       size => typeof size.label === 'string' && Number.isFinite(size.price) && size.price > 0,
     )
+    const availableSizes = purchasableSizes(product)
     const selectedSize = item.sizeLabel === undefined
       ? undefined
       : availableSizes.find(size => size.label === item.sizeLabel)
 
-    if ((availableSizes.length > 0 && !selectedSize) ||
+    if ((allPricedSizes.length > 0 && !selectedSize) ||
       (item.sizeLabel !== undefined && !selectedSize)) {
       throw new CheckoutBasketError('A selected print size has changed. Please refresh your cart.')
     }
@@ -73,11 +75,16 @@ export async function priceCheckoutBasket(
       throw new CheckoutBasketError('A cart item has an invalid price.')
     }
 
-    const productQty = (totalByProduct.get(product.id) ?? 0) + item.quantity
-    if (!Number.isSafeInteger(product.stock) || product.stock < productQty) {
-      throw new CheckoutBasketError('Insufficient stock. Please update your cart.')
+    // Made-to-order sized products use per-size availability rather than a
+    // customer-facing physical stock count. Keep the legacy stock guard only
+    // for products that genuinely have no priced variants.
+    if (allPricedSizes.length === 0) {
+      const productQty = (totalByProduct.get(product.id) ?? 0) + item.quantity
+      if (!Number.isSafeInteger(product.stock) || product.stock < productQty) {
+        throw new CheckoutBasketError('This item is currently unavailable. Please update your cart.')
+      }
+      totalByProduct.set(product.id, productQty)
     }
-    totalByProduct.set(product.id, productQty)
 
     quantity += item.quantity
     subtotalCents += unitCents * item.quantity
