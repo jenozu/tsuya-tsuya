@@ -20,4 +20,4 @@ The product-detail page no longer exposes stock counts and instead describes the
 
 For product discovery, related-product recommendations should prefer other prints in the same `category` (currently used as the anime/series grouping), exclude the current product, and use other catalog products only as fallback suggestions.
 
-For browser/SEO titles, product pages should combine the series/category and character/product name when they are distinct, followed by `- TsuyaNoUchi`, while avoiding duplicated wording when the name already contains the category.
+For browser/SEO titles, product pages should use `Character/Product Name - Series/Category - TsuyaNoUchi`. If the product name and category are exactly the same text, omit the repeated category and use `Name - TsuyaNoUchi`.
