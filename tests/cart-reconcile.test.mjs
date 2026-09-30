@@ -20,21 +20,25 @@ test('re-prices retained size from current catalog and keeps its label', () => {
   assert.equal(r.items[0].quantity, 2)
 })
 
-test('never silently switches discontinued, deleted or out-of-stock items', () => {
+test('never silently switches discontinued, deleted or unavailable size selections', () => {
   const stale = { ...cartItem, selectedSize: { label: 'discontinued', price: 8 } }
   assert.deepEqual(reconcileCartWithCatalog([stale], [product]).items, [])
   assert.deepEqual(reconcileCartWithCatalog([cartItem], []).items, [])
-  assert.deepEqual(reconcileCartWithCatalog([cartItem], [{ ...product, stock: 0 }]).items, [])
+  const unavailable={ ...product, stock:0, sizes:[
+    { label:'8" x 10"', price:12, available:false },
+    { label:'11" x 14"', price:22, available:true },
+  ]}
+  assert.deepEqual(reconcileCartWithCatalog([cartItem], [unavailable]).items, [])
   assert.deepEqual(reconcileCartWithCatalog([{ ...cartItem, selectedSize:undefined }], [product]).items, [])
 })
 
-test('enforces shared stock across multiple sizes', () => {
+test('made-to-order sized products are not capped by legacy product stock', () => {
   const other = { ...cartItem, selectedSize: { label:'11" x 14"', price: 20 } }
-  const result = reconcileCartWithCatalog([cartItem, other], [product])
+  const result = reconcileCartWithCatalog([cartItem, other], [{...product,stock:0}])
   assert.equal(result.items.length, 2)
   assert.equal(result.items[0].quantity, 2)
-  assert.equal(result.items[1].quantity, 1)
-  assert.equal(result.items.reduce((n,i)=>n+i.quantity,0), 3)
+  assert.equal(result.items[1].quantity, 2)
+  assert.equal(result.items.reduce((n,i)=>n+i.quantity,0), 4)
 })
 
 test('allows genuinely non-variant products with a current price', () => {
