@@ -25,7 +25,7 @@ export function productCanonicalUrl(productId: string): string {
 }
 
 export function productStructuredData(product: Product): Record<string, unknown> {
-  const prices = (product.sizes ?? [])
+  const prices = purchasableSizes(product)
     .map(size => size.price)
     .filter(price => Number.isFinite(price) && price > 0)
   const price = prices.length ? Math.min(...prices) : product.price
