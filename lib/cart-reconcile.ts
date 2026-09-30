@@ -23,7 +23,7 @@ export function reconcileCartWithCatalog(
       : undefined
     // Do not silently change a previously selected/discontinued variation.
     if (item.selectedSize && !selection) continue
-    if (!item.selectedSize && offered.length > 0) continue
+    if (!item.selectedSize && allPricedSizes.length > 0) continue
     if (!selection && (!Number.isFinite(product.price) || product.price <= 0)) continue
 
     let quantity = Math.min(item.quantity, 20)
