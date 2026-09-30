@@ -13,12 +13,10 @@ export function publicIndexingEnabled(input: {
 export function productPageTitle(product: Pick<Product, 'name' | 'category'>): string {
   const name = product.name.trim()
   const category = product.category.trim()
-  const combined = category &&
-    !name.toLowerCase().includes(category.toLowerCase()) &&
-    !category.toLowerCase().includes(name.toLowerCase())
-    ? `${category} ${name}`
-    : name
-  return `${combined} - TsuyaNoUchi`
+  if (category && category.toLowerCase() !== name.toLowerCase()) {
+    return `${name} - ${category} - TsuyaNoUchi`
+  }
+  return `${name} - TsuyaNoUchi`
 }
 
 export function productCanonicalUrl(productId: string): string {
