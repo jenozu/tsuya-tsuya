@@ -25,13 +25,13 @@ test('only production without the under-construction gate is indexable', () => {
   assert.equal(publicIndexingEnabled({ deploymentEnvironment: 'production', underConstruction: true }), false)
 })
 
-test('product page title combines series/category and character name without duplicate wording', () => {
+test('product page title uses character then series then brand, omitting only exact duplication', () => {
   assert.equal(productPageTitle({ category: 'Jujutsu Kaisen', name: 'Gojo Satoru' }),
-    'Jujutsu Kaisen Gojo Satoru - TsuyaNoUchi')
+    'Gojo Satoru - Jujutsu Kaisen - TsuyaNoUchi')
   assert.equal(productPageTitle({ category: 'Bayonetta', name: 'Bayonetta' }),
     'Bayonetta - TsuyaNoUchi')
   assert.equal(productPageTitle({ category: 'Naruto', name: 'Naruto Uzumaki' }),
-    'Naruto Uzumaki - TsuyaNoUchi')
+    'Naruto Uzumaki - Naruto - TsuyaNoUchi')
 })
 
 test('existing product ID URLs remain canonical, including special characters', () => {
