@@ -1,7 +1,7 @@
 import type { Product } from './types'
 import type { CartItem } from './cart-context'
 import { getImageUrls } from './types.ts'
-import { purchasableSizes } from './product-availability'
+import { purchasableSizes } from './product-availability.ts'
 
 /** Reconcile a persisted cart against a freshly retrieved public catalog.
  * Server-side basket repricing remains the final authority at Stripe checkout.
