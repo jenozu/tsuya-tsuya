@@ -1,5 +1,5 @@
 import type { Product } from './types'
-import { productIsPurchasable } from './product-availability.ts'
+import { productIsPurchasable, purchasableSizes } from './product-availability.ts'
 
 export const CANONICAL_ORIGIN = 'https://tsuyanouchi.com'
 
