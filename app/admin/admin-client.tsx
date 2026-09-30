@@ -621,7 +621,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E0D8]">
-                      {lowStockItems.map(item => (
+                      {unavailableProducts.map(item => (
                         <tr key={item.id}>
                           <td className="py-3 text-[#2D2A26] font-medium">{item.name}</td>
                           <td className="py-3 text-right text-[#8C3F3F] font-bold">{internalAvailabilityCount(item)}</td>
@@ -801,19 +801,19 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                 {/* Low Stock Card */}
                 <button 
                   onClick={() => setDetailModal('LOW_STOCK')}
-                  className={`group bg-white p-6 rounded-none shadow-sm border text-left hover:border-[#2D2A26] transition-all duration-300 relative overflow-hidden ${lowStockItems.length > 0 ? 'border-red-200' : 'border-[#E5E0D8]'}`}
+                  className={`group bg-white p-6 rounded-none shadow-sm border text-left hover:border-[#2D2A26] transition-all duration-300 relative overflow-hidden ${unavailableProducts.length > 0 ? 'border-red-200' : 'border-[#E5E0D8]'}`}
                 >
                   <div className="flex justify-between items-start relative z-10">
                     <div>
                       <h3 className="text-[#786B59] text-xs uppercase tracking-wide font-semibold">Unavailable Products</h3>
-                      <p className={`text-4xl font-serif mt-2 group-hover:scale-105 transition-transform origin-left ${lowStockItems.length > 0 ? 'text-[#8C3F3F]' : 'text-[#2D2A26]'}`}>
-                        {lowStockItems.length}
+                      <p className={`text-4xl font-serif mt-2 group-hover:scale-105 transition-transform origin-left ${unavailableProducts.length > 0 ? 'text-[#8C3F3F]' : 'text-[#2D2A26]'}`}>
+                        {unavailableProducts.length}
                       </p>
                     </div>
-                    <AlertCircle className={`${lowStockItems.length > 0 ? 'text-red-100' : 'text-[#E5E0D8]'} group-hover:text-red-200 transition-colors`} size={48} />
+                    <AlertCircle className={`${unavailableProducts.length > 0 ? 'text-red-100' : 'text-[#E5E0D8]'} group-hover:text-red-200 transition-colors`} size={48} />
                   </div>
                   <div className="mt-4 flex items-center text-xs text-[#786B59]">
-                    {lowStockItems.length > 0 ? 'Action required' : 'All variants available'}
+                    {unavailableProducts.length > 0 ? 'Action required' : 'All variants available'}
                   </div>
                 </button>
               </div>
