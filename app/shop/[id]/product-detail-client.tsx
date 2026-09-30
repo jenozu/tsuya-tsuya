@@ -182,13 +182,10 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             </div>
             
             <div className="bg-[#F2EFE9] p-6 border border-[#E5E0D8] mt-8">
-              <p className="text-xs text-[#786B59] uppercase tracking-wide mb-2 font-semibold">Stock Status</p>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-[#5C7C66]' : 'bg-[#8C3F3F]'}`}></div>
-                <span className="text-sm text-[#2D2A26]">
-                  {product.stock > 10 ? 'In Stock & Ready to Ship' : product.stock > 0 ? `Only ${product.stock} left` : 'Out of Stock'}
-                </span>
-              </div>
+              <p className="text-xs text-[#786B59] uppercase tracking-wide mb-2 font-semibold">Made to Order</p>
+              <p className="text-sm text-[#2D2A26]">
+                Your print is produced after your order is placed.
+              </p>
             </div>
           </div>
         </div>

@@ -10,6 +10,17 @@ export function publicIndexingEnabled(input: {
   return input.deploymentEnvironment === 'production' && input.underConstruction !== true
 }
 
+export function productPageTitle(product: Pick<Product, 'name' | 'category'>): string {
+  const name = product.name.trim()
+  const category = product.category.trim()
+  const combined = category &&
+    !name.toLowerCase().includes(category.toLowerCase()) &&
+    !category.toLowerCase().includes(name.toLowerCase())
+    ? `${category} ${name}`
+    : name
+  return `${combined} - TsuyaNoUchi`
+}
+
 export function productCanonicalUrl(productId: string): string {
   return `${CANONICAL_ORIGIN}/shop/${encodeURIComponent(productId)}`
 }

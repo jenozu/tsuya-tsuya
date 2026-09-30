@@ -80,6 +80,7 @@ Present accurate art-print offerings with discoverable detail and product images
   - Evidence (2026-09-28): the product detail route directory is `app/shop/[id]`, explicitly matching its database-ID lookup while preserving the public `/shop/<existing-id>` URL shape. `docs/SEO_URL_POLICY.md` documents the stable ID contract and future permanent-redirect requirements for any readable-slug migration; README now reflects `/shop/[id]`.
 - [ ] Test CSV creation/update, invalid rows, duplicate names, image filename mapping, transaction safety, and re-import reporting using R2 assets. <!-- task:TSU-M5-006 -->
 - [ ] Validate catalog copy, art-print product types, image rights/licensing, and the final launch assortment. <!-- task:TSU-M5-007 -->
+  - Owner direction (2026-09-30): current print sizes are approved; final launch products are still being finalized. Related-product discovery now prefers the same anime/series category. Artwork rights/licensing and the final assortment still require owner verification, so this task remains open.
 
 ## M6: Variants, prices, and inventory
 
@@ -90,9 +91,11 @@ Create a single authoritative SKU, price, and stock model.
 - [x] Store a base price, overall stock, and per-size pricing data in the product model. <!-- task:TSU-M6-001 -->
 - [x] Expose size selection and size-dependent displayed pricing in the product-detail UI. <!-- task:TSU-M6-002 -->
 - [ ] Define unique sellable SKUs and whether stock is shared or per-size; implement the approved model. <!-- task:TSU-M6-003 -->
+  - Owner direction (2026-09-30): inventory/availability is per size and private; products are made to order through Printify; do not add/expose SKUs unless a provider/integration requires them. Product ID + normalized size label can serve as the interim internal variant identity. The current schema still uses product-level stock, so implementation remains open; see `docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md`.
 - [x] Validate variant structure, supported print sizes, price precision, and stock bounds server-side in admin and import endpoints. <!-- task:TSU-M6-004 -->
   - Evidence (2026-09-27): PR #19 introduced strict shared Zod schemas across admin product create/update and CSV import for allowed unique print sizes, positive two-decimal variant prices, bounded nonnegative integer stock and safe image fields. CSV numeric parsing no longer truncates malformed inventory or overprecise prices. [Candidate CI run 36351775450](https://github.com/jenozu/tsuya-tsuya/actions/runs/36351775450) passed tests, typecheck and production build, with a successful preview deployment. Live admin/import workflow and transaction-safe reimport remain separate tasks.
 - [ ] Keep listings, cart, checkout, and admin inventory consistent after edits and discontinued variants. <!-- task:TSU-M6-005 -->
+  - Owner direction (2026-09-30): customer UI must not show stock quantities or scarcity messaging for normal made-to-order products. Product detail now shows made-to-order fulfillment copy, but per-size availability is not yet propagated through admin/cart/checkout, so this task remains open.
 - [ ] Atomically reserve/decrement available inventory at the correct payment stage; prevent overselling and release failed/expired holds. <!-- task:TSU-M6-006 -->
 - [x] Document catalog price changes, out-of-stock rules, and manual stock reconciliation. <!-- task:TSU-M6-007 -->
   - Evidence (2026-09-28): `docs/CATALOG_PRICE_INVENTORY.md` documents reviewed catalog-price changes, current shared-stock/out-of-stock behavior, discontinued-size handling, manual stock reconciliation and explicit owner-approval boundaries without inventing a per-size SKU model.
