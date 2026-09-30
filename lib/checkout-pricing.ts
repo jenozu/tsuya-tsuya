@@ -1,5 +1,5 @@
 import type { Product } from './types'
-import { purchasableSizes } from './product-availability'
+import { purchasableSizes } from './product-availability.ts'
 
 export interface CheckoutBasketItem {
   id: string
