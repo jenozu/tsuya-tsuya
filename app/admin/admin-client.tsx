@@ -630,7 +630,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                               onClick={() => { handleEdit(item); setDetailModal('NONE'); }}
                               className="text-xs text-[#2D2A26] underline hover:text-[#786B59]"
                             >
-                              Restock
+                              Edit sizes
                             </button>
                           </td>
                         </tr>
