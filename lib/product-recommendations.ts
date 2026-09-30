@@ -1,4 +1,5 @@
 import type { Product } from './types'
+import { productIsPurchasable } from './product-availability'
 
 export function relatedProducts(
   current: Pick<Product, 'id' | 'category'>,
@@ -7,7 +8,7 @@ export function relatedProducts(
 ): Product[] {
   if (!Number.isInteger(limit) || limit < 1) return []
 
-  const others = catalog.filter(product => product.id !== current.id)
+  const others = catalog.filter(product => product.id !== current.id && productIsPurchasable(product))
   const normalizedCategory = current.category.trim().toLowerCase()
 
   const sameCategory = others.filter(product =>
