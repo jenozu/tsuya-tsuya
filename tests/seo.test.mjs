@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   breadcrumbStructuredData,
   productCanonicalUrl,
+  productPageTitle,
   productStructuredData,
   publicIndexingEnabled,
   serializeStructuredData,
@@ -22,6 +23,15 @@ test('only production without the under-construction gate is indexable', () => {
   assert.equal(publicIndexingEnabled({ deploymentEnvironment: 'preview' }), false)
   assert.equal(publicIndexingEnabled({ deploymentEnvironment: 'development' }), false)
   assert.equal(publicIndexingEnabled({ deploymentEnvironment: 'production', underConstruction: true }), false)
+})
+
+test('product page title combines series/category and character name without duplicate wording', () => {
+  assert.equal(productPageTitle({ category: 'Jujutsu Kaisen', name: 'Gojo Satoru' }),
+    'Jujutsu Kaisen Gojo Satoru - TsuyaNoUchi')
+  assert.equal(productPageTitle({ category: 'Bayonetta', name: 'Bayonetta' }),
+    'Bayonetta - TsuyaNoUchi')
+  assert.equal(productPageTitle({ category: 'Naruto', name: 'Naruto Uzumaki' }),
+    'Naruto Uzumaki - TsuyaNoUchi')
 })
 
 test('existing product ID URLs remain canonical, including special characters', () => {
