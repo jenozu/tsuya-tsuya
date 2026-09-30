@@ -1,4 +1,5 @@
 import type { Product } from './types'
+import { productIsPurchasable } from './product-availability'
 
 export const CANONICAL_ORIGIN = 'https://tsuyanouchi.com'
 
@@ -33,14 +34,13 @@ export function productStructuredData(product: Product): Record<string, unknown>
     '@type': 'Product',
     name: product.name,
     description: product.description || product.name,
-    sku: product.id,
     url: productCanonicalUrl(product.id),
     offers: {
       '@type': 'Offer',
       url: productCanonicalUrl(product.id),
       priceCurrency: 'USD',
       price: price.toFixed(2),
-      availability: product.stock > 0
+      availability: productIsPurchasable(product)
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
     },
