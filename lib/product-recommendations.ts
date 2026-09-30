@@ -1,5 +1,5 @@
 import type { Product } from './types'
-import { productIsPurchasable } from './product-availability'
+import { productIsPurchasable } from './product-availability.ts'
 
 export function relatedProducts(
   current: Pick<Product, 'id' | 'category'>,
