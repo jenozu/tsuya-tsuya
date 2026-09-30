@@ -2,6 +2,7 @@ export interface ProductSize {
   label: string
   price: number
   cost?: number
+  available?: boolean
 }
 
 export interface Product {

@@ -12,6 +12,7 @@ export const productSizesSchema = z.array(z.object({
   label: z.string().refine(value => supportedLabels.has(value), 'Unsupported print size'),
   price: positiveCurrency,
   cost: currency.optional(),
+  available: z.boolean().optional(),
 }).strict()).max(STANDARD_PRINT_SIZES.length).superRefine((sizes, ctx) => {
   const seen = new Set<string>()
   for (const [index, size] of sizes.entries()) {

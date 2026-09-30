@@ -39,12 +39,14 @@ test('existing product ID URLs remain canonical, including special characters', 
   assert.equal(productCanonicalUrl('a/b'), 'https://tsuyanouchi.com/shop/a%2Fb')
 })
 
-test('Product JSON-LD uses database variant price and availability', () => {
+test('Product JSON-LD uses available variant price without inventing a SKU', () => {
   const data = productStructuredData(product)
   assert.equal(data.offers.price, '12.50')
   assert.equal(data.offers.priceCurrency, 'USD')
   assert.equal(data.offers.availability, 'https://schema.org/InStock')
-  assert.equal(productStructuredData({ ...product, stock: 0 }).offers.availability,
+  assert.equal(data.sku, undefined)
+  const unavailable={ ...product, stock:0, sizes:product.sizes.map(size=>({...size,available:false})) }
+  assert.equal(productStructuredData(unavailable).offers.availability,
     'https://schema.org/OutOfStock')
 })
 

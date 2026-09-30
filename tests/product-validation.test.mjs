@@ -33,8 +33,9 @@ test('rejects invalid money, stock, price, and unexpected product fields', () =>
   assert.equal(createProductSchema.safeParse({ ...base, price: 0, sizes: [] }).success, false)
 })
 
-test('enforces supported unique sizes and valid variant price precision', () => {
-  assert.equal(productSizesSchema.safeParse([{ label: '8" x 10"', price: 1.01 }]).success, true)
+test('enforces supported unique sizes, private availability and valid variant price precision', () => {
+  assert.equal(productSizesSchema.safeParse([{ label: '8" x 10"', price: 1.01, available: false }]).success, true)
+  assert.equal(productSizesSchema.safeParse([{ label: '8" x 10"', price: 1.01, available: 'false' }]).success, false)
   assert.equal(productSizesSchema.safeParse([{ label: 'unsupported', price: 1.01 }]).success, false)
   assert.equal(productSizesSchema.safeParse([{ label: '8" x 10"', price: 0 }]).success, false)
   assert.equal(productSizesSchema.safeParse([{ label: '8" x 10"', price: 1.999 }]).success, false)

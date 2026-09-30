@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
 import { Product, ProductSize, getImageUrls } from '@/lib/types'
+import { purchasableSizes, productIsPurchasable } from '@/lib/product-availability'
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown, RotateCcw } from 'lucide-react';
@@ -18,7 +19,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   
-  const availableSizes = (product.sizes || []).filter(size => Number.isFinite(size.price) && size.price > 0);
+  const availableSizes = purchasableSizes(product);
   const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(availableSizes[0]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const imageUrls = getImageUrls(product);
@@ -37,7 +38,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   }, [product]);
 
   const currentPrice = selectedSize ? selectedSize.price : product.price;
-  const canPurchase = product.stock > 0 && (availableSizes.length === 0 || Boolean(selectedSize));
+  const canPurchase = productIsPurchasable(product) && (availableSizes.length === 0 || Boolean(selectedSize));
 
   const handleAddToCart = () => {
     if (!canPurchase) return;
@@ -142,7 +143,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 className="flex-1 md:flex-none md:min-w-[200px] flex items-center justify-center gap-2"
               >
                 <ShoppingBag size={20} />
-                {product.stock <= 0 ? 'Out of stock' : 'Add to Cart'}
+                {!productIsPurchasable(product) ? 'Unavailable' : 'Add to Cart'}
               </Button>
               
               <button 

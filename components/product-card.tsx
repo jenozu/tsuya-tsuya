@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
 import { Product, getImageUrls } from '@/lib/types'
+import { purchasableSizes, productIsPurchasable } from '@/lib/product-availability'
 import { ShoppingBag, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
@@ -19,8 +20,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const isProductFavorite = isFavorite(product.id);
   const imageUrls = getImageUrls(product);
   const primaryImage = imageUrls[0] || product.image_url;
-  const isSoldOut = product.stock <= 0;
-  const pricedSizes = (product.sizes || []).filter(size => Number.isFinite(size.price) && size.price > 0);
+  const isSoldOut = !productIsPurchasable(product);
+  const pricedSizes = purchasableSizes(product);
   const formatPrice = (value: number) => `${value.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -79,7 +80,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </button>
 
         {isSoldOut && (
-          <span className="absolute bottom-4 left-4 bg-[#2D2A26]/90 text-white px-3 py-1.5 text-xs uppercase tracking-wide z-10">Out of stock</span>
+          <span className="absolute bottom-4 left-4 bg-[#2D2A26]/90 text-white px-3 py-1.5 text-xs uppercase tracking-wide z-10">Unavailable</span>
         )}
         {!isSoldOut && pricedSizes.length === 0 && (
           <button

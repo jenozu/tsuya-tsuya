@@ -1,4 +1,5 @@
 import type { Product } from './types'
+import { productIsPurchasable, purchasableSizes } from './product-availability.ts'
 
 export const CANONICAL_ORIGIN = 'https://tsuyanouchi.com'
 
@@ -24,7 +25,7 @@ export function productCanonicalUrl(productId: string): string {
 }
 
 export function productStructuredData(product: Product): Record<string, unknown> {
-  const prices = (product.sizes ?? [])
+  const prices = purchasableSizes(product)
     .map(size => size.price)
     .filter(price => Number.isFinite(price) && price > 0)
   const price = prices.length ? Math.min(...prices) : product.price
@@ -33,14 +34,13 @@ export function productStructuredData(product: Product): Record<string, unknown>
     '@type': 'Product',
     name: product.name,
     description: product.description || product.name,
-    sku: product.id,
     url: productCanonicalUrl(product.id),
     offers: {
       '@type': 'Offer',
       url: productCanonicalUrl(product.id),
       priceCurrency: 'USD',
       price: price.toFixed(2),
-      availability: product.stock > 0
+      availability: productIsPurchasable(product)
         ? 'https://schema.org/InStock'
         : 'https://schema.org/OutOfStock',
     },
