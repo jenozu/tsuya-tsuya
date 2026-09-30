@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Product, Order, ShippingRate, ProductSize } from '@/lib/types'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
+import { internalAvailabilityCount, productIsPurchasable, purchasableSizes } from '@/lib/product-availability';
 import { generateProductDescription } from '@/services/gemini';
 import { uploadProductImage } from '@/lib/image-upload-client'
 
@@ -49,7 +50,6 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [description, setDescription] = useState('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
-  const [stock, setStock] = useState(0);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
@@ -90,9 +90,13 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const clearProductSelection = () => setSelectedProductIds(new Set());
 
   // --- Calculations for Dashboard ---
-  const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
-  const totalStock = useMemo(() => products.reduce((acc, p) => acc + p.stock, 0), [products]);
-  const totalValue = useMemo(() => products.reduce((acc, p) => acc + (p.price * p.stock), 0), [products]);
+  const unavailableProducts = useMemo(() => products.filter(p => !productIsPurchasable(p)), [products]);
+  const totalValue = useMemo(() => products.reduce((sum, product) => {
+    const variants = purchasableSizes(product)
+    return sum + (variants.length > 0
+      ? variants.reduce((variantSum, size) => variantSum + size.price, 0)
+      : (productIsPurchasable(product) ? product.price : 0))
+  }, 0), [products]);
   
   const categoryData = useMemo(() => {
     const counts = products.reduce((acc, product) => {
@@ -104,16 +108,19 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
   const valuationData = useMemo(() => {
     return products
-      .map(p => ({ name: p.name, value: p.price * p.stock }))
+      .map(product => ({
+        name: product.name,
+        value: purchasableSizes(product).reduce((sum, size) => sum + size.price, 0),
+      }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
   }, [products]);
 
   const inventoryData = useMemo(() => {
-    return products.map(p => ({
-      name: p.name.length > 15 ? p.name.substring(0, 15) + '...' : p.name,
-      stock: p.stock,
-      full_name: p.name
+    return products.map(product => ({
+      name: product.name.length > 15 ? product.name.substring(0, 15) + '...' : product.name,
+      available: internalAvailabilityCount(product),
+      full_name: product.name
     }));
   }, [products]);
 
@@ -224,9 +231,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setProductType('1-piece');
     setDescription('');
     setImageUrls([]);
-    setStock(0);
     setImageUploadError(null);
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0 })));
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0, available: true })));
   };
 
   const handleEdit = (product: Product) => {
@@ -246,11 +252,10 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const standardLabels = new Set<string>(STANDARD_PRINT_SIZES);
     const standardSizes = STANDARD_PRINT_SIZES.map(label => {
       const existing = sizeMap.get(label);
-      return { label, price: existing?.price ?? 0, cost: existing?.cost ?? 0 };
+      return { label, price: existing?.price ?? 0, cost: existing?.cost ?? 0, available: existing?.available !== false };
     });
     const customSizes = existingSizes.filter(s => !standardLabels.has(s.label));
     setSizes([...standardSizes, ...customSizes]);
-    setStock(product.stock ?? 0);
     setImageUploadError(null);
     setIsEditing(true);
     setActiveTab('PRODUCTS');
@@ -285,7 +290,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
           category: product.category,
           product_type: product.product_type ?? '1-piece',
           image_url: product.image_url,
-          stock: product.stock ?? 0,
+          stock: internalAvailabilityCount(product),
           sizes: product.sizes ?? [],
         }),
       });
@@ -388,7 +393,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       category,
       product_type: productType,
       image_url: imageUrlValue,
-      stock,
+      stock: sizesWithPrice.filter(size => size.available !== false).length,
       sizes: sizesWithPrice
     };
 
@@ -420,6 +425,12 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const num = parseFloat(value) || 0;
     const newSizes = [...sizes];
     newSizes[index] = { ...newSizes[index], [field]: num };
+    setSizes(newSizes);
+  };
+
+  const updateSizeAvailability = (index: number, available: boolean) => {
+    const newSizes = [...sizes];
+    newSizes[index] = { ...newSizes[index], available };
     setSizes(newSizes);
   };
 
@@ -588,24 +599,24 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         <div className="bg-[#F9F8F4] max-w-2xl w-full max-h-[80vh] overflow-y-auto shadow-2xl border border-[#E5E0D8] animate-fade-in" onClick={e => e.stopPropagation()}>
           <div className="p-6 border-b border-[#E5E0D8] flex justify-between items-center bg-white sticky top-0">
             <h3 className="text-xl font-serif text-[#2D2A26]">
-              {detailModal === 'LOW_STOCK' ? 'Low Stock Alerts' : 'Inventory Valuation Breakdown'}
+              {detailModal === 'LOW_STOCK' ? 'Unavailable Product Alerts' : 'Catalog Variant Value'}
             </h3>
             <button onClick={() => setDetailModal('NONE')}><X size={24} className="text-[#786B59] hover:text-[#2D2A26]" /></button>
           </div>
           <div className="p-6">
             {detailModal === 'LOW_STOCK' && (
               <div>
-                {lowStockItems.length === 0 ? (
+                {unavailableProducts.length === 0 ? (
                   <div className="text-center py-8 text-[#5C7C66]">
                     <Package size={48} className="mx-auto mb-2 opacity-50" />
-                    <p>All stock levels are healthy.</p>
+                    <p>All products have at least one available size.</p>
                   </div>
                 ) : (
                   <table className="w-full text-left">
                     <thead className="text-xs uppercase text-[#786B59] border-b border-[#E5E0D8]">
                       <tr>
                         <th className="pb-2 font-medium">Product</th>
-                        <th className="pb-2 font-medium text-right">Current Stock</th>
+                        <th className="pb-2 font-medium text-right">Available Sizes</th>
                         <th className="pb-2 font-medium text-right">Action</th>
                       </tr>
                     </thead>
@@ -613,7 +624,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       {lowStockItems.map(item => (
                         <tr key={item.id}>
                           <td className="py-3 text-[#2D2A26] font-medium">{item.name}</td>
-                          <td className="py-3 text-right text-[#8C3F3F] font-bold">{item.stock}</td>
+                          <td className="py-3 text-right text-[#8C3F3F] font-bold">{internalAvailabilityCount(item)}</td>
                           <td className="py-3 text-right">
                             <button 
                               onClick={() => { handleEdit(item); setDetailModal('NONE'); }}
@@ -632,26 +643,27 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
             {detailModal === 'VALUATION_DETAILS' && (
               <div>
-                <p className="mb-4 text-sm text-[#4A4036]">Total Asset Value: <span className="font-bold text-[#2D2A26]">${totalValue.toLocaleString()}</span></p>
+                <p className="mb-4 text-sm text-[#4A4036]">Available Variant Price Sum: <span className="font-bold text-[#2D2A26]">${totalValue.toLocaleString()}</span></p>
                 <table className="w-full text-left">
                   <thead className="text-xs uppercase text-[#786B59] border-b border-[#E5E0D8]">
                     <tr>
                       <th className="pb-2 font-medium">Product</th>
                       <th className="pb-2 font-medium text-right">Cost</th>
                       <th className="pb-2 font-medium text-right">Retail</th>
-                      <th className="pb-2 font-medium text-right">Stock</th>
+                      <th className="pb-2 font-medium text-right">Available Sizes</th>
                       <th className="pb-2 font-medium text-right">Potential Profit</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5E0D8]">
-                    {[...products].sort((a,b) => (b.price * b.stock) - (a.price * a.stock)).map(item => {
-                      const potentialProfit = (item.price - (item.cost || 0)) * item.stock;
+                    {[...products].sort((a,b) => internalAvailabilityCount(b) - internalAvailabilityCount(a)).map(item => {
+                      const available = purchasableSizes(item);
+                      const potentialProfit = available.reduce((sum, size) => sum + (size.price - (size.cost || item.cost || 0)), 0);
                       return (
                         <tr key={item.id}>
                           <td className="py-3 text-[#2D2A26]">{item.name}</td>
                           <td className="py-3 text-right text-[#786B59]">${item.cost || 0}</td>
                           <td className="py-3 text-right text-[#2D2A26] font-medium">${item.price}</td>
-                          <td className="py-3 text-right text-[#786B59]">{item.stock}</td>
+                          <td className="py-3 text-right text-[#786B59]">{internalAvailabilityCount(item)}</td>
                           <td className="py-3 text-right text-[#5C7C66]">+${potentialProfit.toLocaleString()}</td>
                         </tr>
                       );
@@ -773,7 +785,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                 >
                   <div className="flex justify-between items-start relative z-10">
                     <div>
-                      <h3 className="text-[#786B59] text-xs uppercase tracking-wide font-semibold">Total Asset Value</h3>
+                      <h3 className="text-[#786B59] text-xs uppercase tracking-wide font-semibold">Available Variant Value</h3>
                       <p className="text-4xl font-serif text-[#2D2A26] mt-2 group-hover:scale-105 transition-transform origin-left">
                         ${(totalValue / 1000).toFixed(1)}k
                       </p>
@@ -793,7 +805,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                 >
                   <div className="flex justify-between items-start relative z-10">
                     <div>
-                      <h3 className="text-[#786B59] text-xs uppercase tracking-wide font-semibold">Low Stock Items</h3>
+                      <h3 className="text-[#786B59] text-xs uppercase tracking-wide font-semibold">Unavailable Products</h3>
                       <p className={`text-4xl font-serif mt-2 group-hover:scale-105 transition-transform origin-left ${lowStockItems.length > 0 ? 'text-[#8C3F3F]' : 'text-[#2D2A26]'}`}>
                         {lowStockItems.length}
                       </p>
@@ -801,7 +813,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     <AlertCircle className={`${lowStockItems.length > 0 ? 'text-red-100' : 'text-[#E5E0D8]'} group-hover:text-red-200 transition-colors`} size={48} />
                   </div>
                   <div className="mt-4 flex items-center text-xs text-[#786B59]">
-                    {lowStockItems.length > 0 ? 'Action required' : 'Inventory stable'}
+                    {lowStockItems.length > 0 ? 'Action required' : 'All variants available'}
                   </div>
                 </button>
               </div>
@@ -824,7 +836,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       onClick={() => setAnalyticsView('INVENTORY')}
                       className={`px-4 py-2 text-xs uppercase tracking-wider font-medium transition-all ${analyticsView === 'INVENTORY' ? 'bg-white shadow text-[#2D2A26]' : 'text-[#786B59] hover:text-[#2D2A26]'}`}
                     >
-                      Inventory
+                      Availability
                     </button>
                     <button 
                       onClick={() => setAnalyticsView('CATEGORIES')}
@@ -878,7 +890,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           contentStyle={{ backgroundColor: '#F9F8F4', border: '1px solid #E5E0D8', borderRadius: 0 }}
                           cursor={{fill: '#F2EFE9'}}
                         />
-                        <Bar dataKey="stock" fill="#2D2A26" radius={[2, 2, 0, 0]} name="Stock Count" />
+                        <Bar dataKey="available" fill="#2D2A26" radius={[2, 2, 0, 0]} name="Available Sizes" />
                       </BarChart>
                     </ResponsiveContainer>
                   )}
@@ -1039,17 +1051,6 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           <option value="3-piece">3-Piece Set</option>
                         </select>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Stock</label>
-                        <input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={stock}
-                          onChange={(e) => setStock(Math.max(0, parseInt(e.target.value || '0', 10)))}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                        />
-                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -1138,7 +1139,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       <h4 className="flex items-center gap-2 text-sm font-medium text-[#2D2A26] mb-4">
                         Sizes & Pricing
                       </h4>
-                      <p className="text-xs text-[#786B59] mb-4">Add the price for each size. At least one size must have a price.</p>
+                      <p className="text-xs text-[#786B59] mb-4">Add price/cost per size and turn off any size Printify cannot currently fulfill. Availability is private; customers never see quantities.</p>
 
                       <div className="space-y-2">
                         {sizes.map((size, index) => (
@@ -1179,6 +1180,15 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                                   placeholder="0"
                                 />
                               </label>
+                              <label className="flex items-center gap-2 text-xs text-[#786B59]">
+                                <input
+                                  type="checkbox"
+                                  checked={size.available !== false}
+                                  onChange={(e) => updateSizeAvailability(index, e.target.checked)}
+                                  className="h-4 w-4 accent-[#2D2A26]"
+                                />
+                                Available
+                              </label>
                             </div>
                           </div>
                         ))}
@@ -1215,7 +1225,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         <th className="p-4 font-medium">Category</th>
                         <th className="p-4 font-medium text-right">Cost</th>
                         <th className="p-4 font-medium text-right">Price</th>
-                        <th className="p-4 font-medium text-right">Stock</th>
+                        <th className="p-4 font-medium text-right">Available Sizes</th>
                         <th className="p-4 font-medium text-right">Actions</th>
                       </tr>
                     </thead>
@@ -1244,8 +1254,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           <td className="p-4 text-right text-[#786B59] text-sm">${(product.cost || 0).toFixed(2)}</td>
                           <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price.toFixed(2)}</td>
                           <td className="p-4 text-right">
-                            <span className={`px-2 py-1 text-xs ${product.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
-                              {product.stock}
+                            <span className={`px-2 py-1 text-xs ${productIsPurchasable(product) ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                              {internalAvailabilityCount(product)}
                             </span>
                           </td>
                           <td className="p-4 text-right">
