@@ -39,20 +39,23 @@ test('rejects stale variants and non-existent products', async () => {
   )
 })
 
-test('enforces shared stock across sizes and combined repeated lines', async () => {
-  await assert.rejects(
-    priceCheckoutBasket([
-      { id: 'product-1', quantity: 2, sizeLabel: '8 x 10' },
-      { id: 'product-1', quantity: 2, sizeLabel: '11 x 14' },
-    ], lookup),
-    /Insufficient stock/,
-  )
+test('sized made-to-order items ignore legacy shared stock but reject unavailable sizes', async () => {
   const combined = await priceCheckoutBasket([
-    { id: 'product-1', quantity: 1, sizeLabel: '8 x 10' },
-    { id: 'product-1', quantity: 1, sizeLabel: '8 x 10' },
+    { id: 'product-1', quantity: 2, sizeLabel: '8 x 10' },
+    { id: 'product-1', quantity: 2, sizeLabel: '11 x 14' },
   ], lookup)
-  assert.equal(combined.lines.length, 1)
-  assert.equal(combined.lines[0].quantity, 2)
+  assert.equal(combined.lines.length, 2)
+  assert.equal(combined.lines.reduce((sum,line)=>sum+line.quantity,0),4)
+
+  const unavailable = { ...product, sizes: [
+    { label: '8 x 10', price: 12.5, available: false },
+    { label: '11 x 14', price: 22, available: true },
+  ] }
+  await assert.rejects(
+    priceCheckoutBasket([{ id:'product-1',quantity:1,sizeLabel:'8 x 10' }],
+      async id => id === product.id ? unavailable : null),
+    /selected print size has changed/,
+  )
 })
 
 test('rejects malformed quantities and empty carts', async () => {
