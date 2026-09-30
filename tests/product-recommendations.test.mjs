@@ -10,6 +10,7 @@ test('related prints prioritize the same series/category and exclude the current
   const current=product('current','Jujutsu Kaisen')
   const catalog=[
     current,
+    { ...product('unavailable-same','Jujutsu Kaisen'), sizes:[{label:'8x10',price:10,available:false}], stock:99 },
     product('other-series','Bayonetta'),
     product('same-newest','jujutsu kaisen'),
     product('same-next','Jujutsu Kaisen'),
