@@ -1,78 +1,75 @@
-/**
- * Standard shipping rates by country (Printify standard shipping).
- * Uses first-item + additional-item pricing from gemini/tsuyanouchi/shipping docs.
- * USA = free. Other countries: firstItem + (quantity - 1) * additionalItem.
- * Ranges use the high end so we don't undercharge.
- */
+import profile from '../config/shipping-profile.json' with { type: 'json' }
+
 export interface StandardShippingRate {
   firstItem: number
   additionalItem: number
 }
 
-const DEFAULT_REST_OF_WORLD: StandardShippingRate = {
-  firstItem: 24.99,
-  additionalItem: 5.99,
+export interface ShippingDestination {
+  countryCode: string
+  country: string
+  deliveryMinBusinessDays: number
+  deliveryMaxBusinessDays: number
 }
 
-/** Per-country standard shipping: first item and each additional item (USD). */
-const STANDARD_SHIPPING_BY_COUNTRY: Record<string, StandardShippingRate> = {
-  US: { firstItem: 0, additionalItem: 0 },
-  CA: { firstItem: 9.99, additionalItem: 2.5 },
-  GB: { firstItem: 10.89, additionalItem: 5.29 },
-  AU: { firstItem: 20.99, additionalItem: 6.09 },
-  JP: { firstItem: 18.99, additionalItem: 5.5 },
-  AT: { firstItem: 10.89, additionalItem: 5.29 },
-  BE: { firstItem: 10.89, additionalItem: 5.29 },
-  FR: { firstItem: 10.89, additionalItem: 5.29 },
-  DE: { firstItem: 10.89, additionalItem: 5.29 },
-  IE: { firstItem: 10.89, additionalItem: 5.29 },
-  IT: { firstItem: 10.89, additionalItem: 5.29 },
-  NL: { firstItem: 10.89, additionalItem: 5.29 },
-  ES: { firstItem: 10.89, additionalItem: 5.29 },
-  SE: { firstItem: 10.89, additionalItem: 5.29 },
-  CH: { firstItem: 18.39, additionalItem: 5.39 },
-  NO: { firstItem: 18.39, additionalItem: 5.39 },
-  DK: { firstItem: 18.39, additionalItem: 5.39 },
-  FI: { firstItem: 18.39, additionalItem: 5.39 },
-  IS: { firstItem: 18.39, additionalItem: 5.39 },
-  LI: { firstItem: 18.39, additionalItem: 5.39 },
-  LV: { firstItem: 14.39, additionalItem: 5.39 },
-  LT: { firstItem: 14.39, additionalItem: 5.39 },
-  EE: { firstItem: 14.39, additionalItem: 5.39 },
+type ProfileRate = {
+  firstItemUsd: number
+  additionalItemUsd: number
+  deliveryBusinessDays: [number, number]
 }
 
-/**
- * Returns the standard shipping rate (first item + additional item) for a country.
- * Unknown countries return DEFAULT_REST_OF_WORLD.
- */
-export function getStandardShippingRate(countryCode: string): StandardShippingRate {
-  if (!countryCode || typeof countryCode !== 'string') {
-    return DEFAULT_REST_OF_WORLD
+type DestinationRow = [string, string, keyof typeof profile.rates]
+
+const rateMap = profile.rates as Record<string, ProfileRate>
+const destinationRows = profile.destinations as DestinationRow[]
+
+const destinationMap = new Map(destinationRows.map(([countryCode, country, rateKey]) => {
+  const rate = rateMap[rateKey]
+  if (!rate) throw new Error('Shipping profile references an unknown rate group')
+  return [countryCode, { countryCode, country, rateKey, rate }] as const
+}))
+
+export function getSupportedShippingDestinations(): ShippingDestination[] {
+  return [...destinationMap.values()].map(({ countryCode, country, rate }) => ({
+    countryCode,
+    country,
+    deliveryMinBusinessDays: rate.deliveryBusinessDays[0],
+    deliveryMaxBusinessDays: rate.deliveryBusinessDays[1],
+  }))
+}
+
+export function isSupportedShippingDestination(countryCode: string): boolean {
+  if (typeof countryCode !== 'string') return false
+  return destinationMap.has(countryCode.trim().toUpperCase())
+}
+
+export function getStandardShippingRate(countryCode: string): StandardShippingRate | null {
+  if (typeof countryCode !== 'string') return null
+  const destination = destinationMap.get(countryCode.trim().toUpperCase())
+  if (!destination) return null
+  return {
+    firstItem: destination.rate.firstItemUsd,
+    additionalItem: destination.rate.additionalItemUsd,
   }
-  const code = countryCode.toUpperCase().trim()
-  if (/^[A-Z]{2}$/.test(code) && Object.prototype.hasOwnProperty.call(STANDARD_SHIPPING_BY_COUNTRY, code)) {
-    return STANDARD_SHIPPING_BY_COUNTRY[code]
-  }
-  return DEFAULT_REST_OF_WORLD
 }
 
-/**
- * Returns total standard shipping in USD for the given country and item quantity.
- * Formula: firstItem + (quantity - 1) * additionalItem, with quantity >= 1.
- */
+export function getShippingDeliveryWindow(countryCode: string): [number, number] | null {
+  if (typeof countryCode !== 'string') return null
+  const destination = destinationMap.get(countryCode.trim().toUpperCase())
+  if (!destination) return null
+  return [...destination.rate.deliveryBusinessDays] as [number, number]
+}
+
 export function getStandardShippingForCountryAndQuantity(
   countryCode: string,
-  quantity: number
-): number {
-  const q = Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1
+  quantity: number,
+): number | null {
   const rate = getStandardShippingRate(countryCode)
-  return rate.firstItem + (q - 1) * rate.additionalItem
+  if (!rate) return null
+  const q = Number.isFinite(quantity) ? Math.max(1, Math.floor(quantity)) : 1
+  return Math.round((rate.firstItem + (q - 1) * rate.additionalItem) * 100) / 100
 }
 
-/**
- * Returns the standard shipping price for one item (backward compatibility).
- * Prefer getStandardShippingForCountryAndQuantity when you have quantity.
- */
-export function getStandardShippingForCountry(countryCode: string): number {
+export function getStandardShippingForCountry(countryCode: string): number | null {
   return getStandardShippingForCountryAndQuantity(countryCode, 1)
 }
