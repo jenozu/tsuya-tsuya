@@ -20,8 +20,8 @@ type ProfileRate = {
 
 type DestinationRow = [string, string, keyof typeof profile.rates]
 
-const rateMap = profile.rates as Record<string, ProfileRate>
-const destinationRows = profile.destinations as DestinationRow[]
+const rateMap = profile.rates as unknown as Record<string, ProfileRate>
+const destinationRows = profile.destinations as unknown as DestinationRow[]
 
 const destinationMap = new Map(destinationRows.map(([countryCode, country, rateKey]) => {
   const rate = rateMap[rateKey]
