@@ -18,6 +18,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: CANONICAL_ORIGIN, changeFrequency: 'weekly', priority: 1 },
     { url: `${CANONICAL_ORIGIN}/shop`, changeFrequency: 'daily', priority: 0.9 },
+    { url: `${CANONICAL_ORIGIN}/shipping`, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${CANONICAL_ORIGIN}/faq`, changeFrequency: 'monthly', priority: 0.5 },
     ...products.map(product => ({
       url: productCanonicalUrl(product.id),
       ...(product.updated_at ? { lastModified: new Date(product.updated_at) } : {}),
