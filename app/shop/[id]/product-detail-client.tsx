@@ -7,7 +7,7 @@ import { Product, ProductSize, getImageUrls } from '@/lib/types'
 import { purchasableSizes, productIsPurchasable } from '@/lib/product-availability'
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
-import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown, Clock3 } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
 
@@ -162,15 +162,15 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <div className="flex items-start gap-3">
                 <Truck className="text-[#786B59] mt-1" size={20} />
                 <div>
-                  <h4 className="text-sm font-medium text-[#2D2A26]">Free Shipping</h4>
-                  <p className="text-xs text-[#786B59] mt-1">On all orders over $500</p>
+                  <h4 className="text-sm font-medium text-[#2D2A26]">US Shipping</h4>
+                  <p className="text-xs text-[#786B59] mt-1">Free on US orders</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <RotateCcw className="text-[#786B59] mt-1" size={20} />
+                <Clock3 className="text-[#786B59] mt-1" size={20} />
                 <div>
-                  <h4 className="text-sm font-medium text-[#2D2A26]">Easy Returns</h4>
-                  <p className="text-xs text-[#786B59] mt-1">Hassle-free returns within 30 days</p>
+                  <h4 className="text-sm font-medium text-[#2D2A26]">Made to Order</h4>
+                  <p className="text-xs text-[#786B59] mt-1">2–5 business days to produce</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
