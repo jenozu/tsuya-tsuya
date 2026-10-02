@@ -30,6 +30,8 @@ export function Footer() {
               <li><Link href="/" className="hover:text-[#2D2A26]">Home</Link></li>
               <li><Link href="/shop" className="hover:text-[#2D2A26]">Shop</Link></li>
               <li><Link href="/favourites" className="hover:text-[#2D2A26]">Favourites</Link></li>
+              <li><Link href="/shipping" className="hover:text-[#2D2A26]">Shipping</Link></li>
+              <li><Link href="/faq" className="hover:text-[#2D2A26]">FAQ</Link></li>
             </ul>
           </div>
           {(support || location) && (
