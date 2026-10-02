@@ -1,0 +1,395 @@
+{
+  "currency": "USD",
+  "pricingFormula": "first item + (quantity - 1) × additional item",
+  "additionalItemUsd": 2.99,
+  "sourceNote": "Owner-approved Tsuya shipping profile. Destination names and delivery windows were copied from the owner's Etsy shipping settings; first-item prices use the previously established Tsuya rates, and paid destinations use the owner-approved $2.99 additional-item charge.",
+  "rates": {
+    "free_us": {
+      "firstItemUsd": 0,
+      "additionalItemUsd": 0,
+      "deliveryBusinessDays": [
+        2,
+        5
+      ]
+    },
+    "canada": {
+      "firstItemUsd": 9.99,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        2,
+        5
+      ]
+    },
+    "core_eu": {
+      "firstItemUsd": 10.89,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        2,
+        5
+      ]
+    },
+    "uk_spain": {
+      "firstItemUsd": 10.89,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        2,
+        3
+      ]
+    },
+    "australia": {
+      "firstItemUsd": 20.99,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        3,
+        6
+      ]
+    },
+    "northern_eu": {
+      "firstItemUsd": 18.39,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        2,
+        5
+      ]
+    },
+    "efta": {
+      "firstItemUsd": 18.39,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        5,
+        10
+      ]
+    },
+    "baltics": {
+      "firstItemUsd": 14.39,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        2,
+        5
+      ]
+    },
+    "europe_other_fast": {
+      "firstItemUsd": 24.99,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        2,
+        5
+      ]
+    },
+    "rest_of_world": {
+      "firstItemUsd": 24.99,
+      "additionalItemUsd": 2.99,
+      "deliveryBusinessDays": [
+        10,
+        30
+      ]
+    }
+  },
+  "destinations": [
+    [
+      "US",
+      "United States",
+      "free_us"
+    ],
+    [
+      "AL",
+      "Albania",
+      "rest_of_world"
+    ],
+    [
+      "AD",
+      "Andorra",
+      "rest_of_world"
+    ],
+    [
+      "AM",
+      "Armenia",
+      "rest_of_world"
+    ],
+    [
+      "AU",
+      "Australia",
+      "australia"
+    ],
+    [
+      "AT",
+      "Austria",
+      "core_eu"
+    ],
+    [
+      "BE",
+      "Belgium",
+      "core_eu"
+    ],
+    [
+      "BA",
+      "Bosnia and Herzegovina",
+      "rest_of_world"
+    ],
+    [
+      "BV",
+      "Bouvet Island",
+      "rest_of_world"
+    ],
+    [
+      "BG",
+      "Bulgaria",
+      "europe_other_fast"
+    ],
+    [
+      "CA",
+      "Canada",
+      "canada"
+    ],
+    [
+      "HR",
+      "Croatia",
+      "europe_other_fast"
+    ],
+    [
+      "CY",
+      "Cyprus",
+      "europe_other_fast"
+    ],
+    [
+      "CZ",
+      "Czech Republic",
+      "europe_other_fast"
+    ],
+    [
+      "DK",
+      "Denmark",
+      "northern_eu"
+    ],
+    [
+      "EE",
+      "Estonia",
+      "baltics"
+    ],
+    [
+      "FO",
+      "Faroe Islands",
+      "rest_of_world"
+    ],
+    [
+      "FI",
+      "Finland",
+      "northern_eu"
+    ],
+    [
+      "FR",
+      "France",
+      "core_eu"
+    ],
+    [
+      "GE",
+      "Georgia",
+      "rest_of_world"
+    ],
+    [
+      "DE",
+      "Germany",
+      "core_eu"
+    ],
+    [
+      "GI",
+      "Gibraltar",
+      "rest_of_world"
+    ],
+    [
+      "GR",
+      "Greece",
+      "europe_other_fast"
+    ],
+    [
+      "GL",
+      "Greenland",
+      "rest_of_world"
+    ],
+    [
+      "GP",
+      "Guadeloupe",
+      "rest_of_world"
+    ],
+    [
+      "GG",
+      "Guernsey",
+      "rest_of_world"
+    ],
+    [
+      "VA",
+      "Holy See (Vatican City State)",
+      "rest_of_world"
+    ],
+    [
+      "HU",
+      "Hungary",
+      "europe_other_fast"
+    ],
+    [
+      "IS",
+      "Iceland",
+      "efta"
+    ],
+    [
+      "IE",
+      "Ireland",
+      "core_eu"
+    ],
+    [
+      "IM",
+      "Isle of Man",
+      "rest_of_world"
+    ],
+    [
+      "IT",
+      "Italy",
+      "core_eu"
+    ],
+    [
+      "JE",
+      "Jersey",
+      "rest_of_world"
+    ],
+    [
+      "XK",
+      "Kosovo",
+      "rest_of_world"
+    ],
+    [
+      "LV",
+      "Latvia",
+      "baltics"
+    ],
+    [
+      "LI",
+      "Liechtenstein",
+      "efta"
+    ],
+    [
+      "LT",
+      "Lithuania",
+      "baltics"
+    ],
+    [
+      "LU",
+      "Luxembourg",
+      "europe_other_fast"
+    ],
+    [
+      "MK",
+      "Macedonia",
+      "rest_of_world"
+    ],
+    [
+      "MT",
+      "Malta",
+      "europe_other_fast"
+    ],
+    [
+      "MD",
+      "Moldova",
+      "rest_of_world"
+    ],
+    [
+      "MC",
+      "Monaco",
+      "rest_of_world"
+    ],
+    [
+      "ME",
+      "Montenegro",
+      "rest_of_world"
+    ],
+    [
+      "NO",
+      "Norway",
+      "efta"
+    ],
+    [
+      "PL",
+      "Poland",
+      "europe_other_fast"
+    ],
+    [
+      "PT",
+      "Portugal",
+      "europe_other_fast"
+    ],
+    [
+      "RE",
+      "Reunion",
+      "rest_of_world"
+    ],
+    [
+      "RO",
+      "Romania",
+      "europe_other_fast"
+    ],
+    [
+      "SM",
+      "San Marino",
+      "rest_of_world"
+    ],
+    [
+      "RS",
+      "Serbia",
+      "rest_of_world"
+    ],
+    [
+      "SK",
+      "Slovakia",
+      "europe_other_fast"
+    ],
+    [
+      "SI",
+      "Slovenia",
+      "europe_other_fast"
+    ],
+    [
+      "ES",
+      "Spain",
+      "uk_spain"
+    ],
+    [
+      "SE",
+      "Sweden",
+      "core_eu"
+    ],
+    [
+      "CH",
+      "Switzerland",
+      "efta"
+    ],
+    [
+      "NL",
+      "The Netherlands",
+      "core_eu"
+    ],
+    [
+      "TR",
+      "Türkiye",
+      "rest_of_world"
+    ],
+    [
+      "UA",
+      "Ukraine",
+      "rest_of_world"
+    ],
+    [
+      "GB",
+      "United Kingdom",
+      "uk_spain"
+    ],
+    [
+      "AX",
+      "Åland Islands",
+      "rest_of_world"
+    ]
+  ],
+  "everywhereElse": {
+    "rate": "rest_of_world",
+    "enabled": false,
+    "note": "Kept as a reference from the Etsy profile. Checkout currently exposes only the named destinations above until the owner explicitly enables unrestricted rest-of-world checkout."
+  }
+}
