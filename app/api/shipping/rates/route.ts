@@ -1,15 +1,19 @@
-import { reportServerError } from '@/lib/safe-server-log'
 import { NextResponse } from 'next/server'
-import { getShippingRates } from '@/lib/data'
+import { getStandardShippingRate, getSupportedShippingDestinations } from '@/lib/shipping'
+
 export async function GET() {
-  try {
-    const rates = await getShippingRates()
-    return NextResponse.json(rates)
-  } catch {
-    reportServerError('api.shipping_rates.failure')
-    return NextResponse.json(
-      { error: 'Failed to fetch shipping rates' },
-      { status: 500 }
-    )
-  }
+  const rates = getSupportedShippingDestinations().map(destination => {
+    const rate = getStandardShippingRate(destination.countryCode)
+    return {
+      name: destination.country,
+      country_code: destination.countryCode,
+      price: rate?.firstItem ?? 0,
+      additional_item: rate?.additionalItem ?? 0,
+      delivery_min_business_days: destination.deliveryMinBusinessDays,
+      delivery_max_business_days: destination.deliveryMaxBusinessDays,
+    }
+  })
+  return NextResponse.json(rates, {
+    headers: { 'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600' },
+  })
 }
