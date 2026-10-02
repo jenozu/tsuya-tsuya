@@ -195,10 +195,14 @@ Offer only supported destinations with verified, predictable charges.
 ### Implementation
 - [x] Implement country/quantity shipping-rate helpers and a checkout-visible shipping quote endpoint. <!-- task:TSU-M12-001 -->
 - [x] Document region-specific shipping information in `shipping/` and maintain a shipping-rate database schema. <!-- task:TSU-M12-002 -->
-- [ ] Resolve inconsistencies between SQL seed shipping prices, dynamic `lib/shipping.ts` rates, admin rate displays, and actual business policy. <!-- task:TSU-M12-003 -->
-- [ ] Implement a definitive destination allowlist/exclusions list and reject unsupported countries server-side before charging. <!-- task:TSU-M12-004 -->
-- [ ] Verify US free shipping and the approved Canada, UK, EU, EFTA, Australia, and other region calculations for single/multiple items. <!-- task:TSU-M12-005 -->
+- [x] Resolve inconsistencies between SQL seed shipping prices, dynamic `lib/shipping.ts` rates, admin rate displays, and actual business policy. <!-- task:TSU-M12-003 -->
+  - Evidence (2026-10-02, PR #52): `config/shipping-profile.json` is now the canonical versioned checkout source of truth. `lib/shipping.ts`, `/api/shipping/rate`, `/api/shipping/rates`, the checkout country list and the admin Shipping guidance all derive from or point to that profile. The legacy Neon `shipping_rates` table remains schema/history compatibility only and no longer controls checkout pricing. See `docs/SHIPPING_PROFILE.md`.
+- [x] Implement a definitive destination allowlist/exclusions list and reject unsupported countries server-side before charging. <!-- task:TSU-M12-004 -->
+  - Evidence (2026-10-02, PR #52): checkout loads only the named destination list from `/api/shipping/profile`, `/api/shipping/rate` returns HTTP 400 for unlisted country codes, and `/api/checkout/create-session` independently checks the same canonical allowlist before any Stripe Checkout Session is created. The Etsy `everywhereElse` reference is deliberately disabled until explicitly approved.
+- [x] Verify US free shipping and the approved Canada, UK, EU, EFTA, Australia, and other region calculations for single/multiple items. <!-- task:TSU-M12-005 -->
+  - Evidence (2026-10-02, PR #52): owner-approved profile keeps US free shipping, established first-item prices, and a flat USD $2.99 additional-item charge for paid destinations. Regression tests cover US multi-item free shipping, Canada 1/3 items, UK and Australia multi-item calculations, delivery windows and unsupported-country rejection. Candidate build, typecheck and browser E2E passed. Provider invoice reconciliation remains an operational check if Printify changes its rates.
 - [ ] Define shipping services, handling/transit estimates, PO boxes, tracking, lost parcels, and carrier rate-change procedures. <!-- task:TSU-M12-006 -->
+  - Partial progress (2026-10-02, PR #52): the owner’s Etsy-derived delivery-window estimates are now versioned per destination/rate group and shown at checkout. Service names, handling time vs carrier transit, PO-box policy, tracking expectations, lost-parcel handling and a Printify/carrier rate-change review procedure still need explicit owner policy.
 - [ ] Test full address validation, remote areas, customs data needs, and destination-based fulfillment restrictions. <!-- task:TSU-M12-007 -->
 
 ## M13: Taxes, duties, and international orders
