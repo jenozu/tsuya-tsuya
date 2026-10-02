@@ -86,8 +86,14 @@ test.describe('mobile checkout — mocked catalog and no provider calls', () => 
     await page.route('**/api/products', route => route.fulfill({
       status:200, contentType:'application/json',body:JSON.stringify(catalog),
     }))
+    await page.route('**/api/shipping/profile', route => route.fulfill({
+      status:200,contentType:'application/json',body:JSON.stringify({
+        currency:'USD',
+        destinations:[{countryCode:'US',country:'United States',deliveryMinBusinessDays:2,deliveryMaxBusinessDays:5}],
+      }),
+    }))
     await page.route('**/api/shipping/rate?**', route => route.fulfill({
-      status:200,contentType:'application/json',body:JSON.stringify({price:0}),
+      status:200,contentType:'application/json',body:JSON.stringify({price:0,deliveryBusinessDays:[2,5]}),
     }))
     await seedCart(page,[cartLine(firstSize)])
     await page.getByRole('button', {name:'Proceed to Checkout'}).click()

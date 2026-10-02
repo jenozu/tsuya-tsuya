@@ -12,7 +12,7 @@ import {
   TrendingUp, AlertCircle, DollarSign, ArrowRight, ShoppingCart, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Product, Order, ShippingRate, ProductSize } from '@/lib/types'
+import { Product, Order, ProductSize } from '@/lib/types'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { internalAvailabilityCount, productIsPurchasable, purchasableSizes } from '@/lib/product-availability';
 import { generateProductDescription } from '@/services/gemini';
@@ -27,10 +27,9 @@ const COLORS = ['#2D2A26', '#5C5446', '#8C8476', '#CDC6BC', '#8C3F3F', '#5C7C66'
 interface AdminDashboardProps {
   initialProducts: Product[];
   initialOrders: Order[];
-  initialShippingRates: ShippingRate[];
 }
 
-export function AdminDashboard({ initialProducts, initialOrders, initialShippingRates }: AdminDashboardProps) {
+export function AdminDashboard({ initialProducts, initialOrders }: AdminDashboardProps) {
   const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
   const [orders, setOrders] = useState(initialOrders);
@@ -1352,7 +1351,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-3xl font-serif text-[#2D2A26]">Shipping Rates</h2>
               <div className="bg-white p-6 border border-[#E5E0D8]">
-                <p className="text-[#786B59]">Shipping rates are stored in Neon PostgreSQL. Update them through the app&apos;s database tooling or the Neon SQL Editor.</p>
+                <p className="text-[#786B59]">Checkout shipping is controlled by the versioned <code>config/shipping-profile.json</code> file in the repository. Update and review that file through GitHub so storefront quotes, destination rules, and deployment history stay in sync.</p>
               </div>
             </div>
           )}

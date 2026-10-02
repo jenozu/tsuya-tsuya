@@ -8,7 +8,7 @@ import { stripe } from '@/lib/stripe'
 import { trustedCheckoutReturnUrls } from '@/lib/checkout-redirects'
 import { priceCheckoutBasket, CheckoutBasketError } from '@/lib/checkout-pricing'
 import { getProduct } from '@/lib/data'
-import { getStandardShippingForCountryAndQuantity } from '@/lib/shipping'
+import { getStandardShippingForCountryAndQuantity, isSupportedShippingDestination } from '@/lib/shipping'
 import { computeTaxAmount } from '@/lib/tax'
 import { checkoutRequestSchema } from '@/lib/checkout-schema'
 import { CHECKOUT_ATTEMPT_PATTERN, checkoutAttemptIdentity, checkoutSessionAvailability } from '@/lib/checkout-attempt'
@@ -28,7 +28,14 @@ export async function POST(request: NextRequest) {
     const priced = await priceCheckoutBasket(items, getProduct)
     const country = shipping_address.country.toUpperCase()
     const state = shipping_address.state.toUpperCase()
-    const shippingCents = Math.round(getStandardShippingForCountryAndQuantity(country, priced.quantity) * 100)
+    if (!isSupportedShippingDestination(country)) {
+      return NextResponse.json({ error: 'Shipping is not available to this destination.' }, { status: 400 })
+    }
+    const shippingRate = getStandardShippingForCountryAndQuantity(country, priced.quantity)
+    if (shippingRate === null) {
+      return NextResponse.json({ error: 'Shipping is not available to this destination.' }, { status: 400 })
+    }
+    const shippingCents = Math.round(shippingRate * 100)
     const taxCents = Math.round(
       computeTaxAmount((priced.subtotalCents + shippingCents) / 100, country, state) * 100,
     )

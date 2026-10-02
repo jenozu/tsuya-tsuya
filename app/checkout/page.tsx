@@ -30,7 +30,11 @@ export default function CheckoutPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [shippingError, setShippingError] = useState<string | null>(null);
   const [shippingCost, setShippingCost] = useState<number | null>(null);
+  const [shippingDestinations, setShippingDestinations] = useState<Array<{ countryCode: string; country: string; deliveryMinBusinessDays: number; deliveryMaxBusinessDays: number }>>([]);
+  const [shippingProfileLoaded, setShippingProfileLoaded] = useState(false);
+  const [deliveryWindow, setDeliveryWindow] = useState<[number, number] | null>(null);
 
   const {
     register,
@@ -55,6 +59,31 @@ export default function CheckoutPage() {
       setError('Payment was canceled. Your cart is saved; you can resume checkout.');
       window.history.replaceState(null, '', window.location.pathname);
     }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadShippingProfile() {
+      try {
+        const response = await fetch('/api/shipping/profile', { cache: 'no-store' });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !Array.isArray(payload?.destinations)) {
+          throw new Error('Shipping profile unavailable');
+        }
+        if (!cancelled) {
+          setShippingDestinations(payload.destinations);
+          setShippingProfileLoaded(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setShippingDestinations([]);
+          setShippingProfileLoaded(false);
+          setShippingError('Shipping options are temporarily unavailable. Please try again.');
+        }
+      }
+    }
+    void loadShippingProfile();
+    return () => { cancelled = true; };
   }, []);
 
   const watchedCountry = watch('country');
@@ -110,13 +139,22 @@ export default function CheckoutPage() {
           `/api/shipping/rate?country=${encodeURIComponent(watchedCountry)}&quantity=${q}`
         );
         const data = await res.json().catch(() => ({}));
-        if (!cancelled && typeof data?.price === 'number') {
+        if (!cancelled && res.ok && typeof data?.price === 'number' &&
+            Array.isArray(data?.deliveryBusinessDays) && data.deliveryBusinessDays.length === 2) {
           setShippingCost(data.price);
+          setDeliveryWindow([data.deliveryBusinessDays[0], data.deliveryBusinessDays[1]]);
+          setShippingError(null);
         } else if (!cancelled) {
-          setShippingCost(0);
+          setShippingCost(null);
+          setDeliveryWindow(null);
+          setShippingError(typeof data?.error === 'string' ? data.error : 'Shipping is not available to this destination.');
         }
       } catch {
-        if (!cancelled) setShippingCost(0);
+        if (!cancelled) {
+          setShippingCost(null);
+          setDeliveryWindow(null);
+          setShippingError('Unable to load the shipping rate. Please try again.');
+        }
       }
     }
     load();
@@ -353,32 +391,26 @@ export default function CheckoutPage() {
                         {...register('country')}
                         className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
                       >
-                        <option value="US">United States</option>
-                        <option value="CA">Canada</option>
-                        <option value="GB">United Kingdom</option>
-                        <option value="AU">Australia</option>
-                        <option value="JP">Japan</option>
-                        <option value="AT">Austria</option>
-                        <option value="BE">Belgium</option>
-                        <option value="FR">France</option>
-                        <option value="DE">Germany</option>
-                        <option value="IE">Ireland</option>
-                        <option value="IT">Italy</option>
-                        <option value="NL">Netherlands</option>
-                        <option value="ES">Spain</option>
-                        <option value="SE">Sweden</option>
+                        {shippingDestinations.map(destination => (
+                          <option key={destination.countryCode} value={destination.countryCode}>
+                            {destination.country}
+                          </option>
+                        ))}
                       </select>
                       {errors.country && <p className="text-xs text-[#8C3F3F] mt-1">{errors.country.message}</p>}
                     </div>
                   </div>
                 </div>
 
+                {shippingError && (
+                  <div className="p-3 bg-[#8C3F3F]/10 border border-[#8C3F3F]/30 text-sm text-[#8C3F3F]">{shippingError}</div>
+                )}
                 {error && (
                   <div className="p-3 bg-[#8C3F3F]/10 border border-[#8C3F3F]/30 text-sm text-[#8C3F3F]">{error}</div>
                 )}
                 <Button
                   type="submit"
-                  disabled={isRedirecting || shippingCost === null || !catalogVerified}
+                  disabled={isRedirecting || shippingCost === null || !catalogVerified || !shippingProfileLoaded}
                   className="w-full flex items-center justify-center gap-2 py-3"
                 >
                   <Lock size={18} />
@@ -420,9 +452,15 @@ export default function CheckoutPage() {
                     <div className="flex justify-between text-[#4A4036]">
                       <span>Shipping</span>
                       <span>
-                        {shippingCost === null ? '—' : resolvedShipping === 0 ? 'FREE' : `$${resolvedShipping.toFixed(2)}`}
+                        {shippingCost === null ? '—' : resolvedShipping === 0 ? 'FREE' : `${resolvedShipping.toFixed(2)}`}
                       </span>
                     </div>
+                    {deliveryWindow && (
+                      <div className="flex justify-between text-xs text-[#786B59]">
+                        <span>Estimated delivery</span>
+                        <span>{deliveryWindow[0]}–{deliveryWindow[1]} business days</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-[#4A4036]">
                       <span>Tax</span>
                       <span>${taxes.toFixed(2)}</span>
