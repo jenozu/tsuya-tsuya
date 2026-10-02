@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [isRedirecting, setIsRedirecting] = useState(false);
   const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [shippingError, setShippingError] = useState<string | null>(null);
   const [shippingCost, setShippingCost] = useState<number | null>(null);
   const [shippingDestinations, setShippingDestinations] = useState<Array<{ countryCode: string; country: string; deliveryMinBusinessDays: number; deliveryMaxBusinessDays: number }>>([]);
   const [shippingProfileLoaded, setShippingProfileLoaded] = useState(false);
@@ -77,7 +78,7 @@ export default function CheckoutPage() {
         if (!cancelled) {
           setShippingDestinations([]);
           setShippingProfileLoaded(false);
-          setError('Shipping options are temporarily unavailable. Please try again.');
+          setShippingError('Shipping options are temporarily unavailable. Please try again.');
         }
       }
     }
@@ -142,16 +143,17 @@ export default function CheckoutPage() {
             Array.isArray(data?.deliveryBusinessDays) && data.deliveryBusinessDays.length === 2) {
           setShippingCost(data.price);
           setDeliveryWindow([data.deliveryBusinessDays[0], data.deliveryBusinessDays[1]]);
+          setShippingError(null);
         } else if (!cancelled) {
           setShippingCost(null);
           setDeliveryWindow(null);
-          setError(typeof data?.error === 'string' ? data.error : 'Shipping is not available to this destination.');
+          setShippingError(typeof data?.error === 'string' ? data.error : 'Shipping is not available to this destination.');
         }
       } catch {
         if (!cancelled) {
           setShippingCost(null);
           setDeliveryWindow(null);
-          setError('Unable to load the shipping rate. Please try again.');
+          setShippingError('Unable to load the shipping rate. Please try again.');
         }
       }
     }
@@ -400,6 +402,9 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
+                {shippingError && (
+                  <div className="p-3 bg-[#8C3F3F]/10 border border-[#8C3F3F]/30 text-sm text-[#8C3F3F]">{shippingError}</div>
+                )}
                 {error && (
                   <div className="p-3 bg-[#8C3F3F]/10 border border-[#8C3F3F]/30 text-sm text-[#8C3F3F]">{error}</div>
                 )}
