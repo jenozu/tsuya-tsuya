@@ -258,7 +258,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen flex flex-col bg-[#F9F8F4]">
         <Navbar />
-        <main className="flex-grow pt-24">
+        <main id="main-content" className="flex-grow pt-24 tsuya-content-page">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
             <h1 className="text-3xl font-serif text-[#2D2A26] mb-4">Your cart is empty</h1>
             <Link href="/shop">
@@ -281,7 +281,7 @@ export default function CheckoutPage() {
             Back to Cart
           </Link>
 
-          <h1 className="text-3xl font-serif text-[#2D2A26] mb-8">Checkout</h1>
+          <h1 className="editorial-serif text-[clamp(4rem,7vw,7rem)] text-[#2D2A26] mb-12">Checkout</h1>
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
