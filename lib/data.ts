@@ -1,5 +1,6 @@
 import { reportServerError } from './safe-server-log'
 import { getDb } from './db'
+import { isIsolatedPreview, previewProducts } from './preview-products'
 import type {
   Product,
   ProductSize,
@@ -100,6 +101,7 @@ function mapShippingRate(row: Row): ShippingRate {
 }
 
 export async function getProducts(): Promise<Product[]> {
+  if (isIsolatedPreview) return previewProducts;
   try {
     const sql = getDb()
     const rows = (await sql`SELECT id, name, description, price, cost, category, image_url, stock, sizes, product_type, created_at, updated_at FROM products ORDER BY created_at DESC`) as unknown as Row[]
@@ -111,6 +113,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
+  if (isIsolatedPreview) return previewProducts.find(item => item.id === id) ?? null;
   try {
     const sql = getDb()
     const rows = (await sql`SELECT id, name, description, price, cost, category, image_url, stock, sizes, product_type, created_at, updated_at FROM products WHERE id::text = ${id} LIMIT 1`) as unknown as Row[]
