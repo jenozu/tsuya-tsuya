@@ -1,106 +1,38 @@
 'use client';
-
-import React from 'react';
 import Link from 'next/link';
+import { Heart, ArrowUpRight } from 'lucide-react';
+import { Product, getImageUrls } from '@/lib/types';
 import { SafeProductImage } from '@/components/safe-product-image';
-import { Product, getImageUrls } from '@/lib/types'
-import { purchasableSizes, productIsPurchasable } from '@/lib/product-availability'
-import { ShoppingBag, Heart } from 'lucide-react';
-import { useCart } from '@/lib/cart-context';
+import { purchasableSizes, productIsPurchasable } from '@/lib/product-availability';
 import { useFavorites } from '@/lib/favorites-context';
 
-interface ProductCardProps {
-  product: Product;
-}
-
-export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart } = useCart();
-  const { toggleFavorite, isFavorite } = useFavorites();
-
-  const isProductFavorite = isFavorite(product.id);
-  const imageUrls = getImageUrls(product);
-  const primaryImage = imageUrls[0] || product.image_url;
-  const isSoldOut = !productIsPurchasable(product);
-  const pricedSizes = purchasableSizes(product);
-  const formatPrice = (value: number) => `${value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-
-  const priceLabel = pricedSizes.length > 0
-    ? (() => {
-        const prices = pricedSizes.map(size => size.price);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        return minPrice === maxPrice
-          ? formatPrice(minPrice)
-          : `${formatPrice(minPrice)} – ${formatPrice(maxPrice)}`;
-      })()
-    : formatPrice(product.price);
-
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isSoldOut) return;
-    addToCart({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      imageUrl: primaryImage,
-    });
-  };
-
-  const handleToggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFavorite(product.id);
-  };
-
-  return (
-    <Link
-      href={`/shop/${product.id}`}
-      className="group relative bg-[#F9F8F4] border border-[#E5E0D8] hover:border-[#CDC6BC] transition-all duration-300 hover:shadow-lg cursor-pointer block"
-    >
-      <div className="aspect-[3/4] overflow-hidden bg-[#F2EFE9] relative">
-        <SafeProductImage
-          src={primaryImage}
-          alt={product.name}
-          fill
-          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-95 group-hover:opacity-100 mix-blend-multiply"
-        />
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
-
-        <button
-          onClick={handleToggleFavorite}
-          className="absolute top-3 right-3 p-2 rounded-full bg-[#F9F8F4]/90 backdrop-blur-sm hover:bg-white text-[#2D2A26] transition-all duration-200 z-10 shadow-sm"
-          aria-label={isProductFavorite ? 'Remove from favourites' : 'Add to favourites'}
-        >
-          <Heart size={18} className={isProductFavorite ? 'fill-[#8C3F3F] text-[#8C3F3F]' : 'text-[#2D2A26]'} />
-        </button>
-
-        {isSoldOut && (
-          <span className="absolute bottom-4 left-4 bg-[#2D2A26]/90 text-white px-3 py-1.5 text-xs uppercase tracking-wide z-10">Unavailable</span>
-        )}
-        {!isSoldOut && pricedSizes.length === 0 && (
-          <button
-            onClick={handleAddToCart}
-            className="absolute bottom-4 right-4 bg-[#F9F8F4] p-3 rounded-full shadow-md translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#2D2A26] hover:text-[#F9F8F4] z-10"
-            aria-label="Add to cart"
-          >
-            <ShoppingBag size={20} />
-          </button>
-        )}
-      </div>
-      <div className="p-5 space-y-1 bg-[#F9F8F4]">
-        <p className="text-xs text-[#786B59] uppercase tracking-wider">{product.category}</p>
-        <h3 className="text-lg font-serif text-[#2D2A26] group-hover:text-black">
-          {product.name}
-        </h3>
-        <p className="text-[#4A4036] font-medium">
-          {priceLabel}
-        </p>
-      </div>
+export function ProductCard({ product }: { product:Product }) {
+ const { toggleFavorite, isFavorite } = useFavorites();
+ const favourite = isFavorite(product.id);
+ const image = getImageUrls(product)[0] || product.image_url;
+ const priced = purchasableSizes(product);
+ const prices = priced.length ? priced.map(size => size.price) : [product.price];
+ const min = Math.min(...prices), max=Math.max(...prices);
+ const money=(n:number)=>'$'+n.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2});
+ return (
+  <article className="editorial-product group">
+   <div className="editorial-photo bg-[#DFD8CE]">
+    <Link href={'/shop/'+product.id} aria-label={'View '+product.name} className="block absolute inset-0 z-[1]">
+      <SafeProductImage src={image} alt={product.name} fill sizes="(min-width:1024px) 40vw, (min-width:640px) 50vw, 100vw" className="object-cover" />
     </Link>
-  );
+    <div className="absolute top-4 left-4 z-[2] pointer-events-none text-[9px] uppercase tracking-[.19em] bg-[#F9F8F4]/90 px-3 py-2">{product.product_type==='2-piece'?'Diptych':product.product_type==='3-piece'?'Triptych':'Art print'}</div>
+    <button type="button" onClick={() => toggleFavorite(product.id)} aria-label={favourite ? 'Remove '+product.name+' from favourites' : 'Save '+product.name+' to favourites'} aria-pressed={favourite} className="absolute z-[2] right-4 top-4 bg-[#F9F8F4]/90 backdrop-blur-sm p-3 rounded-full hover:bg-white transition-all">
+      <Heart size={17} strokeWidth={1.4} fill={favourite?'currentColor':'none'}/>
+    </button>
+    {!productIsPurchasable(product)&&<span className="absolute bottom-4 left-4 z-[2] pointer-events-none bg-[#2D2A26] text-[#F9F8F4] px-3 py-2 text-[10px] uppercase tracking-widest">Unavailable</span>}
+    <div className="absolute z-[2] right-4 bottom-4 translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all pointer-events-none bg-[#F9F8F4] p-3 rounded-full"><ArrowUpRight size={19}/></div>
+   </div>
+   <div className="flex justify-between items-start gap-3 pt-5">
+    <div className="min-w-0"><p className="editorial-eyebrow mb-2">{product.category}</p>
+      <Link href={'/shop/'+product.id} className="block"><h3 className="font-serif text-[clamp(1.4rem,2vw,2.1rem)] font-normal leading-[1.05] group-hover:italic transition-all">{product.name}</h3></Link>
+    </div>
+    <p className="text-xs whitespace-nowrap text-[#786B59] pt-1">USD {money(min)}{max!==min?' +':''}</p>
+   </div>
+  </article>
+ );
 }
