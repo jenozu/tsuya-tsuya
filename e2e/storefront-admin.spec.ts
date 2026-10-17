@@ -129,10 +129,10 @@ test('admin order and settings navigation supports empty data without payment or
 
 test('empty storefront provides usable navigation and an explicit search no-results state', async ({ page }) => {
   await page.goto('/shop')
-  await expect(page.getByRole('heading', { name: 'The Collection' })).toBeVisible()
-  await page.getByPlaceholder('Search collection...').fill('There-Is-No-Test-Product')
-  await expect(page.getByText('No products found matching your criteria.')).toBeVisible()
-  await page.locator('nav').getByRole('link', { name: 'HOME', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'The collection.' })).toBeVisible()
+  await page.getByRole('textbox', { name: 'Search the collection' }).fill('There-Is-No-Test-Product')
+  await expect(page.getByRole('heading', { name: 'Nothing in this edit.' })).toBeVisible()
+  await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'The House', exact: true }).click()
   await expect(page).toHaveURL(/\/$/)
 })
 
@@ -140,9 +140,9 @@ test.describe('mobile storefront at 375px', () => {
   test.use({ viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true })
   test('hamburger navigation reaches the empty shop without horizontal overflow', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('button', { name: 'Toggle menu' }).click()
-    await page.locator('nav').getByRole('link', { name: 'Shop', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'The Collection' })).toBeVisible()
+    await page.getByRole('button', { name: 'Open menu' }).click()
+    await page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Collection', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'The collection.' })).toBeVisible()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(overflow).toBeLessThanOrEqual(2)
   })
