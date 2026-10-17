@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { SafeProductImage } from '@/components/safe-product-image';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
@@ -16,6 +16,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
   
   const total = getCartTotal();
+  useEffect(() => {
+    if (!isOpen) return;
+    const close = (event:KeyboardEvent) => { if(event.key === 'Escape') onClose(); };
+    window.addEventListener('keydown',close);
+    return () => window.removeEventListener('keydown',close);
+  },[isOpen,onClose]);
 
   return (
     <>
@@ -26,12 +32,12 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
       />
       
       {/* Drawer */}
-      <div className={`fixed inset-y-0 right-0 max-w-md w-full bg-[#F9F8F4] z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div role="dialog" aria-modal={isOpen} aria-label="Shopping bag" inert={!isOpen} className={`fixed inset-y-0 right-0 max-w-lg w-full bg-[#F9F8F4] z-50 shadow-2xl transform transition-transform duration-500 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full">
           
           <div className="flex items-center justify-between p-6 border-b border-[#E5E0D8]">
-            <h2 className="text-xl font-serif text-[#2D2A26]">Shopping Bag ({cartItems.length})</h2>
-            <button onClick={onClose} className="p-2 hover:bg-[#E5E0D8] rounded-full transition-colors text-[#2D2A26]">
+            <h2 className="font-serif text-3xl text-[#2D2A26]">Shopping Bag ({cartItems.length})</h2>
+            <button onClick={onClose} aria-label="Close shopping bag" className="p-2 hover:bg-[#E5E0D8] rounded-full transition-colors text-[#2D2A26]">
               <X size={24} />
             </button>
           </div>

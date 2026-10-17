@@ -17,9 +17,9 @@ export default function CartPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F8F4]">
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main id="main-content" className="flex-grow pt-24 tsuya-content-page">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-3xl font-serif text-[#2D2A26] mb-8">Shopping Cart</h1>
+          <h1 className="editorial-serif text-[clamp(4rem,7vw,7rem)] text-[#2D2A26] mb-12">Shopping Cart</h1>
 
           {cartItems.length === 0 ? (
             <div className="text-center py-20">
@@ -38,7 +38,7 @@ export default function CartPage() {
                   const itemKey = `${item.id}-${item.selectedSize?.label || 'default'}-${index}`;
                   
                   return (
-                    <div key={itemKey} data-testid="cart-line" className="flex gap-6 p-6 bg-white border border-[#E5E0D8]">
+                    <div key={itemKey} data-testid="cart-line" className="flex gap-6 p-6 bg-[#F2EFE9] border-b border-[#D4CEC5]">
                       <div className="h-32 w-32 flex-shrink-0 overflow-hidden border border-[#E5E0D8] relative">
                         <SafeProductImage src={item.imageUrl || '/product-placeholder.svg'} alt={item.name} fill className="object-cover" />
                       </div>

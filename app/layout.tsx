@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   robots: { index: indexingAllowed, follow: indexingAllowed },
   openGraph: { siteName: 'TsuyaNoUchi', type: 'website', locale: 'en_US' },
   title: 'TsuyaNoUchi',
-  description: 'A curated collection of luxury lifestyle goods for the discerning individual.',
+  description: 'TsuyaNoUchi — House of Lustre. An evolving collection of considered art prints for the everyday.',
 };
 
 export default function RootLayout({
@@ -31,9 +31,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={headerFont.variable}>
+      <body data-tsuya-preview={process.env.VERCEL_ENV === "preview" ? "true" : "false"} className={headerFont.variable}>
         <CartProvider>
           <FavoritesProvider>
+            {process.env.VERCEL_ENV === 'preview' && (
+              <div className="fixed z-[90] bottom-3 left-3 right-3 sm:left-auto sm:right-5 sm:bottom-5 bg-[#2D2A26] text-[#F9F8F4] shadow-xl px-5 py-3 max-w-md text-[11px] leading-relaxed">
+                <strong className="block text-xs mb-1 uppercase tracking-[.2em]">Design preview only</strong>
+                Illustrative artwork and sample prices. No orders, payments, emails or database operations are enabled.
+              </div>
+            )}
             {children}
           </FavoritesProvider>
         </CartProvider>

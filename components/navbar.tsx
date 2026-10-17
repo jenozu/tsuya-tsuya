@@ -1,112 +1,65 @@
 'use client';
-
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, Menu, X, Heart } from 'lucide-react';
+import { Heart, Menu, ShoppingBag, X, ArrowUpRight } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
 import { CartDrawer } from './cart-drawer';
 
-const APP_NAME = "TsuyaNoUchi";
-
 export function Navbar() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  
+  const [cartOpen, setCartOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const { getCartCount } = useCart();
   const { favorites } = useFavorites();
-
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const cartCount = getCartCount();
-  const favouriteCount = favorites.length;
-
+    const listener = () => setScrolled(window.scrollY > 28);
+    listener();
+    window.addEventListener('scroll',listener,{ passive:true });
+    return () => window.removeEventListener('scroll',listener);
+  },[]);
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (event:KeyboardEvent) => { if(event.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown',close);
+    return () => window.removeEventListener('keydown',close);
+  },[menuOpen]);
   return (
     <>
-      <nav className={`fixed w-full z-30 transition-all duration-500 ${isScrolled ? 'bg-[#F9F8F4]/90 backdrop-blur-md shadow-sm py-4 border-b border-[#E5E0D8]' : 'bg-transparent py-6'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            
-            {/* Mobile Menu Button */}
-            <div className="flex items-center md:hidden">
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-                className="text-[#2D2A26]"
-                aria-label="Toggle menu"
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
-
-            {/* Logo */}
-            <div className="flex-1 flex justify-center md:justify-start">
-              <Link href="/" className="text-2xl font-serif font-bold tracking-tight text-[#2D2A26]">
-                {APP_NAME}
-              </Link>
-            </div>
-
-            {/* Desktop Links */}
-            <div className="hidden md:flex space-x-8 items-center">
-              <Link 
-                href="/" 
-                className={`text-sm tracking-wide hover:text-[#786B59] transition-colors text-[#2D2A26] ${pathname === '/' ? 'font-semibold border-b border-[#2D2A26]' : ''}`}
-              >
-                HOME
-              </Link>
-              <Link 
-                href="/shop" 
-                className={`text-sm tracking-wide hover:text-[#786B59] transition-colors text-[#2D2A26] ${pathname?.startsWith('/shop') ? 'font-semibold border-b border-[#2D2A26]' : ''}`}
-              >
-                SHOP
-              </Link>
-            </div>
-
-            {/* Icons */}
-            <div className="flex items-center space-x-6 md:ml-8">
-              <Link href="/favourites" className="relative text-[#2D2A26] hover:text-[#786B59] transition-colors">
-                <Heart size={22} className={pathname === '/favourites' ? "fill-[#2D2A26]" : ""} />
-                {favouriteCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#8C3F3F] text-[#F9F8F4] text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                    {favouriteCount}
-                  </span>
-                )}
-              </Link>
-
-              <button onClick={() => setIsCartOpen(true)} className="relative text-[#2D2A26] hover:text-[#786B59] transition-colors">
-                <ShoppingBag size={22} />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#2D2A26] text-[#F9F8F4] text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </div>
+      <a href="#main-content" className="sr-only focus:not-sr-only fixed top-2 left-2 z-[90] bg-white p-3">Skip to content</a>
+      <header className={'fixed inset-x-0 top-0 z-30 h-24 transition-all duration-500 border-b '+(scrolled || menuOpen ? 'bg-[#F9F8F4]/95 backdrop-blur-xl border-[#D4CEC5]' : 'bg-[#F9F8F4] border-[#E5E0D8]')}>
+        <div className="editorial-container h-full grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+          <nav aria-label="Main navigation" className="hidden md:flex items-center gap-9">
+            <Link href="/" aria-current={pathname === '/' ? 'page' : undefined} className="editorial-eyebrow text-[#2D2A26] hover:opacity-60 transition-opacity">The House</Link>
+            <Link href="/shop" aria-current={pathname?.startsWith('/shop') ? 'page' : undefined} className="editorial-eyebrow text-[#2D2A26] hover:opacity-60 transition-opacity">Collection</Link>
+          </nav>
+          <button type="button" className="md:hidden justify-self-start p-2 -ml-2" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} aria-controls="tsuya-mobile-navigation">{menuOpen ? <X size={23} strokeWidth={1.3}/> : <Menu size={23} strokeWidth={1.3}/>}</button>
+          <Link href="/" aria-label="TsuyaNoUchi homepage" className="text-center leading-none whitespace-nowrap">
+            <span className="block text-[clamp(1.55rem,2.5vw,2.4rem)] font-serif tracking-[-.045em] font-medium">TsuyaNoUchi</span>
+            <span className="block mt-1.5 text-[8px] tracking-[.4em] uppercase text-[#786B59]">House of Lustre</span>
+          </Link>
+          <div className="flex items-center justify-end gap-3 sm:gap-6">
+            <Link href="/favourites" className="hidden sm:flex relative p-2 hover:opacity-60 transition-opacity" aria-label={'Favourites, '+favorites.length+' saved'}>
+              <Heart size={20} strokeWidth={1.3} fill={pathname === '/favourites' ? 'currentColor' : 'none'}/>
+              {favorites.length > 0 && <span className="absolute -right-1 -top-1 text-[9px]">{favorites.length}</span>}
+            </Link>
+            <button type="button" onClick={() => setCartOpen(true)} className="relative p-2 flex items-center gap-2 hover:opacity-60 transition-opacity" aria-label={'Open shopping bag with '+getCartCount()+' items'}>
+              <ShoppingBag size={20} strokeWidth={1.3}/><span className="hidden lg:inline editorial-eyebrow text-[#2D2A26]">Bag ({getCartCount()})</span>
+              {getCartCount() > 0 && <span className="lg:hidden absolute -top-1 -right-1 rounded-full bg-[#2D2A26] text-white text-[9px] w-4 h-4 grid place-items-center">{getCartCount()}</span>}
+            </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-[#F9F8F4] border-t border-[#E5E0D8] p-4 shadow-lg">
-            <div className="flex flex-col space-y-4">
-              <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Home</Link>
-              <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Shop</Link>
-              <Link href="/favourites" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Favourites</Link>
-            </div>
-          </div>
-        )}
-      </nav>
-
-      <CartDrawer 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
-      />
+        <nav id="tsuya-mobile-navigation" aria-label="Mobile navigation" aria-hidden={!menuOpen} className={'md:hidden absolute left-0 right-0 top-full bg-[#F9F8F4] border-b border-[#D4CEC5] px-7 overflow-hidden transition-[max-height,opacity,padding] duration-500 '+(menuOpen?'max-h-[390px] opacity-100 py-9':'max-h-0 opacity-0 py-0 pointer-events-none')}>
+          <Link onClick={()=>setMenuOpen(false)} href="/" tabIndex={menuOpen?0:-1} className="font-serif text-5xl block mb-5">The House</Link>
+          <Link onClick={()=>setMenuOpen(false)} href="/shop" tabIndex={menuOpen?0:-1} className="font-serif text-5xl block mb-5">Collection</Link>
+          <Link onClick={()=>setMenuOpen(false)} href="/favourites" tabIndex={menuOpen?0:-1} className="font-serif text-5xl block mb-9">Favourites</Link>
+          <Link onClick={()=>setMenuOpen(false)} href="/shipping" tabIndex={menuOpen?0:-1} className="editorial-link">Shipping information <ArrowUpRight size={15}/></Link>
+        </nav>
+      </header>
+      <CartDrawer isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </>
   );
 }

@@ -7,6 +7,19 @@ const UNDER_CONSTRUCTION = process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+  // Isolated Vercel preview is editorial-only: no API, admin, or backend access.
+  // Keep the existing signed-preview and admin protections unchanged for other environments.
+  if (process.env.VERCEL_ENV === 'preview') {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json(
+        { error: 'Isolated editorial preview: integrations and transactions are disabled.' },
+        { status: 403, headers: { 'Cache-Control': 'no-store' } }
+      )
+    }
+    if (pathname.startsWith('/admin')) {
+      return NextResponse.redirect(new URL('/shop', request.url))
+    }
+  }
   const isAdmin = pathname.startsWith('/admin')
   const hasAdminAccess = (UNDER_CONSTRUCTION || isAdmin)
     ? await hasAdminSession(request)
@@ -33,6 +46,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    '/api/:path*',
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 }

@@ -1,65 +1,41 @@
-'use client'
-import Link from 'next/link'
-import {
-  publicBusinessLocation, verifiedSocialUrl, verifiedSupportAddress,
-} from '@/lib/public-business-details'
+'use client';
+import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
+import { publicBusinessLocation, verifiedSocialUrl, verifiedSupportAddress } from '@/lib/public-business-details';
 
-const support = verifiedSupportAddress(process.env.NEXT_PUBLIC_SUPPORT_EMAIL)
-const location = publicBusinessLocation(process.env.NEXT_PUBLIC_BUSINESS_LOCATION)
+const support = verifiedSupportAddress(process.env.NEXT_PUBLIC_SUPPORT_EMAIL);
+const location = publicBusinessLocation(process.env.NEXT_PUBLIC_BUSINESS_LOCATION);
 const socials = [
-  { label: 'X', href: verifiedSocialUrl('x', process.env.NEXT_PUBLIC_SOCIAL_X_URL) },
-  { label: 'Pinterest', href: verifiedSocialUrl('pinterest', process.env.NEXT_PUBLIC_SOCIAL_PINTEREST_URL) },
-  { label: 'Tumblr', href: verifiedSocialUrl('tumblr', process.env.NEXT_PUBLIC_SOCIAL_TUMBLR_URL) },
-].filter((link): link is { label: string; href: string } => Boolean(link.href))
+ { label:'X',href:verifiedSocialUrl('x',process.env.NEXT_PUBLIC_SOCIAL_X_URL) },
+ { label:'Pinterest',href:verifiedSocialUrl('pinterest',process.env.NEXT_PUBLIC_SOCIAL_PINTEREST_URL) },
+ { label:'Tumblr',href:verifiedSocialUrl('tumblr',process.env.NEXT_PUBLIC_SOCIAL_TUMBLR_URL) },
+].filter((item):item is {label:string;href:string}=>Boolean(item.href));
 
 export function Footer() {
-  return (
-    <footer className="bg-[#F2EFE9] border-t border-[#E5E0D8] py-12 text-[#4A4036]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h4 className="font-serif text-lg mb-4 text-[#2D2A26]">TsuyaNoUchi</h4>
-            <p className="text-sm leading-relaxed opacity-80">
-              Curating exceptional goods for a life well-lived.
-              Integrating traditional craftsmanship with modern aesthetics.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-medium mb-4 uppercase text-xs tracking-wider opacity-60">Navigate</h4>
-            <ul className="space-y-2 text-sm opacity-80">
-              <li><Link href="/" className="hover:text-[#2D2A26]">Home</Link></li>
-              <li><Link href="/shop" className="hover:text-[#2D2A26]">Shop</Link></li>
-              <li><Link href="/favourites" className="hover:text-[#2D2A26]">Favourites</Link></li>
-              <li><Link href="/shipping" className="hover:text-[#2D2A26]">Shipping</Link></li>
-              <li><Link href="/faq" className="hover:text-[#2D2A26]">FAQ</Link></li>
-            </ul>
-          </div>
-          {(support || location) && (
-            <div>
-              <h4 className="font-medium mb-4 uppercase text-xs tracking-wider opacity-60">Contact</h4>
-              {location && <p className="text-sm mb-2 opacity-80">{location}</p>}
-              {support && <a href={`mailto:${support}`} className="text-sm opacity-80 hover:text-[#2D2A26]">{support}</a>}
-            </div>
-          )}
-          {socials.length > 0 && (
-            <div>
-              <h4 className="font-medium mb-4 uppercase text-xs tracking-wider opacity-60">Follow Us</h4>
-              <ul className="flex flex-wrap gap-4 text-sm opacity-80">
-                {socials.map(link => (
-                  <li key={link.label}>
-                    <a href={link.href} target="_blank" rel="noopener noreferrer"
-                       className="hover:text-[#2D2A26]">{link.label}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-        <div className="mt-12 pt-8 border-t border-[#DED9D0] flex justify-between items-center text-xs opacity-60">
-          <p>&copy; {new Date().getFullYear()} TsuyaNoUchi. All rights reserved.</p>
-          <Link href="/admin" className="hover:text-[#2D2A26] transition-colors">Staff Access</Link>
-        </div>
+ return (
+  <footer className="bg-[#F2EFE9] border-t border-[#D4CEC5]">
+   <div className="editorial-container pt-20 md:pt-28 pb-9">
+    <div className="grid lg:grid-cols-[1.3fr_1fr] gap-16 lg:gap-28 pb-24">
+      <div><p className="editorial-eyebrow mb-7">TsuyaNoUchi / House of Lustre</p>
+        <p className="editorial-serif text-[clamp(4rem,7vw,8rem)] max-w-3xl">The poetry of <em>everyday.</em></p>
       </div>
-    </footer>
-  )
+      <div className="grid sm:grid-cols-2 gap-10 lg:pt-12">
+       <div><p className="editorial-eyebrow mb-7">Explore</p><div className="flex flex-col gap-4 text-sm text-[#4A4036]">
+         <Link className="hover:underline" href="/">The House</Link><Link className="hover:underline" href="/shop">The Collection</Link>
+         <Link className="hover:underline" href="/favourites">Saved Pieces</Link><Link className="hover:underline" href="/cart">Shopping Bag</Link>
+       </div></div>
+       <div><p className="editorial-eyebrow mb-7">Assistance</p><div className="flex flex-col gap-4 text-sm text-[#4A4036]">
+         <Link className="hover:underline" href="/shipping">Shipping &amp; Delivery</Link><Link className="hover:underline" href="/faq">Questions &amp; Answers</Link>
+         {support && <a className="hover:underline break-all" href={'mailto:'+support}>{support}</a>}
+         {location && <span>{location}</span>}
+       </div></div>
+      </div>
+    </div>
+    {socials.length > 0 && <div className="flex gap-6 py-6 border-t border-[#D4CEC5]">{socials.map(item=><a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="editorial-link">{item.label}<ArrowUpRight size={13}/></a>)}</div>}
+    <div className="border-t border-[#D4CEC5] pt-7 flex flex-col sm:flex-row justify-between gap-3 text-[10px] uppercase tracking-[.15em] text-[#786B59]">
+      <span>© {new Date().getFullYear()} TsuyaNoUchi. All rights reserved.</span><span>Curated with intention</span>
+    </div>
+   </div>
+  </footer>
+ );
 }
