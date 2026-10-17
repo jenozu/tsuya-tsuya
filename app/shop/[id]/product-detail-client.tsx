@@ -34,7 +34,7 @@ function PrintSizeVisualizer({size,image,name}:{size:ProductSize|undefined;image
        <div className="absolute left-[18%] bottom-[8%] w-[10%] h-[14%] rounded-t-[40%] bg-[#A49281]"></div>
        <div className="absolute right-[18%] bottom-[8%] w-[10%] h-[14%] rounded-t-[40%] bg-[#A49281]"></div>
        <div className="absolute left-1/2 top-[10%] -translate-x-1/2 border-[5px] border-[#66584A] bg-[#F9F8F4] shadow-[7px_13px_18px_#64534455] transition-[width,aspect-ratio] duration-700 ease-out" style={{width:scale+'%',aspectRatio:dimensions.width+' / '+dimensions.height}}>
-         <SafeProductImage src={image} alt={'Art illustration: '+name} fill sizes="300px" className="object-cover" />
+         <SafeProductImage src={image} alt={'Art illustration: '+name} fill sizes="300px" className="object-contain" />
        </div>
      </div>
      <div className="mt-4 flex justify-between gap-5 text-[11px] text-[#786B59]"><span>Print: {size?.label}</span><span>Illustrative wall width: 96 in (244 cm)</span></div>
@@ -129,8 +129,8 @@ export function ProductDetailClient({product}:{product:Product}) {
        </div>
        {justAdded&&<p role="status" className="mt-3 text-sm text-[#5C7C66]">Added to your bag. <Link href="/cart" className="underline">View bag</Link></p>}
        <div className="border-t border-[#D4CEC5] mt-12 pt-8 space-y-6">
-         <div className="flex gap-4 items-start"><Clock3 size={20} strokeWidth={1.3} className="text-[#786B59]"/><div><p className="font-serif text-xl">Made to order</p><p className="text-xs leading-relaxed text-[#786B59] mt-1">Allow 2–5 business days for print production before shipping.</p></div></div>
-         <div className="flex gap-4 items-start"><Truck size={20} strokeWidth={1.3} className="text-[#786B59]"/><div><p className="font-serif text-xl">Shipping &amp; delivery</p><p className="text-xs leading-relaxed text-[#786B59] mt-1">Free US shipping. Other supported destinations calculated at checkout. <Link className="underline" href="/shipping">Details</Link></p></div></div>
+         <div className="flex gap-4 items-start"><Clock3 size={20} strokeWidth={1.3} className="text-[#786B59]"/><div><p className="font-serif text-xl">Made to order</p><p className="text-xs leading-relaxed text-[#786B59] mt-1">Allow 2–5 business days to produce your print before shipping.</p></div></div>
+         <div className="flex gap-4 items-start"><Truck size={20} strokeWidth={1.3} className="text-[#786B59]"/><div><p className="font-serif text-xl">Shipping &amp; delivery</p><p className="text-xs leading-relaxed text-[#786B59] mt-1">Free on US orders. Other supported destinations calculated at checkout. <Link className="underline" href="/shipping">Details</Link></p></div></div>
          <div className="flex gap-4 items-start"><LockKeyhole size={20} strokeWidth={1.3} className="text-[#786B59]"/><div><p className="font-serif text-xl">Secure checkout</p><p className="text-xs leading-relaxed text-[#786B59] mt-1">Final availability, pricing, shipping and taxes are checked during checkout.</p></div></div>
        </div>
      </div>
