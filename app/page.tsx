@@ -21,7 +21,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-[#F9F8F4]">
       <Navbar />
-      <main className="pt-24">
+      <main id="main-content" className="pt-24">
         <section className="relative min-h-[690px] lg:min-h-[calc(100svh-6rem)] bg-[#F2EFE9] overflow-hidden">
           <div className="absolute inset-0 tsuya-noise" aria-hidden="true" />
           <div className="editorial-container relative min-h-[690px] lg:min-h-[calc(100svh-6rem)] grid lg:grid-cols-[1fr_0.92fr] gap-12 lg:gap-8 items-center py-16 lg:py-12">
@@ -59,7 +59,7 @@ export default async function HomePage() {
           <span className="text-[#786B59] font-serif italic text-2xl">01 — 04</span>
         </section>
 
-        <section className="editorial-container py-28 md:py-44 grid lg:grid-cols-12 gap-14 lg:gap-10 items-start">
+        <section id="philosophy" className="editorial-container py-28 md:py-44 grid lg:grid-cols-12 gap-14 lg:gap-10 items-start">
           <div className="lg:col-span-4 lg:sticky lg:top-40">
             <p className="editorial-eyebrow mb-8">01 / An invitation to slow down</p>
             <p className="text-[#786B59] max-w-sm leading-[1.9]">We believe the things we choose to live with can change how a room feels, and how we feel within it.</p>
