@@ -71,16 +71,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
         dangerouslySetInnerHTML={{ __html: serializeStructuredData(breadcrumbStructuredData(product)) }}
       />
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main id="main-content" className="flex-grow pt-24">
         <ProductDetailClient product={product} />
         {recommendations.length > 0 && (
           <section className="border-t border-[#E5E0D8] bg-[#F9F8F4]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16">
               <div className="mb-8">
                 <p className="text-xs uppercase tracking-[0.18em] text-[#786B59] mb-2">Discover more</p>
-                <h2 className="text-3xl font-serif text-[#2D2A26]">You May Also Like</h2>
+                <h2 className="editorial-serif text-6xl text-[#2D2A26]">You May Also Like</h2>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+              <div className="editorial-grid">
                 {recommendations.map(recommendation => (
                   <ProductCard key={recommendation.id} product={recommendation} />
                 ))}
