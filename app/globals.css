@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* From tailwind.config.ts - Tailwind v4 uses --color-* */
   --color-primary-dark: #2D2A26;
   --color-background-light: #F9F8F4;
   --color-background-beige: #F2EFE9;
@@ -11,32 +10,55 @@
   --color-text-dark: #4A4036;
   --color-error: #8C3F3F;
   --color-success: #5C7C66;
-  --font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
 }
-
-@layer base {
-  body {
-    @apply bg-background-light text-primary-dark antialiased;
-  }
-  
-  * {
-    @apply border-accent-beige;
-  }
-}
-
-@layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-in;
-  }
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-}
+:root { --paper:#F9F8F4; --sand:#F2EFE9; --line:#D4CEC5; --ink:#2D2A26; --taupe:#786B59; }
+html { scroll-behavior:smooth; }
+body { background:var(--paper); color:var(--ink); -webkit-font-smoothing:antialiased; }
+* { box-sizing:border-box; }
+::selection { background:#D4CEC5; color:#2D2A26; }
+.font-serif,.editorial-serif { font-family:var(--font-header),Georgia,serif; }
+.editorial-serif { font-weight:400; letter-spacing:-.045em; line-height:.88; }
+.editorial-eyebrow { font-size:10px; text-transform:uppercase; letter-spacing:.29em; font-weight:600; color:var(--taupe); }
+.editorial-link { display:inline-flex; align-items:center; gap:24px; border-bottom:1px solid currentColor; padding-bottom:10px; font-size:11px; letter-spacing:.2em; text-transform:uppercase; transition:gap .4s cubic-bezier(.2,.8,.2,1),color .25s; }
+.editorial-link:hover { gap:35px; color:#786B59; }
+.editorial-rule { border-top:1px solid #D4CEC5; }
+.editorial-container { max-width:1600px; padding-left:clamp(24px,6vw,110px); padding-right:clamp(24px,6vw,110px); margin-inline:auto; }
+.editorial-enter { animation:tsuya-rise 1.15s both cubic-bezier(.18,.7,.26,1); }
+.editorial-enter-delay { animation:tsuya-rise 1.35s .18s both cubic-bezier(.18,.7,.26,1); }
+@keyframes tsuya-rise { from { transform:translateY(28px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+@keyframes tsuya-float { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-14px) } }
+@keyframes tsuya-reveal { from{clip-path:inset(0 0 100% 0)} to{clip-path:inset(0 0 0 0)} }
+.hero-art { animation:tsuya-reveal 1.4s .12s cubic-bezier(.5,0,.15,1) both; }
+.editorial-photo { overflow:hidden; background:#E5E0D8; position:relative; }
+.editorial-photo img { transition:transform 1.1s cubic-bezier(.18,.7,.2,1),opacity .5s; }
+.editorial-photo:hover img { transform:scale(1.045); }
+.editorial-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:clamp(16px,3vw,48px); }
+.editorial-product { min-width:0; grid-column:span 4; }
+.editorial-product:nth-child(6n + 1),.editorial-product:nth-child(6n + 4) { grid-column:span 6; }
+.editorial-product:nth-child(6n + 2),.editorial-product:nth-child(6n + 3) { grid-column:span 3; }
+.editorial-product:nth-child(6n + 1) .editorial-photo,.editorial-product:nth-child(6n + 4) .editorial-photo { aspect-ratio:4/4.6; }
+.editorial-product .editorial-photo { aspect-ratio:3/4; }
+.gallery-zoom { cursor:zoom-in; }
+.gallery-zoom:focus-visible { outline:3px solid #786B59; outline-offset:4px; }
+.tsuya-dark { background:var(--ink); color:var(--paper); }
+.tsuya-dark .editorial-eyebrow { color:#D4CEC5; }
+.tsuya-styled-input { border:0; border-bottom:1px solid #9F978C; border-radius:0; outline:0; background:transparent; padding:12px 2px; }
+.tsuya-styled-input:focus { border-bottom-color:var(--ink); box-shadow:0 1px 0 var(--ink); }
+.tsuya-pill { border:1px solid #D4CEC5; background:transparent; transition:background .25s,color .25s,border-color .25s; }
+.tsuya-pill:hover,.tsuya-pill[aria-pressed="true"] { background:#2D2A26; color:#F9F8F4; border-color:#2D2A26; }
+.tsuya-button { min-height:56px; padding:16px 28px; background:#2D2A26; color:#F9F8F4; display:inline-flex; align-items:center; justify-content:center; gap:14px; font-size:11px; letter-spacing:.19em; text-transform:uppercase; transition:background .25s,transform .25s; }
+.tsuya-button:hover { background:#4A4036; transform:translateY(-1px); }
+.tsuya-button:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+.tsuya-outline { background:transparent; border:1px solid #2D2A26; color:#2D2A26; }
+.tsuya-outline:hover { background:#2D2A26; color:#F9F8F4; }
+.animate-fade-in { animation:tsuya-rise .5s both; }
+.tsuya-content-page h1 { font-family:var(--font-header),Georgia,serif; font-size:clamp(3.8rem,6vw,6.5rem); font-weight:400; line-height:.95; letter-spacing:-.04em; }
+.tsuya-content-page h2 { font-family:var(--font-header),Georgia,serif; font-size:clamp(1.5rem,2.5vw,2rem); font-weight:400; }
+.tsuya-content-page section { scroll-margin-top:120px; }
+.tsuya-content-page p { line-height:1.85; }
+.tsuya-content-page input:focus-visible,.tsuya-content-page select:focus-visible,.tsuya-content-page button:focus-visible,
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible { outline:2px solid #786B59; outline-offset:3px; }
+.tsuya-noise { background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E"); opacity:.2; pointer-events:none; }
+@media (max-width:1023px) { .editorial-product,.editorial-product:nth-child(n) { grid-column:span 6; } .editorial-product .editorial-photo,.editorial-product:nth-child(n) .editorial-photo { aspect-ratio:3/4; } }
+@media (max-width:639px) { .editorial-grid { gap:28px 12px; } .editorial-product,.editorial-product:nth-child(n) { grid-column:span 6; } .editorial-product .editorial-photo,.editorial-product:nth-child(n) .editorial-photo { aspect-ratio:3/4; } .editorial-product h3 { font-size:1.2rem; } }
+@media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
