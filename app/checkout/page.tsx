@@ -27,6 +27,7 @@ type CheckoutFormData = z.infer<typeof checkoutSchema>;
 export default function CheckoutPage() {
   const { cartItems, getCartTotal, reconcileCart } = useCart();
   const [catalogVerified, setCatalogVerified] = useState(false);
+  const [isDemoPreview, setIsDemoPreview] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,8 @@ export default function CheckoutPage() {
     },
   });
 
+  useEffect(() => { setIsDemoPreview(document.body.dataset.tsuyaPreview === 'true'); }, []);
+
   useEffect(() => {
     // A canceled Stripe Checkout page doesn't mean payment occurred.
     // Preserve the attempt so returning shoppers resume the same session
@@ -64,6 +67,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     let cancelled = false;
     async function loadShippingProfile() {
+      if (document.body.dataset.tsuyaPreview === 'true') {
+        setShippingDestinations([{countryCode:'US',country:'United States (illustrative only)',deliveryMinBusinessDays:0,deliveryMaxBusinessDays:0}]);
+        return;
+      }
       try {
         const response = await fetch('/api/shipping/profile', { cache: 'no-store' });
         const payload = await response.json().catch(() => ({}));
@@ -103,6 +110,7 @@ export default function CheckoutPage() {
     let canceled = false
     if (!cartItems.length) return
     async function verifyCurrentCart() {
+      if (document.body.dataset.tsuyaPreview === 'true') return;
       setCatalogVerified(false)
       try {
         const response = await fetch('/api/products', { cache: 'no-store' })
@@ -134,6 +142,7 @@ export default function CheckoutPage() {
     const q = Math.max(1, totalQuantity);
     let cancelled = false;
     async function load() {
+      if (document.body.dataset.tsuyaPreview === 'true') return;
       try {
         const res = await fetch(
           `/api/shipping/rate?country=${encodeURIComponent(watchedCountry)}&quantity=${q}`
@@ -164,6 +173,10 @@ export default function CheckoutPage() {
   }, [watchedCountry, totalQuantity]);
 
   const onSubmit = async (data: CheckoutFormData) => {
+    if (document.body.dataset.tsuyaPreview === 'true') {
+      setError('Design preview only. No payment or order can be submitted.');
+      return;
+    }
     // React's disabled state is asynchronous; guard rapid double-clicks too.
     if (checkoutInFlight.current) return;
     if (!catalogVerified) {
@@ -274,26 +287,28 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F9F8F4]">
       <Navbar />
-      <main className="flex-grow pt-24">
+      <main id="main-content" className="flex-grow pt-24 tsuya-checkout tsuya-content-page">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <Link href="/cart" className="inline-flex items-center text-sm text-[#786B59] hover:text-[#2D2A26] mb-8">
             <ArrowLeft size={16} className="mr-2" />
             Back to Cart
           </Link>
 
-          <h1 className="editorial-serif text-[clamp(4rem,7vw,7rem)] text-[#2D2A26] mb-12">Checkout</h1>
+          <p className="editorial-eyebrow mb-5">Your selections / final details</p>
+          <h1 className="editorial-serif text-[clamp(4rem,7vw,7rem)] text-[#2D2A26] mb-12">Your <em>checkout.</em></h1>
+          {isDemoPreview && <div className="border-y border-[#D4CEC5] py-5 mb-10 text-sm text-[#786B59]" role="status">Visual preview only — the checkout form can be explored, but shipping quotes, final totals and payments are disabled. Prices and artwork shown here are examples.</div>}
 
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white border border-[#E5E0D8] p-6">
+                <div className="bg-[#F2EFE9] border border-[#D4CEC5] p-8 sm:p-10">
                   <h2 className="text-xl font-serif text-[#2D2A26] mb-6">Shipping information</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">First name</label>
                       <input
                         {...register('firstName')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.firstName && <p className="text-xs text-[#8C3F3F] mt-1">{errors.firstName.message}</p>}
                     </div>
@@ -301,7 +316,7 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">Last name</label>
                       <input
                         {...register('lastName')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.lastName && <p className="text-xs text-[#8C3F3F] mt-1">{errors.lastName.message}</p>}
                     </div>
@@ -312,7 +327,7 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       {...register('email')}
-                      className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                      className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                     />
                     {errors.email && <p className="text-xs text-[#8C3F3F] mt-1">{errors.email.message}</p>}
                   </div>
@@ -321,7 +336,7 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address Line 1</label>
                     <input
                       {...register('address')}
-                      className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                      className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                     />
                     {errors.address && <p className="text-xs text-[#8C3F3F] mt-1">{errors.address.message}</p>}
                   </div>
@@ -330,7 +345,7 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address Line 2 (Optional)</label>
                     <input
                       {...register('addressLine2')}
-                      className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                      className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                     />
                     {errors.addressLine2 && <p className="text-xs text-[#8C3F3F] mt-1">{errors.addressLine2.message}</p>}
                   </div>
@@ -340,7 +355,7 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">Unit Number (Optional)</label>
                       <input
                         {...register('unitNumber')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.unitNumber && <p className="text-xs text-[#8C3F3F] mt-1">{errors.unitNumber.message}</p>}
                     </div>
@@ -350,7 +365,7 @@ export default function CheckoutPage() {
                         type="tel"
                         autoComplete="tel"
                         {...register('phone')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.phone && <p className="text-xs text-[#8C3F3F] mt-1">{errors.phone.message}</p>}
                     </div>
@@ -361,7 +376,7 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">City</label>
                       <input
                         {...register('city')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.city && <p className="text-xs text-[#8C3F3F] mt-1">{errors.city.message}</p>}
                     </div>
@@ -369,7 +384,7 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">State / Province</label>
                       <input
                         {...register('state')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.state && <p className="text-xs text-[#8C3F3F] mt-1">{errors.state.message}</p>}
                     </div>
@@ -381,7 +396,7 @@ export default function CheckoutPage() {
                       <input
                         autoComplete="postal-code"
                         {...register('postalCode')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       />
                       {errors.postalCode && <p className="text-xs text-[#8C3F3F] mt-1">{errors.postalCode.message}</p>}
                     </div>
@@ -389,7 +404,7 @@ export default function CheckoutPage() {
                       <label className="block text-sm font-medium text-[#2D2A26] mb-2">Country</label>
                       <select
                         {...register('country')}
-                        className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
+                        className="w-full px-2 py-3 border-0 border-b border-[#D4CEC5] bg-transparent focus:outline-none focus:border-[#2D2A26] transition-colors"
                       >
                         {shippingDestinations.map(destination => (
                           <option key={destination.countryCode} value={destination.countryCode}>
@@ -410,13 +425,13 @@ export default function CheckoutPage() {
                 )}
                 <Button
                   type="submit"
-                  disabled={isRedirecting || shippingCost === null || !catalogVerified || !shippingProfileLoaded}
+                  disabled={isDemoPreview || isRedirecting || shippingCost === null || !catalogVerified || !shippingProfileLoaded}
                   className="w-full flex items-center justify-center gap-2 py-3"
                 >
                   <Lock size={18} />
-                  {isRedirecting ? 'Redirecting to payment…' : !catalogVerified ? 'Verifying current stock and prices…' : 'Proceed to payment'}
+                  {isDemoPreview ? 'Payments disabled in preview' : isRedirecting ? 'Redirecting to payment…' : !catalogVerified ? 'Verifying current stock and prices…' : 'Proceed to payment'}
                 </Button>
-                <p className="text-xs text-[#786B59] text-center mt-3">Secure payment by Stripe. We never store your card details.</p>
+                <p className="text-xs text-[#786B59] text-center mt-3">{isDemoPreview ? 'No live payment connection in this isolated preview.' : 'Secure payment by Stripe. We never store your card details.'}</p>
               </div>
 
               <div className="lg:col-span-1">
