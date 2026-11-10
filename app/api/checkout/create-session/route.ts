@@ -124,6 +124,8 @@ export async function POST(request: NextRequest) {
       mode: 'payment',
       line_items: lineItems,
       automatic_tax: { enabled: false },
+      // Store is USD-only; never let Stripe present converted local currencies.
+      adaptive_pricing: { enabled: false },
       success_url: success,
       cancel_url: cancel,
       customer_creation: 'always',
