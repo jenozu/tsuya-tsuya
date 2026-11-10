@@ -1,0 +1,8 @@
+[
+  {
+    "name": "web",
+    "cwd": ".",
+    "cmd": "npm run dev",
+    "health": "http://localhost:3000/robots.txt"
+  }
+]

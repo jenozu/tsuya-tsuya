@@ -1,0 +1,903 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "title": "Run and record baseline quality gates",
+        "description": "Know exactly what passes on current main before changing anything.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "From a clean checkout: npm ci; npm run verify:infra; npm run lint; npx tsc --noEmit; npm test; npm run build. Log each result and warning count with tasks.py log. Fix nothing here: failures become new tasks or parking-lot lines. If build fails only for missing env vars, log the variable NAMES (see ENV_TEMPLATE.md) and never real values. Roadmap: TSU-M1-004 (re-verify only).",
+        "testStrategy": "All six commands were run and each result is in the task log (`tasks.py show`); no source file changed (`git status --short` shows only harness files).",
+        "complexity": 2,
+        "phase": 0,
+        "id": 1,
+        "subtasks": []
+      },
+      {
+        "title": "Reconcile master_plan.md and the PRD against current main",
+        "description": "Replace the unverified 67 done / 74 open snapshot with checked facts.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Count `- [x]` and `- [ ]` in master_plan.md. Compare open items with merged PRs (`git log --oneline`) and docs/TASK_*.md. In the task log list: items done but unchecked, items checked without evidence, open items already covered by this plan. Only tick a box with evidence. Append (never rewrite) a dated note to PRD section 11 and to the AUTONOMOUS_EXECUTION_PLAN.md checkpoint with the new counts. Do not add tasks that duplicate roadmap ids. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`grep -c '^- \\[x\\]' master_plan.md` and the open count equal the numbers logged; the drift list is in the task log.",
+        "complexity": 4,
+        "phase": 0,
+        "id": 2,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: review and approve the PRD",
+        "description": "The PRD is a DRAFT generated from the repo docs; the plan is only as good as it is.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "Owner steps: read .taskmaster/docs/prd.md, especially sections 6 (R1-R15), 9 (owner decisions) and R14 payment decisions; edit anything wrong; reply 'approved' or list changes. The agent then changes the Status line from DRAFT and records the approval in the PRD decision log.",
+        "testStrategy": "PRD Status line no longer says DRAFT and the decision log has a dated 'approved' entry.",
+        "complexity": 1,
+        "human": true,
+        "phase": 0,
+        "id": 3,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: provide isolated test resources",
+        "description": "Integration tests need a disposable database; agents must never touch production.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "Owner steps: (1) in Neon create a NEW empty branch or database used only for tests; (2) put its connection string in a private shell environment or local .env as TEST_DATABASE_URL (never committed, never pasted into chat); (3) confirm it differs from production DATABASE_URL; (4) optionally supply Stripe TEST-mode keys and a Resend test recipient for preview checks. Tell the agent only 'done'. scripts/test-disposable-neon.mjs also needs TSU_DISPOSABLE_DB_ACK=CREATE_ON_EMPTY_TEST_DATABASE, which the owner sets at run time.",
+        "testStrategy": "Owner confirms in chat. Later tasks verify with `npm run test:disposable-db`; until then tasks needing a database stay offline-only.",
+        "complexity": 1,
+        "human": true,
+        "phase": 0,
+        "id": 4,
+        "subtasks": []
+      },
+      {
+        "title": "Harden admin login: throttling, session revocation, inactivity timeout",
+        "description": "Close the open admin-auth gaps without claiming per-instance counters are distributed protection.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M7-004, TSU-M17-004 (remaining parts). Read docs/ADMIN_ACCESS_RECOVERY.md, lib/admin-session.ts, app/api/admin/auth/route.ts, middleware.ts. Use a persistent store: an additive migrations/forward JSON table (db-migration skill), not in-memory. Do not change the shared-login model or password policy wording without owner input. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.",
+        "complexity": 8,
+        "review": true,
+        "phase": 1,
+        "id": 5,
+        "subtasks": [
+          {
+            "title": "Design the store and write failing tests",
+            "description": "Define the throttle/revocation table and tests first.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: migrations/forward/004_*.json (additive, not applied), tests/admin-session.test.mjs, new tests/admin-throttle.test.mjs.",
+            "testStrategy": "`npm test --silent` shows the new tests failing for the right reason before implementation.",
+            "complexity": 4,
+            "id": 1
+          },
+          {
+            "title": "Implement throttling and revocation",
+            "description": "Make the tests pass.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: lib/admin-session.ts, app/api/admin/auth/route.ts, a small lib helper. Keep error messages generic; log no credentials.",
+            "testStrategy": "`npm test --silent` green; `npx tsc --noEmit` clean.",
+            "complexity": 6,
+            "id": 2
+          },
+          {
+            "title": "Inactivity timeout and docs",
+            "description": "Add the timeout and update the recovery doc.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: lib/admin-session.ts, docs/ADMIN_ACCESS_RECOVERY.md (merge; keep existing text).",
+            "testStrategy": "A unit test proves an idle session is rejected; the doc diff is additive.",
+            "complexity": 4,
+            "id": 3
+          }
+        ]
+      },
+      {
+        "title": "Upload abuse limits and object ownership",
+        "description": "Finish the image-upload gaps left after the magic-byte checks.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "details": "Roadmap: TSU-M8-004 (rate and object ownership), TSU-M17-006 (upload abuse part). Files: app/api/admin/product-images/route.ts, lib/image-validation.ts, lib/r2.ts. Persistent counters only; tests use mocks (tests/fixtures/mock-r2.mjs); never touch the real bucket. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "tests/image-validation.test.mjs plus new tests cover rate limit and ownership; `npm test --silent` green.",
+        "complexity": 6,
+        "review": true,
+        "phase": 1,
+        "id": 6,
+        "subtasks": []
+      },
+      {
+        "title": "Expand isolated integration tests for admin and catalog",
+        "description": "Cover authorized/unauthorized admin actions and catalog mutations.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M18-003. Existing: tests/*.integration.mjs and tests/fixtures/. Read them first and add only missing cases; keep doubles zero-network; no production data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`node --experimental-strip-types --test tests/*.integration.mjs` passes; new cases fail when the guard they test is removed (noted in the log).",
+        "complexity": 5,
+        "phase": 1,
+        "id": 7,
+        "subtasks": []
+      },
+      {
+        "title": "Enforce checks and a release checklist in CI",
+        "description": "Make lint, typecheck, tests and the migrations check required and documented.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M18-007 plus the lint-warning cleanup in the execution plan's next tranche. Read .github/workflows/infra-guard.yml, docs/CI_QUALITY_GATES.md, scripts/check-ci-workflow.mjs, lib/ci-guard-policy.mjs. Extend the existing workflow and guard policy; do not create a parallel pipeline or weaken the guard. Branch protection itself is an owner step. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`npm run ci:check` passes; the workflow runs lint, tsc, npm test, migrations:check and build; tests/ci-guard-policy.test.mjs updated and green.",
+        "complexity": 5,
+        "review": true,
+        "phase": 1,
+        "id": 8,
+        "subtasks": []
+      },
+      {
+        "title": "Review dependencies, R2 exposure and preview access",
+        "description": "Record findings for the remaining security-review items.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M17-006. Run the security-review skill (areas 1-6) read-only. Output: findings as new tasks via tasks.py add (Security: ...), not code changes. No bucket or Vercel changes. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Report logged with counts by severity; each finding became a task or a parking-lot line.",
+        "complexity": 3,
+        "review": true,
+        "phase": 1,
+        "id": 9,
+        "subtasks": []
+      },
+      {
+        "title": "Persistent payment-event and email ledger with safe retries",
+        "description": "Activate the staged ledger so webhook and email processing is idempotent and recoverable.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          5,
+          4
+        ],
+        "details": "Roadmap: TSU-M3-006, TSU-M11-002, TSU-M11-003, TSU-M11-004, TSU-M3-004 (blank + upgrade proof). Starting point: migrations/forward/003_payment_delivery_foundation.json (staged, NOT applied) and docs/TASK_11_WEBHOOK_LEDGER_FOUNDATION.md. Code: app/api/webhooks/stripe/route.ts, lib/email*.ts. Keep the code working with and without the tables until the owner applies the migration. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "tests/stripe-webhook-safety.integration.mjs and the new concurrency/duplicate/out-of-order tests pass; `npm run test:disposable-db` passes on the owner's isolated database once the test-resources task is done.",
+        "complexity": 9,
+        "review": true,
+        "phase": 2,
+        "id": 10,
+        "subtasks": [
+          {
+            "title": "Event claim and lease logic with tests",
+            "description": "Transactional claim per Stripe event id.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: webhook route, a new lib helper, tests. Failing tests first.",
+            "testStrategy": "Duplicate and concurrent-event tests pass.",
+            "complexity": 6,
+            "id": 1
+          },
+          {
+            "title": "Retry-safe order creation and email send state",
+            "description": "An order that exists without its email must be recoverable.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: webhook route, lib/email.ts, order_email_deliveries usage.",
+            "testStrategy": "Test: order present and no email -> retry sends exactly once.",
+            "complexity": 6,
+            "id": 2
+          },
+          {
+            "title": "Delayed and out-of-order event handling plus recovery path",
+            "description": "Handle Stripe retries and late events.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: webhook route, docs/DAILY_ORDER_RECOVERY.md (merge).",
+            "testStrategy": "Tests for expired, delayed and refunded sequences pass.",
+            "complexity": 6,
+            "id": 3
+          }
+        ]
+      },
+      {
+        "title": "Persist authoritative order line items",
+        "description": "Store product, size, unit price, currency and shipping/tax breakdown per order.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          10
+        ],
+        "details": "Roadmap: TSU-M10-005. Additive migration plus code in the order-creation path and app/api/orders/route.ts. Never expose internals to customers. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "New unit and integration tests assert line items match server-derived pricing (lib/checkout-pricing.ts); migrations:check passes.",
+        "complexity": 6,
+        "review": true,
+        "phase": 2,
+        "id": 11,
+        "subtasks": []
+      },
+      {
+        "title": "Duplicate checkout submission, expiry and returning shoppers",
+        "description": "Prevent double sessions and handle cancel/expiry cleanly.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M9-006. Read docs/TASK_9_CHECKOUT_RECOVERY.md, lib/checkout-attempt*.ts, app/checkout/page.tsx. Extend, don't rewrite. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "tests/checkout-attempt.test.mjs extended and green; `npm run test:e2e` cart-checkout spec still passes.",
+        "complexity": 5,
+        "phase": 2,
+        "id": 12,
+        "subtasks": []
+      },
+      {
+        "title": "Stripe webhook and tamper test suite",
+        "description": "Cover tampered prices, invalid destinations, retries, duplicates, refunds and out-of-order events with mocks.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          10
+        ],
+        "details": "Roadmap: TSU-M18-004. Use tests/fixtures/mock-stripe.mjs; no network, no live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`npm test --silent` and the integration suite pass with the new cases.",
+        "complexity": 5,
+        "phase": 2,
+        "id": 13,
+        "subtasks": []
+      },
+      {
+        "title": "Stripe-to-Neon reconciliation procedure",
+        "description": "A documented read-only procedure (and optional read-only script) to compare paid/refunded amounts.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          11
+        ],
+        "details": "Roadmap: TSU-M11-005. Docs in docs/ (merge into DAILY_ORDER_RECOVERY.md or add one file). Any script must be read-only, take credentials from env and print no customer data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Doc reviewed; a script (if any) defaults to dry-run and has a unit test with fixtures.",
+        "complexity": 4,
+        "phase": 2,
+        "id": 14,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: run Stripe test-mode sandbox cases and the webhook round-trip",
+        "description": "Provider-connected evidence the agents cannot produce.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          10,
+          11
+        ],
+        "details": "Roadmap: TSU-M10-006, TSU-M10-007, TSU-M2-004 (test-mode part). Owner steps on a Vercel PREVIEW with Stripe TEST keys: paid, failed, canceled, duplicate submit, changed price, invalid destination; confirm each order row and the Resend email (safe test recipient). Apply the new migrations to the TEST database only. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. Never use live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Evidence lines with dates and sanitized IDs added to docs/PENDING_LIVE_VERIFICATION.md.",
+        "complexity": 3,
+        "human": true,
+        "phase": 2,
+        "id": 15,
+        "subtasks": []
+      },
+      {
+        "title": "R15 design: Printify order submission and status sync",
+        "description": "Write the design from Printify's official API documentation before any code.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "PRD R15. Read Printify's current official API docs (developers.printify.com); don't guess endpoints or fields. Produce docs/PRINTIFY_FULFILLMENT.md: auth, order-create fields and idempotency key (Stripe session id as external id), product/variant mapping to our product id + size, failure/retry states, webhook events and signature, rate limits, and what is unknown (mark Needs verification). Add a PRD decision-log entry. No code. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md first.",
+        "testStrategy": "docs/PRINTIFY_FULFILLMENT.md exists with every section above and cites the doc URLs; PRD decision log updated.",
+        "complexity": 5,
+        "phase": 3,
+        "id": 16,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: Printify account, credentials and availability decision",
+        "description": "Provide what only the owner can.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          16
+        ],
+        "details": "Owner steps: (1) decide owner decision 6: automatic Printify availability sync or manual toggle; (2) create a Printify API token and note the shop id; (3) add them to Vercel PREVIEW and local private env only as server variables (agree names with the agent, e.g. PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET); never paste values in chat; (4) confirm which products exist in Printify and that each size has a Printify variant.",
+        "testStrategy": "Owner confirms the decision and that the variables exist by NAME in Vercel preview; the agent records the decision in the PRD log.",
+        "complexity": 1,
+        "human": true,
+        "phase": 3,
+        "id": 17,
+        "subtasks": []
+      },
+      {
+        "title": "Printify config, schema and client (mock-tested)",
+        "description": "Server-only config, an additive table for Printify orders, and a typed client.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          16,
+          10
+        ],
+        "details": "Files: lib/printify-config.ts (validated server env; never NEXT_PUBLIC), lib/printify.ts (client), migrations/forward/00N_printify_orders.json (our order id, Printify order id, state, attempts, timestamps; unique per Stripe session), tests with tests/fixtures/mock-printify.mjs, names added to ENV_TEMPLATE.md (names only). No live calls.",
+        "testStrategy": "New unit tests pass with the mock; `npx tsc --noEmit`; `npm run migrations:check`; `git grep NEXT_PUBLIC_PRINTIFY` finds nothing.",
+        "complexity": 7,
+        "review": true,
+        "phase": 3,
+        "id": 18,
+        "subtasks": [
+          {
+            "title": "Config module and env template names",
+            "description": "Validated server env.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: lib/printify-config.ts, ENV_TEMPLATE.md (names only).",
+            "testStrategy": "Unit test: a missing variable throws and no value is logged.",
+            "complexity": 3,
+            "id": 1
+          },
+          {
+            "title": "Additive printify_orders migration",
+            "description": "Schema with uniqueness per Stripe session.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "File: migrations/forward/00N_printify_orders.json.",
+            "testStrategy": "`npm run migrations:check` passes; tests/migration-plan.test.mjs updated.",
+            "complexity": 4,
+            "id": 2
+          },
+          {
+            "title": "Typed client with mock and error mapping",
+            "description": "Create-order and get-order calls; errors mapped without raw provider text.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: lib/printify.ts, tests/fixtures/mock-printify.mjs, tests.",
+            "testStrategy": "Mock tests cover success, 4xx, 5xx and timeout.",
+            "complexity": 5,
+            "id": 3
+          }
+        ]
+      },
+      {
+        "title": "Submit the order after verified Stripe payment, idempotently",
+        "description": "Create the Printify order from the webhook path only after payment is confirmed; retry safely.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          18
+        ],
+        "details": "Hook into app/api/webhooks/stripe/route.ts through the ledger so an event is processed once. Idempotent on the Stripe session id; persist the Printify order id; a failure sets a retryable state and an admin-visible flag, and never blocks the customer confirmation email; never submit from the browser or for unpaid sessions. Use the lib/printify client with mocks only.",
+        "testStrategy": "New integration tests: paid -> one Printify order; duplicate event -> still one; Printify 5xx -> retry state, then success; unpaid -> none; captured logs contain no customer data.",
+        "complexity": 8,
+        "review": true,
+        "phase": 3,
+        "id": 19,
+        "subtasks": [
+          {
+            "title": "Wire submission into the webhook path",
+            "description": "Call it after payment confirmation.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: webhook route, a lib helper.",
+            "testStrategy": "A paid-session test creates exactly one mock order.",
+            "complexity": 6,
+            "id": 1
+          },
+          {
+            "title": "Retry and failure handling with admin visibility",
+            "description": "A retryable state and an admin-visible failure flag.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: app/admin/admin-client.tsx (minimal), lib helper, docs/DAILY_ORDER_RECOVERY.md (merge).",
+            "testStrategy": "A failure test sets the state; a retry test succeeds once.",
+            "complexity": 6,
+            "id": 2
+          },
+          {
+            "title": "Idempotency and redaction tests",
+            "description": "Prove no duplicates and no customer data in logs.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: tests/printify-*.integration.mjs.",
+            "testStrategy": "The concurrent-duplicate test and the log-capture assertion pass.",
+            "complexity": 5,
+            "id": 3
+          }
+        ]
+      },
+      {
+        "title": "Printify status and tracking sync to the order and customer email",
+        "description": "Receive Printify status/tracking and reflect it on the order and in a shipped email.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          19
+        ],
+        "details": "New route app/api/webhooks/printify/route.ts (signature verified as the design doc specifies), order state/tracking update, shipped email template in lib/email-templates (escape HTML; Resend), admin display. Roadmap overlap: TSU-M14-003 (tracking) and TSU-M15-005 (shipping template): reference them, don't duplicate. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "A signed-event fixture test updates the order and sends exactly one email; an unsigned or tampered event is rejected; tests green.",
+        "complexity": 6,
+        "review": true,
+        "phase": 3,
+        "id": 20,
+        "subtasks": []
+      },
+      {
+        "title": "Printify availability sync or admin flag",
+        "description": "Replace the manual size toggle according to the owner's decision.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          17,
+          18
+        ],
+        "details": "Depends on the owner decision recorded in the PRD. Automatic: a scheduled or admin-triggered read-only sync that flips private per-size availability and flags mismatches. Manual: an admin warning list only. Never show counts to customers (R1). Files: lib/product-availability.ts, admin client, tests.",
+        "testStrategy": "Tests with the mock Printify: an unavailable variant disables the size or raises an admin flag per the decision; customer pages unchanged (no counts).",
+        "complexity": 6,
+        "review": true,
+        "phase": 3,
+        "id": 21,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: one controlled real Printify order and cancellation",
+        "description": "Prove the integration end to end; the owner handles any real cost.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          20,
+          21
+        ],
+        "details": "Owner steps (the agent does NOT do this): use a Stripe TEST-mode checkout on preview with a Printify test or draft product where possible; confirm the order appears in Printify, then cancel it there. Confirm tracking sync with a real or simulated webhook. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. If Printify can only be tested with a paid order, the owner decides whether to proceed.",
+        "testStrategy": "Sanitized evidence recorded; the owner confirms in chat.",
+        "complexity": 3,
+        "human": true,
+        "phase": 3,
+        "id": 22,
+        "subtasks": []
+      },
+      {
+        "title": "Admin order details and explicit fulfilment states",
+        "description": "Make order state transitions explicit and authorized.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          20
+        ],
+        "details": "Roadmap: TSU-M14-002, TSU-M14-003. Build on the Printify status sync. Files: app/admin/admin-client.tsx, app/api/orders/route.ts, lib/types.ts. Transitions validated on the server. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Tests for allowed and rejected transitions and for unauthorized access; `npm test --silent` green.",
+        "complexity": 6,
+        "review": true,
+        "phase": 4,
+        "id": 23,
+        "subtasks": []
+      },
+      {
+        "title": "Durable email status and lifecycle templates",
+        "description": "Delivery state, retry, duplicate suppression and the missing templates.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          10
+        ],
+        "details": "Roadmap: TSU-M15-003, TSU-M15-005. Reuse order_email_deliveries from the ledger task. Templates for shipped, canceled, refunded and failed payment in lib/email-templates/ with HTML escaping; wording is a draft marked TBD: for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "tests/email-*.test.mjs extended and green; each template renders with escaped input.",
+        "complexity": 6,
+        "review": true,
+        "phase": 4,
+        "id": 24,
+        "subtasks": []
+      },
+      {
+        "title": "Accessible contact form with spam controls",
+        "description": "A server-validated contact form routed to the support inbox.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "details": "Roadmap: TSU-M15-006. New route and page; Zod validation, honeypot and rate limit via the persistent store, same-origin check, email to the configured SUPPORT_EMAIL only. The inbox process doc is left TBD for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Route tests for valid, invalid, spam and over-limit requests; an e2e smoke test added.",
+        "complexity": 5,
+        "phase": 4,
+        "id": 25,
+        "subtasks": []
+      },
+      {
+        "title": "Cancellation and refund procedure (guarded, test-only)",
+        "description": "Safe cancel/refund mechanics and docs without any live refund.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          24,
+          23
+        ],
+        "details": "Roadmap: TSU-M16-002, TSU-M16-003, TSU-M16-004 (docs), TSU-M16-005 (mock scenarios). An admin-initiated Stripe refund path behind explicit confirmation, tested with mock-stripe only; it syncs order state and email. Policy windows and wording are owner decisions: leave TBD:. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Mock tests: full and partial refunds update the order and send one email; no code path issues a refund without admin confirmation.",
+        "complexity": 7,
+        "review": true,
+        "phase": 4,
+        "id": 26,
+        "subtasks": [
+          {
+            "title": "Refund service and state sync with mocks",
+            "description": "Mechanics only.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: lib/stripe.ts helper, webhook refund events, tests.",
+            "testStrategy": "Mock refund tests pass.",
+            "complexity": 6,
+            "id": 1
+          },
+          {
+            "title": "Admin confirm step and route checks",
+            "description": "An explicit confirmation step.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: admin client, a route with session and same-origin checks.",
+            "testStrategy": "A route test rejects a missing confirmation.",
+            "complexity": 5,
+            "id": 2
+          },
+          {
+            "title": "Runbook and evidence-collection doc",
+            "description": "Damaged/lost handling docs with decisions left TBD.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "Files: docs/PAYMENT_INCIDENT_RESPONSE.md (merge).",
+            "testStrategy": "The doc diff is additive and carries TBD: markers for owner policy.",
+            "complexity": 3,
+            "id": 3
+          }
+        ]
+      },
+      {
+        "title": "Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005",
+        "description": "Decide with evidence which inventory and pick/pack items still apply under Printify.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "details": "Roadmap: TSU-M3-005, TSU-M6-006, TSU-M14-004, TSU-M14-005. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md and the notes in master_plan.md. Output a short recommendation (apply / adapt / not applicable) in the task log and docs. Do NOT cancel roadmap items yourself: the owner decides.",
+        "testStrategy": "A recommendation per item is logged and listed under the open questions in memory.md.",
+        "complexity": 3,
+        "phase": 4,
+        "id": 27,
+        "subtasks": []
+      },
+      {
+        "title": "Accessibility audit and fixes",
+        "description": "Keyboard, focus, labels, dialogs, contrast, alt text.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M19-002. Audit the storefront routes and the admin; fix with narrow changes; add Playwright checks where cheap. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`npm run test:e2e` includes the new keyboard/label checks and passes; findings are logged.",
+        "complexity": 5,
+        "phase": 5,
+        "id": 28,
+        "subtasks": []
+      },
+      {
+        "title": "Mobile layout checks and end-to-end coverage",
+        "description": "Common widths, orientation, touch targets and overflow; e2e for mobile cart, checkout and admin.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M4-004 (emulated widths; real devices are a human task), TSU-M18-005. Files: e2e/*.spec.ts, playwright.config.ts, components/. Email test doubles only. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "`npm run test:e2e` passes at 360, 390, 768 and 1280 widths with no horizontal-overflow failures.",
+        "complexity": 5,
+        "phase": 5,
+        "id": 29,
+        "subtasks": []
+      },
+      {
+        "title": "Performance, remote image patterns and derivatives",
+        "description": "Core Web Vitals, responsive sizes, thumbnails and safe caching.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M19-007, TSU-M8-005. Files: next.config.ts, lib/trusted-image-patterns.ts, components/safe-product-image.tsx, components/product-card.tsx. Measure before/after with Lighthouse locally against a build; no production traffic. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "Before/after numbers logged; tests/trusted-image-patterns.test.mjs green; the build passes.",
+        "complexity": 6,
+        "review": true,
+        "phase": 5,
+        "id": 30,
+        "subtasks": []
+      },
+      {
+        "title": "Replace placeholder imagery and verify preview behaviour",
+        "description": "Remove random external product images and check the under-construction gating.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M4-005, TSU-M4-006. Files: lib/data.ts, public/, app/under-construction/, middleware.ts, lib/preview-session.ts. Real artwork and launch copy come from the owner: use neutral placeholders only. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "A test or e2e shows unfinished pages are hidden when the flag is on and reachable when it is off; `git grep` finds no random external image URLs.",
+        "complexity": 4,
+        "phase": 5,
+        "id": 31,
+        "subtasks": []
+      },
+      {
+        "title": "Verify catalog behaviours and CSV import",
+        "description": "Search, sort and availability labels, and CSV edge cases, against fixtures.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "details": "Roadmap: TSU-M5-004 (fixture-based; the real production catalog check is read-only and human-assisted), TSU-M5-006. Files: tests/csv-validation.test.mjs, lib/csv-parser.ts, app/api/products/import/route.ts. Use R2 mocks. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "New CSV tests (invalid rows, duplicates, filename mapping, transaction safety) pass.",
+        "complexity": 5,
+        "phase": 5,
+        "id": 32,
+        "subtasks": []
+      },
+      {
+        "title": "Cookie/storage inventory and analytics plan with consent hooks",
+        "description": "Inventory first; implement only with an owner-chosen tool.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "details": "Roadmap: TSU-M17-002, TSU-M19-006. Output docs/PRIVACY_INVENTORY.md (cookies, localStorage, processors, transfers). Consent wording and the tool choice are owner decisions: stop at an interface marked TBD: and a human question. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "The inventory lists every cookie/localStorage key found with `git grep`; no analytics script added without a decision.",
+        "complexity": 4,
+        "review": true,
+        "phase": 5,
+        "id": 33,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: real browser and device pass",
+        "description": "Chrome, Edge, Firefox, Safari, iOS and Android.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          29,
+          28
+        ],
+        "details": "Roadmap: TSU-M19-003, TSU-M4-004 (real devices). Owner steps: open the Vercel preview on each browser and device and run the checklist the agent writes into .taskmaster/docs/manual-checks.md; report issues. The agent turns issues into tasks.",
+        "testStrategy": "The checklist in manual-checks.md is ticked with dates and issues exist as tasks.",
+        "complexity": 2,
+        "human": true,
+        "phase": 5,
+        "id": 34,
+        "subtasks": []
+      },
+      {
+        "title": "Structured redacted logging with order correlation",
+        "description": "Correlation ids without personal data.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          19
+        ],
+        "details": "Roadmap: TSU-M20-001. Extend lib/safe-server-log.ts and its call sites in checkout, webhooks, R2, Neon, email and Printify. Tests assert redaction. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "tests/safe-server-log.test.mjs and tests/server-logging-audit.test.mjs extended and green.",
+        "complexity": 5,
+        "review": true,
+        "phase": 6,
+        "id": 35,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: choose error monitoring and uptime checks, then wire them",
+        "description": "The provider choice is the owner's; the wiring is the agent's.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Roadmap: TSU-M20-002. Owner step: pick a provider (a Vercel-native option or a third party), create the account and supply the project key by NAME to Vercel preview. The agent then adds a minimal integration that strips personal data, a health route and an alert doc.",
+        "testStrategy": "The owner confirmed a provider; the health-route test passes; a synthetic error appears in the provider (owner confirms).",
+        "complexity": 3,
+        "human": true,
+        "phase": 6,
+        "id": 36,
+        "subtasks": []
+      },
+      {
+        "title": "Retention, anonymisation, deletion/export and incident procedures (drafts)",
+        "description": "Document the procedures; policy values are owner decisions.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          33
+        ],
+        "details": "Roadmap: TSU-M3-007, TSU-M17-003, TSU-M15-007 (docs part), TSU-M20-006. New or merged docs under docs/; every number (retention days, response times) is marked TBD: for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "testStrategy": "The docs exist, cross-link the existing runbooks and contain no invented policy values (`git grep 'TBD:'` finds the placeholders).",
+        "complexity": 3,
+        "phase": 6,
+        "id": 37,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: backups and restore drills",
+        "description": "Real restores the agents cannot perform.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          10
+        ],
+        "details": "Roadmap: TSU-M20-003, TSU-M20-004, TSU-M3-004 (production-like copy upgrade). Owner steps: enable Neon backups/PITR, restore a snapshot into an isolated branch and run `node scripts/migrate.mjs --status` there; enable R2 versioning/retention and restore one object. Record sanitized evidence in docs/RECOVERY_RUNBOOK.md.",
+        "testStrategy": "Evidence with dates added to docs/RECOVERY_RUNBOOK.md.",
+        "complexity": 3,
+        "human": true,
+        "phase": 6,
+        "id": 38,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: audit variable scopes and rotate secrets",
+        "description": "A name-only audit and rotation in the provider dashboards.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Roadmap: TSU-M2-003, TSU-M17-007. Owner steps: compare the Vercel Production/Preview variable NAMES with ENV_TEMPLATE.md (the agent supplies the list); rotate old or exposed keys in Stripe, Neon, R2, Resend, Gemini and Printify; confirm old keys fail. Never paste values.",
+        "testStrategy": "The owner confirms rotation and that preview uses separate test credentials.",
+        "complexity": 2,
+        "human": true,
+        "phase": 6,
+        "id": 39,
+        "subtasks": []
+      },
+      {
+        "title": "Owner decision: assortment, artwork rights and launch copy",
+        "description": "Launch gate: owner only.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Roadmap: TSU-M5-007, TSU-M17-008, TSU-M4-003. The owner decides the final products, confirms rights/licensing for each print and approves storefront copy. The agent only records the decision and applies what it is given.",
+        "testStrategy": "Decision recorded in the PRD decision log with a date.",
+        "complexity": 1,
+        "human": true,
+        "phase": 7,
+        "id": 40,
+        "subtasks": []
+      },
+      {
+        "title": "Owner decision: destinations, shipping prices and duties",
+        "description": "Launch gate: owner only.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Roadmap: TSU-M12-007 (policy part), TSU-M13-004. The owner (with a qualified reviewer) chooses supported countries, exclusions, DDP vs DAP and shipping prices. The agent then updates config/shipping-profile.json and tests only as instructed.",
+        "testStrategy": "Decision recorded in the PRD decision log; shipping tests updated and green after the agent applies it.",
+        "complexity": 1,
+        "human": true,
+        "phase": 7,
+        "id": 41,
+        "subtasks": []
+      },
+      {
+        "title": "Owner decision: tax registration and treatment",
+        "description": "Launch gate: owner and accountant only.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Roadmap: TSU-M13-002, TSU-M13-003, TSU-M13-005, TSU-M13-006. The owner and accountant decide nexus, registrations and whether to use Stripe Tax or the server table. After the decision, add an agent implementation task (tasks.py add, or /plan-from-prd add-phase).",
+        "testStrategy": "Decision recorded; a follow-up implementation task exists.",
+        "complexity": 1,
+        "human": true,
+        "phase": 7,
+        "id": 42,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: policies, business identity and notifications",
+        "description": "Launch gate: owner only.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "Roadmap: TSU-M16-001, TSU-M17-001, TSU-M15-007. The owner supplies or approves refund/returns, terms and privacy text, business identity, the public contact mailbox, social links, and who receives order and support mail. The agent publishes only approved text and links it sitewide.",
+        "testStrategy": "Approved text is committed by the agent and linked from the footer; decision recorded.",
+        "complexity": 1,
+        "human": true,
+        "phase": 7,
+        "id": 43,
+        "subtasks": []
+      },
+      {
+        "title": "Owner: live Stripe mode, Resend domain and go-live approval",
+        "description": "Launch gate: owner only.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          40,
+          41,
+          42,
+          43
+        ],
+        "details": "Roadmap: TSU-M11-006, TSU-M2-004 (live part). The owner verifies the Resend sender domain, the live Stripe keys, the live webhook destination and fraud settings; performs one controlled live purchase and a permitted refund; approves go-live. Agents never use live keys.",
+        "testStrategy": "The owner records sanitized evidence and explicit approval in the PRD decision log.",
+        "complexity": 1,
+        "human": true,
+        "phase": 7,
+        "id": 44,
+        "subtasks": []
+      },
+      {
+        "title": "Launch verification and signed checklist",
+        "description": "Domain, smoke test, UX and rollback readiness.",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          44,
+          34,
+          38,
+          36,
+          39
+        ],
+        "details": "Roadmap: TSU-M21-001 to TSU-M21-005. The agent prepares the checklist and read-only verifiers (npm run verify:release, docs/TASK_12_RELEASE_VERIFICATION.md); the owner executes the DNS/domain checks and the production smoke test on the deployed SHA, and signs the go/no-go with rollback contacts (runbook in AUTONOMOUS_EXECUTION_PLAN.md).",
+        "testStrategy": "A signed checklist with evidence links is committed under docs/ and the owner approval is recorded.",
+        "complexity": 2,
+        "human": true,
+        "phase": 7,
+        "id": 45,
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "project": "TsuyaNoUchi",
+      "description": "TsuyaNoUchi master plan. Source of truth; TASKS.md is generated from this.",
+      "phases": [
+        {
+          "id": 0,
+          "name": "Foundation"
+        },
+        {
+          "id": 1,
+          "name": "Hardening"
+        },
+        {
+          "id": 2,
+          "name": "Order integrity"
+        },
+        {
+          "id": 3,
+          "name": "Printify fulfilment (R15)"
+        },
+        {
+          "id": 4,
+          "name": "Fulfilment ops and comms"
+        },
+        {
+          "id": 5,
+          "name": "Experience quality"
+        },
+        {
+          "id": 6,
+          "name": "Operations"
+        },
+        {
+          "id": 7,
+          "name": "Launch gates (owner)"
+        }
+      ],
+      "created": "2026-11-10",
+      "updated": "2026-11-10T12:29:58-05:00"
+    }
+  }
+}

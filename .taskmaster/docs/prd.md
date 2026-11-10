@@ -119,3 +119,19 @@ These block launch and must not be decided by an engineer or an AI agent.
 - This draft describes the **custom Next.js store in this repository**. The owner confirmed this is their own custom site (not Shopify), using Stripe for payments.
 - The roadmap status (about 67 checklist items done and 74 open at the time of reading) comes from the repository's September 2026 audits. It has not been re-verified against the current `main` or production.
 - Printify is named as the fulfilment provider, but the repository contains no Printify API integration; R15 defines it as new work.
+
+## 12. Decision log
+
+| Date | Decision |
+|---|---|
+| 2026-11-10 | PRD adopted for build. The owner's draft stays the source of truth; `master_plan.md` remains the roadmap and is not duplicated in `.taskmaster/tasks/tasks.json`, which only groups work and cites roadmap ids. |
+| 2026-11-10 | master-harness v1.3.1 installed. Work happens on topic branches and PRs; `main` is production on Vercel and is never committed to directly. |
+| 2026-11-10 | Setup defaults: npm kept; deployment is Vercel (`tsuyanouchi.com`); Stripe only, USD only, Adaptive Pricing off; agent permissions open with the execution-plan hard stops denied in `.claude/settings.json`. |
+| 2026-11-10 | R15 (Printify order submission) added to the plan as new work in phase 3. Printify availability sync vs manual toggle is still an owner decision (section 9, item 6). |
+
+## 13. Open questions (TBD)
+
+- TBD: PRD approval by the owner (task 3).
+- TBD: Printify availability: automatic sync or manual toggle (task 17).
+- TBD: whether M3-005, M6-006, M14-004 and M14-005 apply to a made-to-order model (task 27).
+- TBD: error-monitoring provider (task 36).
