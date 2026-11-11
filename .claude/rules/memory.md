@@ -19,9 +19,9 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- Plan created 2026-11-10; no phase run yet.
-- Next: phase 0. Run `/run-phase 0`.
-- In progress: none.
+- Phase 0: tasks 1, 2 done. Tasks 3 (approve PRD), 4 (test Neon DB) wait on the owner.
+- Baseline: lint/tsc/build/verify:infra pass; npm test has 2 failing ci-guard-policy tests (task 46, phase 1).
+- master_plan.md verified 67 done / 74 open; no boxes ticked.
 - Manual checks waiting: none.
 
 ## Facts (stable, max 15 lines)
@@ -36,13 +36,13 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
-- (none yet)
+- Running `npm run build` rewrites next-env.d.ts; `git checkout next-env.d.ts` after.
 
 ## Model routing record (update counts at each close-out)
 | Tier | Done first try | Escalated up | Notes |
 |---|---|---|---|
-| haiku | 0 | 0 | |
-| sonnet | 0 | 0 | |
+| haiku | 1 | 0 | |
+| sonnet | 1 | 0 | |
 | opus | 0 | 0 | |
 <!-- If one tier escalates on 3 tasks in a row, the phase-runner escalates to the lead, who may raise that tier's
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->
