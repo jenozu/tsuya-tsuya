@@ -3,14 +3,14 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 1/46 tasks done.**
+**Progress: 2/46 tasks done.**
 
 ## Phase 0 - Foundation
 
 - [x] **1. Run and record baseline quality gates**  
   Know exactly what passes on current main before changing anything.  
   _Test:_ All six commands were run and each result is in the task log (`tasks.py show`); no source file changed (`git status --short` shows only harness files).
-- [ ] **2. Reconcile master_plan.md and the PRD against current main** _(after 1)_  
+- [x] **2. Reconcile master_plan.md and the PRD against current main** _(after 1)_  
   Replace the unverified 67 done / 74 open snapshot with checked facts.  
   _Test:_ `grep -c '^- \[x\]' master_plan.md` and the open count equal the numbers logged; the drift list is in the task log.
 - [ ] **3. Owner: review and approve the PRD** **[HUMAN]**  

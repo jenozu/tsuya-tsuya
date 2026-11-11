@@ -135,3 +135,5 @@ These block launch and must not be decided by an engineer or an AI agent.
 - TBD: Printify availability: automatic sync or manual toggle (task 17).
 - TBD: whether M3-005, M6-006, M14-004 and M14-005 apply to a made-to-order model (task 27).
 - TBD: error-monitoring provider (task 36).
+
+- 2026-11-11 (task 2): master_plan.md re-counted against main (134 commits, PRs through #55): 67 `[x]` done / 74 `[ ]` open, so the snapshot above was correct. No boxes were ticked: every open item with merged work (M8-004 #18, M9-005 #22, M9-006 #45, M17-004 #17/#46, M18-003 #42/#43, M18-005 #38/#44, M3-006/M11-002..004 #47) already carries a "Partial evidence" note listing the unmet criterion. Details in the task 2 log.

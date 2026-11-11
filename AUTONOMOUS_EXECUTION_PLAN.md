@@ -80,3 +80,7 @@ Roadmap task completion is documented with implementation PRs/Actions evidence i
 3. Prepare non-destructive, ordered migration infrastructure and transaction/retry tests for Stripe event and order/email idempotency. Do not deploy code requiring new production tables until schema/backups and an isolated DB upgrade have been verified.
 4. Add upload-abuse throttling and object-ownership safeguards using a confirmed persistent store. Do not claim per-instance in-memory counters provide distributed protection.
 5. Complete browser accessibility/cart/admin smoke tests and compile a precise owner-only verification list. Provider-connected Stripe sandbox, qualified tax/shipping policy review, and live charge/refund remain separate gates.
+
+## Reconciliation checkpoint, 2026-11-11
+
+`master_plan.md` re-counted against `main` (PRs through #55): 67 checked, 74 open (unchanged). No box has complete evidence for every criterion, so none was ticked. Open items overlapping the new `.taskmaster/` plan (Printify R15, fulfilment ops, launch gates) keep their roadmap ids; the task plan only points at them.
