@@ -3,11 +3,11 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 0/45 tasks done.**
+**Progress: 1/46 tasks done.**
 
 ## Phase 0 - Foundation
 
-- [ ] **1. Run and record baseline quality gates**  
+- [x] **1. Run and record baseline quality gates**  
   Know exactly what passes on current main before changing anything.  
   _Test:_ All six commands were run and each result is in the task log (`tasks.py show`); no source file changed (`git status --short` shows only harness files).
 - [ ] **2. Reconcile master_plan.md and the PRD against current main** _(after 1)_  
@@ -40,6 +40,9 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **9. Review dependencies, R2 exposure and preview access** _(after 1)_  
   Record findings for the remaining security-review items.  
   _Test:_ Report logged with counts by severity; each finding became a task or a parking-lot line.
+- [ ] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**  
+  npm test fails on tests #40 and #41 in tests/ci-guard-policy.test.mjs on current main.  
+  _Test:_ npm test --silent passes with 0 failures
 
 ## Phase 2 - Order integrity
 

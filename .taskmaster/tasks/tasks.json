@@ -4,10 +4,10 @@
       {
         "title": "Run and record baseline quality gates",
         "description": "Know exactly what passes on current main before changing anything.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [],
-        "details": "From a clean checkout: npm ci; npm run verify:infra; npm run lint; npx tsc --noEmit; npm test; npm run build. Log each result and warning count with tasks.py log. Fix nothing here: failures become new tasks or parking-lot lines. If build fails only for missing env vars, log the variable NAMES (see ENV_TEMPLATE.md) and never real values. Roadmap: TSU-M1-004 (re-verify only).",
+        "details": "From a clean checkout: npm ci; npm run verify:infra; npm run lint; npx tsc --noEmit; npm test; npm run build. Log each result and warning count with tasks.py log. Fix nothing here: failures become new tasks or parking-lot lines. If build fails only for missing env vars, log the variable NAMES (see ENV_TEMPLATE.md) and never real values. Roadmap: TSU-M1-004 (re-verify only).\n\n[2026-11-11T18:40:55-05:00] plan (haiku-5.5): no source files; run npm ci, verify:infra, lint, tsc, test, build; log results and warning counts; env var names only if build needs env. Logs to .claude/tmp/\n\n[2026-11-11T18:43:42-05:00] baseline (haiku-5.5, main-equivalent tree on chore/harness-bootstrap, clean before run): npm ci -> exit 0 (726 pkgs). verify:infra -> exit 0, 0 warnings, 'Neon PostgreSQL + Cloudflare R2 only'. lint -> exit 0, 33 problems (0 errors, 33 warnings): 18 no-unused-vars, 4 no-explicit-any, 3 no-img-element, rest react-hooks. tsc --noEmit -> exit 0, 0 errors. npm test -> exit 1: 122 tests, 120 pass, 2 FAIL in tests/ci-guard-policy.test.mjs: #40 'mandatory critical audit cannot silently be converted to an advisory step' (expects ciWorkflowViolations to flag 'Critical dependency'), #41 'workflow requires least privilege, candidate timeout and retained diagnostics' (expects a 'read-only' violation). Not fixed here: needs a follow-up task or parking-lot line. npm run build -> exit 0; Next.js warns it ignored package-lock.json outside git root (C:\\Users\\andel); one '{level:error,event:unknown}' JSON line printed during static generation but build succeeded; no env vars were missing so no names needed. Logs: .claude/tmp/t1-*.log\n\n[2026-11-11T18:47:02-05:00] done by haiku; verified. Failures became follow-up task (phase 1); lint warnings in parking-lot",
         "testStrategy": "All six commands were run and each result is in the task log (`tasks.py show`); no source file changed (`git status --short` shows only harness files).",
         "complexity": 2,
         "phase": 0,
@@ -857,6 +857,20 @@
         "phase": 7,
         "id": 45,
         "subtasks": []
+      },
+      {
+        "title": "Fix 2 failing ci-guard-policy tests (baseline finding from task 1)",
+        "description": "npm test fails on tests #40 and #41 in tests/ci-guard-policy.test.mjs on current main.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "Tests: 'mandatory critical audit cannot silently be converted to an advisory step' and 'workflow requires least privilege, candidate timeout and retained diagnostics'. Determine whether lib/ci-guard-policy.mjs or the tests/workflow drifted; do not weaken the CI guard.",
+        "testStrategy": "npm test --silent passes with 0 failures",
+        "complexity": 4,
+        "review": true,
+        "phase": 1,
+        "id": 46,
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -897,7 +911,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-10T12:29:58-05:00"
+      "updated": "2026-11-11T18:47:02-05:00"
     }
   }
 }
