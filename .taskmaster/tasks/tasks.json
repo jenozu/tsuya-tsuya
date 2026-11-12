@@ -330,10 +330,9 @@
         "status": "pending",
         "priority": "high",
         "dependencies": [
-          16,
-          10
+          16
         ],
-        "details": "Files: lib/printify-config.ts (validated server env; never NEXT_PUBLIC), lib/printify.ts (client), migrations/forward/00N_printify_orders.json (our order id, Printify order id, state, attempts, timestamps; unique per Stripe session), tests with tests/fixtures/mock-printify.mjs, names added to ENV_TEMPLATE.md (names only). No live calls.",
+        "details": "Files: lib/printify-config.ts (validated server env; never NEXT_PUBLIC), lib/printify.ts (client), migrations/forward/00N_printify_orders.json (our order id, Printify order id, state, attempts, timestamps; unique per Stripe session), tests with tests/fixtures/mock-printify.mjs, names added to ENV_TEMPLATE.md (names only). No live calls. [adapt 2026-11-11] Ledger task 10 dropped as a dep: idempotency comes from printify_orders unique per Stripe session. Add PRINTIFY_ORDERS_ENABLED (server env, default off). Migration file is written and checked only; never applied.",
         "testStrategy": "New unit tests pass with the mock; `npx tsc --noEmit`; `npm run migrations:check`; `git grep NEXT_PUBLIC_PRINTIFY` finds nothing.",
         "complexity": 7,
         "review": true,
@@ -380,7 +379,7 @@
         "dependencies": [
           18
         ],
-        "details": "Hook into app/api/webhooks/stripe/route.ts through the ledger so an event is processed once. Idempotent on the Stripe session id; persist the Printify order id; a failure sets a retryable state and an admin-visible flag, and never blocks the customer confirmation email; never submit from the browser or for unpaid sessions. Use the lib/printify client with mocks only.",
+        "details": "Hook into app/api/webhooks/stripe/route.ts through the ledger so an event is processed once. Idempotent on the Stripe session id; persist the Printify order id; a failure sets a retryable state and an admin-visible flag, and never blocks the customer confirmation email; never submit from the browser or for unpaid sessions. Use the lib/printify client with mocks only. [adapt 2026-11-11] Behind PRINTIFY_ORDERS_ENABLED (default off: webhook behaviour unchanged when off). Until task 10 lands, idempotency is the printify_orders unique constraint, not the ledger. Unit tests with mocks may stand in for integration tests if no test DB exists (task 4); note it in the log.",
         "testStrategy": "New integration tests: paid -> one Printify order; duplicate event -> still one; Printify 5xx -> retry state, then success; unpaid -> none; captured logs contain no customer data.",
         "complexity": 8,
         "review": true,
@@ -871,6 +870,84 @@
         "phase": 1,
         "id": 46,
         "subtasks": []
+      },
+      {
+        "title": "BF: payment-path review and fixes",
+        "description": "Review server-side pricing, Stripe webhook signature verification, USD-only Checkout with adaptive_pricing disabled; fix gaps with tests.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "Files: app/api/checkout/create-session/route.ts, app/api/webhooks/stripe/route.ts, lib/checkout-*.ts, lib/stripe.ts. Confirm: price/shipping/tax derived server-side, client totals ignored; webhook rejects missing/invalid signature and uses the raw body; currency hard-coded usd; adaptive_pricing disabled. Write docs/PAYMENT_PATH_REVIEW.md with findings (file:line). Mocks only (tests/fixtures/mock-stripe.mjs), no live keys. Overlaps TSU-M18-004 (task 13) for signature/tamper cases only; leave the rest of 13 pending.",
+        "testStrategy": "npm test --silent && npx tsc --noEmit; new tests: tampered client price ignored, bad/missing webhook signature -> 400, session params include currency usd and adaptive_pricing disabled; docs/PAYMENT_PATH_REVIEW.md exists.",
+        "complexity": 5,
+        "review": true,
+        "phase": 8,
+        "id": 47,
+        "subtasks": []
+      },
+      {
+        "title": "BF: one setting controls under-construction mode",
+        "description": "A single server-side setting decides whether the storefront shows under-construction.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "Today the logic touches middleware.ts, app/layout.tsx, app/robots.ts, app/sitemap.ts, app/under-construction/page.tsx. Consolidate to one helper reading one env var (name it in ENV_TEMPLATE.md, names only; keep current production behaviour as the default when unset). Do not change Vercel env values.",
+        "testStrategy": "npm test --silent && npx tsc --noEmit; new unit test covers on/off/unset; git grep shows every under-construction decision routes through the one helper.",
+        "complexity": 4,
+        "review": true,
+        "phase": 8,
+        "id": 48,
+        "subtasks": []
+      },
+      {
+        "title": "BF: policy page scaffolding",
+        "description": "Shipping, returns, privacy and terms pages with [OWNER TO SUPPLY] placeholders.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "Reuse the existing shipping page/FAQ if present (don't overwrite published shipping text). Add returns, privacy, terms routes with the site layout, placeholders marked [OWNER TO SUPPLY], no legal wording, linked from the footer, noindex until approved. Owner text comes via task 43.",
+        "testStrategy": "npm test --silent && npx tsc --noEmit && npm run lint --silent; each route renders (unit or build check); grep finds no legal wording beyond placeholders.",
+        "complexity": 3,
+        "phase": 8,
+        "id": 49,
+        "subtasks": []
+      },
+      {
+        "title": "BF: order and shipping emails render; sender from config",
+        "description": "Verify order confirmation and shipping email templates render with escaped input; sender address comes from one config value.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "Files: lib/email-templates/, the Resend send helper. Sender read from a server env var (name in ENV_TEMPLATE.md) with no real default; tests/email-*.test.mjs. No live Resend calls. Does not cover task 24's new templates beyond the shipping one if missing.",
+        "testStrategy": "npm test --silent && npx tsc --noEmit; tests render order + shipping templates with hostile input escaped and assert the from-address comes from config.",
+        "complexity": 4,
+        "review": true,
+        "phase": 8,
+        "id": 50,
+        "subtasks": []
+      },
+      {
+        "title": "BF: docs/LAUNCH_RUNBOOK.md smoke test",
+        "description": "Step-by-step launch smoke test, marking every step that moves real money.",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "Merge with, don't overwrite, docs/TASK_12_RELEASE_VERIFICATION.md and docs/PENDING_LIVE_VERIFICATION.md (link them). Each step: who, action, expected result; every real-money or live-provider step marked [REAL MONEY] or [LIVE]. Cover the Printify flag, under-construction switch, policy pages, emails.",
+        "testStrategy": "docs/LAUNCH_RUNBOOK.md exists; every Stripe live charge/refund and live Printify step carries the marker (grep check); links resolve to existing files.",
+        "complexity": 3,
+        "phase": 8,
+        "id": 51,
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -908,10 +985,14 @@
         {
           "id": 7,
           "name": "Launch gates (owner)"
+        },
+        {
+          "id": 8,
+          "name": "Black Friday lean launch"
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T18:48:09-05:00"
+      "updated": "2026-11-11T19:32:42-05:00"
     }
   }
 }

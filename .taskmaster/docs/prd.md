@@ -128,6 +128,7 @@ These block launch and must not be decided by an engineer or an AI agent.
 | 2026-11-10 | master-harness v1.3.1 installed. Work happens on topic branches and PRs; `main` is production on Vercel and is never committed to directly. |
 | 2026-11-10 | Setup defaults: npm kept; deployment is Vercel (`tsuyanouchi.com`); Stripe only, USD only, Adaptive Pricing off; agent permissions open with the execution-plan hard stops denied in `.claude/settings.json`. |
 | 2026-11-10 | R15 (Printify order submission) added to the plan as new work in phase 3. Printify availability sync vs manual toggle is still an owner decision (section 9, item 6). |
+| 2026-11-11 | Owner: lean Black Friday launch. New phase 8 (tasks 47-51: payment-path review, single under-construction setting, policy scaffolding with [OWNER TO SUPPLY] placeholders, email render + configurable sender, docs/LAUNCH_RUNBOOK.md) runs ahead of phases 1-7, together with R15 tasks 16/18/19 and task 46. R15 ships behind PRINTIFY_ORDERS_ENABLED, off by default, mock-tested only; ledger task 10 is no longer a prerequisite for 18 (idempotency via a unique printify_orders row per Stripe session). Goals and non-goals unchanged; hard stops unchanged. |
 
 ## 13. Open questions (TBD)
 

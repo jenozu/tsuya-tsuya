@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 2/46 tasks done.**
+**Progress: 2/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -76,7 +76,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **17. Owner: Printify account, credentials and availability decision** **[HUMAN]** _(after 16)_  
   Provide what only the owner can.  
   _Test:_ Owner confirms the decision and that the variables exist by NAME in Vercel preview; the agent records the decision in the PRD log.
-- [ ] **18. Printify config, schema and client (mock-tested)** _(after 16, 10)_  
+- [ ] **18. Printify config, schema and client (mock-tested)** _(after 16)_  
   Server-only config, an additive table for Printify orders, and a typed client.  
   _Test:_ New unit tests pass with the mock; `npx tsc --noEmit`; `npm run migrations:check`; `git grep NEXT_PUBLIC_PRINTIFY` finds nothing.
   - [ ] 18.1 Config module and env template names
@@ -181,3 +181,21 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **45. Launch verification and signed checklist** **[HUMAN]** _(after 44, 34, 38, 36, 39)_  
   Domain, smoke test, UX and rollback readiness.  
   _Test:_ A signed checklist with evidence links is committed under docs/ and the owner approval is recorded.
+
+## Phase 8 - Black Friday lean launch
+
+- [ ] **47. BF: payment-path review and fixes** _(after 2)_  
+  Review server-side pricing, Stripe webhook signature verification, USD-only Checkout with adaptive_pricing disabled; fix gaps with tests.  
+  _Test:_ npm test --silent && npx tsc --noEmit; new tests: tampered client price ignored, bad/missing webhook signature -> 400, session params include currency usd and adaptive_pricing disabled; docs/PAYMENT_PATH_REVIEW.md exists.
+- [ ] **48. BF: one setting controls under-construction mode** _(after 2)_  
+  A single server-side setting decides whether the storefront shows under-construction.  
+  _Test:_ npm test --silent && npx tsc --noEmit; new unit test covers on/off/unset; git grep shows every under-construction decision routes through the one helper.
+- [ ] **49. BF: policy page scaffolding** _(after 2)_  
+  Shipping, returns, privacy and terms pages with [OWNER TO SUPPLY] placeholders.  
+  _Test:_ npm test --silent && npx tsc --noEmit && npm run lint --silent; each route renders (unit or build check); grep finds no legal wording beyond placeholders.
+- [ ] **50. BF: order and shipping emails render; sender from config** _(after 2)_  
+  Verify order confirmation and shipping email templates render with escaped input; sender address comes from one config value.  
+  _Test:_ npm test --silent && npx tsc --noEmit; tests render order + shipping templates with hostile input escaped and assert the from-address comes from config.
+- [ ] **51. BF: docs/LAUNCH_RUNBOOK.md smoke test** _(after 2)_  
+  Step-by-step launch smoke test, marking every step that moves real money.  
+  _Test:_ docs/LAUNCH_RUNBOOK.md exists; every Stripe live charge/refund and live Printify step carries the marker (grep check); links resolve to existing files.
