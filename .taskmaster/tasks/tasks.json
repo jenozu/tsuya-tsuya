@@ -46,10 +46,10 @@
       {
         "title": "Owner: provide isolated test resources",
         "description": "Integration tests need a disposable database; agents must never touch production.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [],
-        "details": "Owner steps: (1) in Neon create a NEW empty branch or database used only for tests; (2) put its connection string in a private shell environment or local .env as TEST_DATABASE_URL (never committed, never pasted into chat); (3) confirm it differs from production DATABASE_URL; (4) optionally supply Stripe TEST-mode keys and a Resend test recipient for preview checks. Tell the agent only 'done'. scripts/test-disposable-neon.mjs also needs TSU_DISPOSABLE_DB_ACK=CREATE_ON_EMPTY_TEST_DATABASE, which the owner sets at run time.",
+        "details": "Owner steps: (1) in Neon create a NEW empty branch or database used only for tests; (2) put its connection string in a private shell environment or local .env as TEST_DATABASE_URL (never committed, never pasted into chat); (3) confirm it differs from production DATABASE_URL; (4) optionally supply Stripe TEST-mode keys and a Resend test recipient for preview checks. Tell the agent only 'done'. scripts/test-disposable-neon.mjs also needs TSU_DISPOSABLE_DB_ACK=CREATE_ON_EMPTY_TEST_DATABASE, which the owner sets at run time.\n\n[2026-11-12T14:56:07-05:00] done 2026-11-12: Neon branch test-integration (schema-only, project tsuya-tsuya) with empty db+role tsuya_test; URL in Windows user env TEST_DATABASE_URL. test:disposable-db passed (incl. 003/004 forward); printify-webhook + stripe-webhook-safety integration: 17 pass.",
         "testStrategy": "Owner confirms in chat. Later tasks verify with `npm run test:disposable-db`; until then tasks needing a database stay offline-only.",
         "complexity": 1,
         "human": true,
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T20:27:38-05:00"
+      "updated": "2026-11-12T14:56:07-05:00"
     }
   }
 }

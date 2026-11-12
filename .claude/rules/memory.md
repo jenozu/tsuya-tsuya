@@ -29,6 +29,7 @@ Never update it per task.
 - Production: Vercel project tsuya-tsuya; tsuyanouchi.com + www; main = production, PRs get previews.
 - Roadmap state at bootstrap: master_plan.md 67 done / 74 open (from Sept 2026 audits, not re-verified: task 2).
 - Payments: Stripe only, USD only, Adaptive Pricing off. Printify submission code exists (lib/printify*.ts), flag PRINTIFY_ORDERS_ENABLED default off.
+- Test DB: Neon branch test-integration, db/role tsuya_test; TEST_DATABASE_URL in Windows user env (task 4).
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
@@ -55,4 +56,3 @@ Never update it per task.
 - Printify availability: automatic sync or manual toggle? (owner decision 6, task 17)
 - Do M14-004/M14-005/M3-005/M6-006 (pick/pack, stock reconciliation, inventory) still apply to made-to-order? (task 27)
 - Error-monitoring provider for M20-002? (task 36)
-- Is a disposable Neon branch available for integration tests? (task 4)
