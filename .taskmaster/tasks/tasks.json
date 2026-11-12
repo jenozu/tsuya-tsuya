@@ -965,12 +965,12 @@
       {
         "title": "BF: order and shipping emails render; sender from config",
         "description": "Verify order confirmation and shipping email templates render with escaped input; sender address comes from one config value.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "Files: lib/email-templates/, the Resend send helper. Sender read from a server env var (name in ENV_TEMPLATE.md) with no real default; tests/email-*.test.mjs. No live Resend calls. Does not cover task 24's new templates beyond the shipping one if missing.",
+        "details": "Files: lib/email-templates/, the Resend send helper. Sender read from a server env var (name in ENV_TEMPLATE.md) with no real default; tests/email-*.test.mjs. No live Resend calls. Does not cover task 24's new templates beyond the shipping one if missing.\n\n[2026-11-11T20:13:18-05:00] added lib/email-templates/order-shipped.ts + tests/email-shipped.test.mjs (hostile input, from=RESEND_FROM_EMAIL); order template/config already tested. Not wired to a sender (task 24).\n\n[2026-11-11T20:23:07-05:00] done by sonnet; verified PASS, reviewer APPROVE",
         "testStrategy": "npm test --silent && npx tsc --noEmit; tests render order + shipping templates with hostile input escaped and assert the from-address comes from config.",
         "complexity": 4,
         "review": true,
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T20:12:31-05:00"
+      "updated": "2026-11-11T20:23:07-05:00"
     }
   }
 }
