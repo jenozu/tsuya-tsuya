@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 4/51 tasks done.**
+**Progress: 5/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -70,7 +70,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 3 - Printify fulfilment (R15)
 
-- [ ] **16. R15 design: Printify order submission and status sync** _(after 2)_  
+- [x] **16. R15 design: Printify order submission and status sync** _(after 2)_  
   Write the design from Printify's official API documentation before any code.  
   _Test:_ docs/PRINTIFY_FULFILLMENT.md exists with every section above and cites the doc URLs; PRD decision log updated.
 - [ ] **17. Owner: Printify account, credentials and availability decision** **[HUMAN]** _(after 16)_  

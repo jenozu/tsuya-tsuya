@@ -296,12 +296,12 @@
       {
         "title": "R15 design: Printify order submission and status sync",
         "description": "Write the design from Printify's official API documentation before any code.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "PRD R15. Read Printify's current official API docs (developers.printify.com); don't guess endpoints or fields. Produce docs/PRINTIFY_FULFILLMENT.md: auth, order-create fields and idempotency key (Stripe session id as external id), product/variant mapping to our product id + size, failure/retry states, webhook events and signature, rate limits, and what is unknown (mark Needs verification). Add a PRD decision-log entry. No code. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md first.",
+        "details": "PRD R15. Read Printify's current official API docs (developers.printify.com); don't guess endpoints or fields. Produce docs/PRINTIFY_FULFILLMENT.md: auth, order-create fields and idempotency key (Stripe session id as external id), product/variant mapping to our product id + size, failure/retry states, webhook events and signature, rate limits, and what is unknown (mark Needs verification). Add a PRD decision-log entry. No code. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md first.\n\n[2026-11-11T19:47:50-05:00] docs/PRINTIFY_FULFILLMENT.md written from developers.printify.com (sonnet); PRD decision log added; unknowns marked Needs verification\n\n[2026-11-11T19:48:40-05:00] done by sonnet; verified. Facts from single Printify docs page (curl); roadmap ids M14-003,M15-005,M3-005,M6-006,M14-005",
         "testStrategy": "docs/PRINTIFY_FULFILLMENT.md exists with every section above and cites the doc URLs; PRD decision log updated.",
         "complexity": 5,
         "phase": 3,
@@ -992,7 +992,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T19:40:20-05:00"
+      "updated": "2026-11-11T19:48:40-05:00"
     }
   }
 }
