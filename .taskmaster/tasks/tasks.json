@@ -904,10 +904,10 @@
       {
         "title": "Fix 2 failing ci-guard-policy tests (baseline finding from task 1)",
         "description": "npm test fails on tests #40 and #41 in tests/ci-guard-policy.test.mjs on current main.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [],
-        "details": "Tests: 'mandatory critical audit cannot silently be converted to an advisory step' and 'workflow requires least privilege, candidate timeout and retained diagnostics'. Determine whether lib/ci-guard-policy.mjs or the tests/workflow drifted; do not weaken the CI guard.",
+        "details": "Tests: 'mandatory critical audit cannot silently be converted to an advisory step' and 'workflow requires least privilege, candidate timeout and retained diagnostics'. Determine whether lib/ci-guard-policy.mjs or the tests/workflow drifted; do not weaken the CI guard.\n\n[2026-11-11T20:26:10-05:00] Root cause: CRLF in workflow on Windows (autocrlf) broke \\n-based replace fixtures in tests; policy untouched. Normalised CRLF in test loader. npm test + tsc: 0 failures. Negative tests (deleted steps, continue-on-error, write perms) still assert violations.\n\n[2026-11-11T20:27:37-05:00] done by sonnet; verified PASS, reviewer APPROVE (cause: CRLF in test fixtures)",
         "testStrategy": "npm test --silent passes with 0 failures",
         "complexity": 4,
         "review": true,
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T20:25:26-05:00"
+      "updated": "2026-11-11T20:27:38-05:00"
     }
   }
 }

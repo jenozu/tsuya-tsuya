@@ -14,3 +14,4 @@ promote to a task (`tasks.py add` or the `adapt` skill), defer, or delete on pur
 - 2026-11-11: (task 49) after owner text (task 43) remove noindex and add the three pages to sitemap.
 - 2026-11-11: (task 50) add sendOrderShipped in lib/email.ts when task 24 wires the shipped notification.
 - 2026-11-11: (task 51) confirm 'Printify has no sandbox' against Printify docs; migration 003 not covered in runbook.
+- 2026-11-11: (task 46) make lib/ci-guard-policy.mjs regexes tolerate CRLF, or add .gitattributes '*.yml text eol=lf'.

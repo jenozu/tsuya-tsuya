@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 10/51 tasks done.**
+**Progress: 11/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -40,7 +40,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **9. Review dependencies, R2 exposure and preview access** _(after 1)_  
   Record findings for the remaining security-review items.  
   _Test:_ Report logged with counts by severity; each finding became a task or a parking-lot line.
-- [ ] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**  
+- [x] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**  
   npm test fails on tests #40 and #41 in tests/ci-guard-policy.test.mjs on current main.  
   _Test:_ npm test --silent passes with 0 failures
 
