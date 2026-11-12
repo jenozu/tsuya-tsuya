@@ -13,3 +13,4 @@ promote to a task (`tasks.py add` or the `adapt` skill), defer, or delete on pur
 - 2026-11-11: (task 19) add tests/printify-webhook.integration.mjs to infra-guard.yml integration list; admin resubmit action; admin fields for printifyProductId/VariantId per size; owner alert email on needs_attention; submit admin-created pending orders.
 - 2026-11-11: (task 49) after owner text (task 43) remove noindex and add the three pages to sitemap.
 - 2026-11-11: (task 50) add sendOrderShipped in lib/email.ts when task 24 wires the shipped notification.
+- 2026-11-11: (task 51) confirm 'Printify has no sandbox' against Printify docs; migration 003 not covered in runbook.

@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 9/51 tasks done.**
+**Progress: 10/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -200,6 +200,6 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **50. BF: order and shipping emails render; sender from config** _(after 2)_  
   Verify order confirmation and shipping email templates render with escaped input; sender address comes from one config value.  
   _Test:_ npm test --silent && npx tsc --noEmit; tests render order + shipping templates with hostile input escaped and assert the from-address comes from config.
-- [ ] **51. BF: docs/LAUNCH_RUNBOOK.md smoke test** _(after 2)_  
+- [x] **51. BF: docs/LAUNCH_RUNBOOK.md smoke test** _(after 2)_  
   Step-by-step launch smoke test, marking every step that moves real money.  
   _Test:_ docs/LAUNCH_RUNBOOK.md exists; every Stripe live charge/refund and live Printify step carries the marker (grep check); links resolve to existing files.

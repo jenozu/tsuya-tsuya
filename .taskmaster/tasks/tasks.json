@@ -981,12 +981,12 @@
       {
         "title": "BF: docs/LAUNCH_RUNBOOK.md smoke test",
         "description": "Step-by-step launch smoke test, marking every step that moves real money.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "Merge with, don't overwrite, docs/TASK_12_RELEASE_VERIFICATION.md and docs/PENDING_LIVE_VERIFICATION.md (link them). Each step: who, action, expected result; every real-money or live-provider step marked [REAL MONEY] or [LIVE]. Cover the Printify flag, under-construction switch, policy pages, emails.",
+        "details": "Merge with, don't overwrite, docs/TASK_12_RELEASE_VERIFICATION.md and docs/PENDING_LIVE_VERIFICATION.md (link them). Each step: who, action, expected result; every real-money or live-provider step marked [REAL MONEY] or [LIVE]. Cover the Printify flag, under-construction switch, policy pages, emails.\n\n[2026-11-11T20:24:44-05:00] plan (haiku-5.5): docs/LAUNCH_RUNBOOK.md (new) only; links to TASK_12, PENDING_LIVE_VERIFICATION, PRINTIFY_FULFILLMENT, PAYMENT_PATH_REVIEW, DAILY_ORDER_RECOVERY (none edited). Steps: preflight, migration 004, PRINTIFY_ORDERS_ENABLED, under-construction, policy pages, emails, Stripe test smoke, Stripe live smoke [REAL MONEY][LIVE], Printify test order + cancel [REAL MONEY][LIVE], go/no-go, rollback. Env names only, no values.\n\n[2026-11-11T20:24:45-05:00] done: docs/LAUNCH_RUNBOOK.md written. TESTS: exists -> pass; grep markers: 33 [LIVE], 11 [REAL MONEY]; every refund/charge/live-Stripe/live-Printify/redeploy step marked (remaining unmarked rows are owner decisions/approvals, no provider action); links -> all 7 targets exist (ENV_TEMPLATE, PAYMENT_INCIDENT_RESPONSE added as extra link, exists). No secret strings grep-matched. Task not marked done; no commit.\n\n[2026-11-11T20:25:26-05:00] done by haiku; verified PASS",
         "testStrategy": "docs/LAUNCH_RUNBOOK.md exists; every Stripe live charge/refund and live Printify step carries the marker (grep check); links resolve to existing files.",
         "complexity": 3,
         "phase": 8,
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T20:23:07-05:00"
+      "updated": "2026-11-11T20:25:26-05:00"
     }
   }
 }
