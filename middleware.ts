@@ -3,7 +3,9 @@ import type { NextRequest } from 'next/server'
 import { hasAdminSession } from '@/lib/admin-session'
 import { hasPreviewSession } from '@/lib/preview-session'
 
-const UNDER_CONSTRUCTION = process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true'
+import { underConstructionEnabled } from '@/lib/under-construction'
+
+const UNDER_CONSTRUCTION = underConstructionEnabled()
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname

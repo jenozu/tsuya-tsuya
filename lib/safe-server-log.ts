@@ -54,6 +54,11 @@ export const ALLOWED_SERVER_EVENTS: ReadonlySet<string> = new Set([
   'email.owner_notification.configuration_incomplete',
   'email.owner_notification.send_failed',
   'email.owner_notification.sent',
+  'printify.order.submitted',
+  'printify.order.not_claimable',
+  'printify.order.retry_pending',
+  'printify.order.needs_attention',
+  'printify.order.store_failure',
 ])
 
 function emit(level: SafeLevel, event: string): void {

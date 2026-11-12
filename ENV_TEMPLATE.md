@@ -24,6 +24,7 @@ ADMIN_SESSION_SECRET=generate-a-long-random-secret
 
 # Owner preview
 PREVIEW_PASSWORD=choose-a-preview-password
+# Single switch for under-construction mode (lib/under-construction.ts): only 'true' enables; unset = off.
 NEXT_PUBLIC_UNDER_CONSTRUCTION=false
 
 # Email
@@ -47,3 +48,9 @@ SUPPORT_EMAIL=support@your-verified-domain.example
 # NEXT_PUBLIC_SOCIAL_X_URL=https://x.com/YourVerifiedAccount
 # NEXT_PUBLIC_SOCIAL_PINTEREST_URL=https://www.pinterest.com/YourVerifiedAccount/
 # NEXT_PUBLIC_SOCIAL_TUMBLR_URL=https://YourVerifiedAccount.tumblr.com/
+
+# Printify fulfilment (server only; never NEXT_PUBLIC_*). Leave the flag false until the owner approves live orders.
+PRINTIFY_API_TOKEN=
+PRINTIFY_SHOP_ID=
+PRINTIFY_WEBHOOK_SECRET=
+PRINTIFY_ORDERS_ENABLED=false

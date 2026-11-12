@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { CANONICAL_ORIGIN, publicIndexingEnabled } from '@/lib/seo';
+import { underConstructionEnabled } from '@/lib/under-construction';
 import { Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 import { CartProvider } from '@/lib/cart-context';
@@ -13,7 +14,7 @@ const headerFont = Cormorant_Garamond({
 
 const indexingAllowed = publicIndexingEnabled({
   deploymentEnvironment: process.env.VERCEL_ENV,
-  underConstruction: process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true',
+  underConstruction: underConstructionEnabled(),
 });
 
 export const metadata: Metadata = {

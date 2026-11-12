@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Product, Order, ProductSize } from '@/lib/types'
+import type { PrintifyAdminFlag } from '@/lib/printify-store'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { internalAvailabilityCount, productIsPurchasable, purchasableSizes } from '@/lib/product-availability';
 import { generateProductDescription } from '@/services/gemini';
@@ -27,9 +28,10 @@ const COLORS = ['#2D2A26', '#5C5446', '#8C8476', '#CDC6BC', '#8C3F3F', '#5C7C66'
 interface AdminDashboardProps {
   initialProducts: Product[];
   initialOrders: Order[];
+  printifyFlags?: Record<string, PrintifyAdminFlag>;
 }
 
-export function AdminDashboard({ initialProducts, initialOrders }: AdminDashboardProps) {
+export function AdminDashboard({ initialProducts, initialOrders, printifyFlags = {} }: AdminDashboardProps) {
   const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
   const [orders, setOrders] = useState(initialOrders);
@@ -1328,6 +1330,12 @@ export function AdminDashboard({ initialProducts, initialOrders }: AdminDashboar
                           }`}>
                             {order.status}
                           </span>
+                          {printifyFlags[order.order_id] && (
+                            <span className="block mt-1 text-xs text-red-600">
+                              Printify: {printifyFlags[order.order_id].state === 'needs_attention' ? 'needs attention' : 'retry pending'}
+                              {printifyFlags[order.order_id].lastErrorCode ? ` (${printifyFlags[order.order_id].lastErrorCode})` : ''}
+                            </span>
+                          )}
                         </td>
                         <td className="p-4 text-[#786B59] text-sm">
                           {new Date(order.created_at).toLocaleDateString()}

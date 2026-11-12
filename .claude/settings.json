@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "2"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(python .taskmaster/tasks.py *)",
+      "Bash(python3 .taskmaster/tasks.py *)",
+      "Bash(python .taskmaster/render_tasks_md.py)",
+      "Bash(python3 .taskmaster/render_tasks_md.py)",
+      "Bash(python .claude/scripts/devserver.py *)",
+      "Bash(python3 .claude/scripts/devserver.py *)",
+      "Bash(python .claude/scripts/check_harness.py*)",
+      "Bash(python3 .claude/scripts/check_harness.py*)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git ls-files *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git stash *)",
+      "Bash(curl -s *)",
+      "Bash(curl -fsS *)",
+      "Bash(npm run *)",
+      "Bash(npm test *)",
+      "Bash(npm test)",
+      "Bash(npx eslint *)",
+      "Bash(npx tsc *)",
+      "Bash(npm ci *)",
+      "Bash(pg_isready *)",
+      "Bash",
+      "Edit",
+      "Write",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "ask": [
+      "Bash(dropdb *)",
+      "Bash(node scripts/migrate.mjs --init-empty*)",
+      "Bash(stripe *)",
+      "Bash(gh pr merge*)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fdx *)",
+      "Read(./.env)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(~/.ssh/**)",
+      "Bash(rm -rf /*)",
+      "Bash(git push origin main*)",
+      "Bash(git push origin HEAD:main*)",
+      "Bash(vercel --prod*)",
+      "Bash(vercel deploy --prod*)",
+      "Bash(vercel promote*)",
+      "Bash(vercel rollback*)",
+      "Bash(vercel env *)",
+      "Bash(node scripts/migrate.mjs --apply*)",
+      "Bash(node scripts/migrate.mjs --adopt-baseline*)"
+    ]
+  }
+}

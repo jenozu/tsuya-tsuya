@@ -18,3 +18,11 @@ tsconfig.tsbuildinfo
 # Playwright local artifacts
 test-results/
 playwright-report/
+
+# master-harness
+.env.*
+!.env.example
+.claude/settings.local.json
+.claude/deploy-target
+.harness-backup/
+.harness-tmp/

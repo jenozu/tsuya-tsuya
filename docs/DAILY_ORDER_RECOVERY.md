@@ -28,6 +28,15 @@ Customer contact and response-time commitments must use the published, owner-app
 5. Reproduce the missing-order condition using Stripe sandbox plus an isolated test database. Once M11-002/003/004 implement and verify transactional replay, obtain explicit owner authorization to reprocess the specific event. Reconcile result and send only missing notifications.
 6. Close the exception only after the authorized operator and owner agree that the provider and database amounts match, the customer message is not duplicated and one fulfillment record exists. Store the resolution in a private tracker with **redacted references only**.
 
+## Printify submission (only when `PRINTIFY_ORDERS_ENABLED=true`; off by default)
+
+Requires migration 004 (`printify_orders`) applied by the owner first. After a signed, paid `checkout.session.completed` webhook stores the order and sends the emails, the server submits one Printify order keyed on the Stripe Checkout Session id (`external_id`); a repeated event never creates a second one.
+
+- **Retry pending** (admin Orders tab, Printify 5xx/429/network): the webhook answers non-2xx so Stripe redelivers it; the redelivery skips the order and emails (already processed) and retries only Printify. After 5 attempts the row becomes needs attention.
+- **Needs attention** (code shown in admin): `mapping_missing` (the size has no `printifyProductId`/`printifyVariantId`), `validation` (Printify rejected the address or items), `not_found`, `auth`/`config` (token or shop id), or retries exhausted. Check the Printify dashboard for an order with that session id before doing anything; fix the cause there or in the catalog. There is no resubmit button yet: re-queuing a row is a follow-up.
+- Error codes only are stored; Printify's error text can contain the address and is never logged.
+- Needs-attention alert recipient: TBD owner (today the admin flag is the only signal).
+
 ## Hand-off / operational records
 
 Use a restricted private operations tracker with: UTC review time, redacted order reference, verified settled amount/currency, product and size count, fulfillment status, shipping handoff reference, exception owner and last verified reconciliation time. Do not commit this tracker, addresses, financial reports or customer communications to this repository.

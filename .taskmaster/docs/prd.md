@@ -119,3 +119,23 @@ These block launch and must not be decided by an engineer or an AI agent.
 - This draft describes the **custom Next.js store in this repository**. The owner confirmed this is their own custom site (not Shopify), using Stripe for payments.
 - The roadmap status (about 67 checklist items done and 74 open at the time of reading) comes from the repository's September 2026 audits. It has not been re-verified against the current `main` or production.
 - Printify is named as the fulfilment provider, but the repository contains no Printify API integration; R15 defines it as new work.
+
+## 12. Decision log
+
+| Date | Decision |
+|---|---|
+| 2026-11-10 | PRD adopted for build. The owner's draft stays the source of truth; `master_plan.md` remains the roadmap and is not duplicated in `.taskmaster/tasks/tasks.json`, which only groups work and cites roadmap ids. |
+| 2026-11-10 | master-harness v1.3.1 installed. Work happens on topic branches and PRs; `main` is production on Vercel and is never committed to directly. |
+| 2026-11-10 | Setup defaults: npm kept; deployment is Vercel (`tsuyanouchi.com`); Stripe only, USD only, Adaptive Pricing off; agent permissions open with the execution-plan hard stops denied in `.claude/settings.json`. |
+| 2026-11-10 | R15 (Printify order submission) added to the plan as new work in phase 3. Printify availability sync vs manual toggle is still an owner decision (section 9, item 6). |
+| 2026-11-11 | Owner: lean Black Friday launch. New phase 8 (tasks 47-51: payment-path review, single under-construction setting, policy scaffolding with [OWNER TO SUPPLY] placeholders, email render + configurable sender, docs/LAUNCH_RUNBOOK.md) runs ahead of phases 1-7, together with R15 tasks 16/18/19 and task 46. R15 ships behind PRINTIFY_ORDERS_ENABLED, off by default, mock-tested only; ledger task 10 is no longer a prerequisite for 18 (idempotency via a unique printify_orders row per Stripe session). Goals and non-goals unchanged; hard stops unchanged. |
+| 2026-11-11 | R15 design written from Printify's official docs: `docs/PRINTIFY_FULFILLMENT.md`. Stripe Checkout Session id is the Printify order `external_id` (409 = already submitted, treated as success); submission only after the signature-verified Stripe webhook; status via signed Printify webhook (`X-Pfy-Signature`, HMAC-SHA256) plus polling fallback; mapping stored in the existing JSONB sizes; behind a flag. Owner items stay TBD (approval mode, availability sync, alert recipient, account setup). |
+
+## 13. Open questions (TBD)
+
+- TBD: PRD approval by the owner (task 3).
+- TBD: Printify availability: automatic sync or manual toggle (task 17).
+- TBD: whether M3-005, M6-006, M14-004 and M14-005 apply to a made-to-order model (task 27).
+- TBD: error-monitoring provider (task 36).
+
+- 2026-11-11 (task 2): master_plan.md re-counted against main (134 commits, PRs through #55): 67 `[x]` done / 74 `[ ]` open, so the snapshot above was correct. No boxes were ticked: every open item with merged work (M8-004 #18, M9-005 #22, M9-006 #45, M17-004 #17/#46, M18-003 #42/#43, M18-005 #38/#44, M3-006/M11-002..004 #47) already carries a "Partial evidence" note listing the unmet criterion. Details in the task 2 log.

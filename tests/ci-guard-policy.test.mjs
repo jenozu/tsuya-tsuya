@@ -7,7 +7,8 @@ import {
   knownConfigurationWarnings,
 } from '../lib/ci-guard-policy.mjs'
 
-const source = file => fs.readFileSync(file, 'utf8')
+// Normalise CRLF (Windows autocrlf checkouts) so \n-based fixtures match.
+const source = file => fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
 const workflow = source('.github/workflows/infra-guard.yml')
 const withChangedFile = (name, change) =>
   file => file === name ? change(source(file)) : source(file)
