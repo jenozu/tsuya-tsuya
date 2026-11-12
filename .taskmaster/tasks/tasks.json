@@ -418,12 +418,12 @@
       {
         "title": "Submit the order after verified Stripe payment, idempotently",
         "description": "Create the Printify order from the webhook path only after payment is confirmed; retry safely.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           18
         ],
-        "details": "Hook into app/api/webhooks/stripe/route.ts through the ledger so an event is processed once. Idempotent on the Stripe session id; persist the Printify order id; a failure sets a retryable state and an admin-visible flag, and never blocks the customer confirmation email; never submit from the browser or for unpaid sessions. Use the lib/printify client with mocks only. [adapt 2026-11-11] Behind PRINTIFY_ORDERS_ENABLED (default off: webhook behaviour unchanged when off). Until task 10 lands, idempotency is the printify_orders unique constraint, not the ledger. Unit tests with mocks may stand in for integration tests if no test DB exists (task 4); note it in the log.",
+        "details": "Hook into app/api/webhooks/stripe/route.ts through the ledger so an event is processed once. Idempotent on the Stripe session id; persist the Printify order id; a failure sets a retryable state and an admin-visible flag, and never blocks the customer confirmation email; never submit from the browser or for unpaid sessions. Use the lib/printify client with mocks only. [adapt 2026-11-11] Behind PRINTIFY_ORDERS_ENABLED (default off: webhook behaviour unchanged when off). Until task 10 lands, idempotency is the printify_orders unique constraint, not the ledger. Unit tests with mocks may stand in for integration tests if no test DB exists (task 4); note it in the log.\n\n[2026-11-11T20:02:46-05:00] plan (opus): lib/printify-fulfillment.ts (submit logic, DI store), lib/printify-store.ts (Postgres store: ensure/claim/markSubmitted/markFailed/productSizes/admin flags), webhook route calls it after emails when PRINTIFY_ORDERS_ENABLED (also on already_processed redelivery); retryable failure -> state pending + webhook 500 so Stripe redelivers (order/email skipped as already_processed); admin page shows flags; tests with in-memory store fixture (no test DB, task 4).\n\n[2026-11-11T20:07:59-05:00] built (opus): all subtasks. npm test 158 pass / 2 fail (baseline 40/41 ci-guard-policy); route integration suite incl. new file 56/56; tsc 0; lint 0 errors; npm run build ok. Flag off: no store/fetch use (tested for unset/''/false/1/TRUE). Needs migration 004 applied before enabling (else store errors -> webhook 500 retries). Not applied anywhere.\n\n[2026-11-11T20:10:11-05:00] done by opus; verified PASS (158 pass, baseline 40/41 only; integration 7/7 with loader), reviewer APPROVE",
         "testStrategy": "New integration tests: paid -> one Printify order; duplicate event -> still one; Printify 5xx -> retry state, then success; unpaid -> none; captured logs contain no customer data.",
         "complexity": 8,
         "review": true,
@@ -433,9 +433,9 @@
           {
             "title": "Wire submission into the webhook path",
             "description": "Call it after payment confirmation.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: webhook route, a lib helper.",
+            "details": "Files: webhook route, a lib helper.\n\n[2026-11-11T20:07:58-05:00] built (opus): app/api/webhooks/stripe/route.ts calls submitPaidOrderToPrintify (lib/printify-fulfillment.ts) after the paid order + emails, also on already_processed redelivery; flag-gated (isPrintifyOrdersEnabled). lib/printify-store.ts = Postgres store (ensure ON CONFLICT DO NOTHING, conditional UPDATE claim with 2 min lease). Mapping decision: per catalog size record printifyProductId + printifyVariantId in JSONB sizes (no migration); missing -> needs_attention mapping_missing. Admin-created pending orders paid via payment_intent.succeeded existing-order branch are NOT submitted (no session id there). Test: paid -> one mock order passes.",
             "testStrategy": "A paid-session test creates exactly one mock order.",
             "complexity": 6,
             "id": 1
@@ -443,9 +443,9 @@
           {
             "title": "Retry and failure handling with admin visibility",
             "description": "A retryable state and an admin-visible failure flag.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: app/admin/admin-client.tsx (minimal), lib helper, docs/DAILY_ORDER_RECOVERY.md (merge).",
+            "details": "Files: app/admin/admin-client.tsx (minimal), lib helper, docs/DAILY_ORDER_RECOVERY.md (merge).\n\n[2026-11-11T20:07:59-05:00] built (opus): retryable (5xx/429/network/timeout) -> state pending + last_error_code, webhook throws -> 500 so Stripe redelivers (order/email skipped as already_processed), max 5 attempts then needs_attention; non-retryable/config/mapping -> needs_attention, webhook 200. Admin: app/admin/page.tsx loads getPrintifyAdminFlags only with flag on; admin-client.tsx shows 'Printify: needs attention/retry pending (code)' under status. docs/DAILY_ORDER_RECOVERY.md section merged. TBD owner: needs_attention alert recipient (constant comment in lib/printify-fulfillment.ts); shipping method stays standard (1) per design; no resubmit button (follow-up).",
             "testStrategy": "A failure test sets the state; a retry test succeeds once.",
             "complexity": 6,
             "id": 2
@@ -453,9 +453,9 @@
           {
             "title": "Idempotency and redaction tests",
             "description": "Prove no duplicates and no customer data in logs.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: tests/printify-*.integration.mjs.",
+            "details": "Files: tests/printify-*.integration.mjs.\n\n[2026-11-11T20:07:59-05:00] built (opus): tests/printify-fulfillment.test.mjs (11 unit tests, in npm test) + tests/printify-webhook.integration.mjs (7 route tests via admin-route-loader; NOT yet in .github/workflows/infra-guard.yml list - Risky path, left for owner/reviewer) with tests/fixtures/mock-printify-store.mjs. No test DB (task 4): in-memory store fake stands in; PostgreSQL row-lock concurrency is asserted only by a source check of the conditional UPDATE. Concurrent-duplicate and log-capture PII assertions pass.",
             "testStrategy": "The concurrent-duplicate test and the log-capture assertion pass.",
             "complexity": 5,
             "id": 3
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T19:58:43-05:00"
+      "updated": "2026-11-11T20:10:11-05:00"
     }
   }
 }

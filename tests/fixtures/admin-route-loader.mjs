@@ -14,6 +14,9 @@ export async function resolve(specifier, context, nextResolve) {
   if (specifier === '@/lib/email') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-email.mjs')).href, shortCircuit: true }
   }
+  if (specifier === '@/lib/printify-store') {
+    return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-printify-store.mjs')).href, shortCircuit: true }
+  }
   if (specifier === 'next/headers') {
     return { url: pathToFileURL(path.join(root, 'tests/fixtures/mock-next-headers.mjs')).href, shortCircuit: true }
   }

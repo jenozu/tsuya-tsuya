@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 6/51 tasks done.**
+**Progress: 7/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -86,12 +86,12 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   - [x] 18.5 Forward migration 004_printify_orders (written and checked, never applied)
   - [x] 18.6 Typed Printify client: createOrder with mock fetch and error mapping
   - [x] 18.7 Client getOrder plus task-level checks
-- [ ] **19. Submit the order after verified Stripe payment, idempotently** _(after 18)_  
+- [x] **19. Submit the order after verified Stripe payment, idempotently** _(after 18)_  
   Create the Printify order from the webhook path only after payment is confirmed; retry safely.  
   _Test:_ New integration tests: paid -> one Printify order; duplicate event -> still one; Printify 5xx -> retry state, then success; unpaid -> none; captured logs contain no customer data.
-  - [ ] 19.1 Wire submission into the webhook path
-  - [ ] 19.2 Retry and failure handling with admin visibility
-  - [ ] 19.3 Idempotency and redaction tests
+  - [x] 19.1 Wire submission into the webhook path
+  - [x] 19.2 Retry and failure handling with admin visibility
+  - [x] 19.3 Idempotency and redaction tests
 - [ ] **20. Printify status and tracking sync to the order and customer email** _(after 19)_  
   Receive Printify status/tracking and reflect it on the order and in a shipped email.  
   _Test:_ A signed-event fixture test updates the order and sends exactly one email; an unsigned or tampered event is rejected; tests green.

@@ -6,8 +6,21 @@ import { reportServerError, reportServerInfo } from '@/lib/safe-server-log'
 import { verifyWebhookSignature, stripe } from '@/lib/stripe'
 import { getOrder, createOrder, markUnpaidOrderPaymentState, markExistingOrderPaidForIntent } from '@/lib/data'
 import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
+import type { Order } from '@/lib/types'
+import { isPrintifyOrdersEnabled } from '@/lib/printify-config'
+import { submitPaidOrderToPrintify } from '@/lib/printify-fulfillment'
+import { printifyStore } from '@/lib/printify-store'
 
 export const runtime = 'nodejs'
+
+// R15: off unless PRINTIFY_ORDERS_ENABLED=true. Runs after the paid order and emails, so it never blocks them.
+// A retryable failure answers non-2xx so Stripe redelivers; the redelivery skips order/email work (already
+// processed) and only retries the claimable Printify row. printify_orders keys it on the session id.
+async function submitToPrintify(order: Order, sessionId: string) {
+  if (!isPrintifyOrdersEnabled()) return
+  const outcome = await submitPaidOrderToPrintify(order, sessionId, printifyStore)
+  if (outcome === 'retry_pending' || outcome === 'error') throw new Error('Printify submission will be retried')
+}
 
 async function processCompletedCheckoutSession(sessionId: string) {
   const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
@@ -78,6 +91,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
       existing?.payment_status === 'refunded' ||
       existing?.payment_status === 'partially_refunded') {
     reportServerInfo('stripe.checkout.already_processed')
+    await submitToPrintify(existing, session.id)
     return 'already_processed' as const
   }
 
@@ -167,6 +181,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
   const notificationSent = await sendOrderNotification(orderId, created)
 
   reportServerInfo(confirmationSent && notificationSent ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
+  await submitToPrintify(created, session.id)
   return 'processed' as const
 }
 
