@@ -24,6 +24,7 @@ ADMIN_SESSION_SECRET=generate-a-long-random-secret
 
 # Owner preview
 PREVIEW_PASSWORD=choose-a-preview-password
+# Single switch for under-construction mode (lib/under-construction.ts): only 'true' enables; unset = off.
 NEXT_PUBLIC_UNDER_CONSTRUCTION=false
 
 # Email

@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next'
 import { CANONICAL_ORIGIN, publicIndexingEnabled } from '@/lib/seo'
+import { underConstructionEnabled } from '@/lib/under-construction'
 
 export const dynamic = 'force-dynamic'
 
 export default function robots(): MetadataRoute.Robots {
   const shouldIndex = publicIndexingEnabled({
     deploymentEnvironment: process.env.VERCEL_ENV,
-    underConstruction: process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true',
+    underConstruction: underConstructionEnabled(),
   })
   if (!shouldIndex) return { rules: [{ userAgent: '*', disallow: '/' }] }
 

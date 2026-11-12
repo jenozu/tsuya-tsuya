@@ -890,12 +890,12 @@
       {
         "title": "BF: one setting controls under-construction mode",
         "description": "A single server-side setting decides whether the storefront shows under-construction.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "Today the logic touches middleware.ts, app/layout.tsx, app/robots.ts, app/sitemap.ts, app/under-construction/page.tsx. Consolidate to one helper reading one env var (name it in ENV_TEMPLATE.md, names only; keep current production behaviour as the default when unset). Do not change Vercel env values.",
+        "details": "Today the logic touches middleware.ts, app/layout.tsx, app/robots.ts, app/sitemap.ts, app/under-construction/page.tsx. Consolidate to one helper reading one env var (name it in ENV_TEMPLATE.md, names only; keep current production behaviour as the default when unset). Do not change Vercel env values.\n\n[2026-11-11T19:40:20-05:00] done by sonnet; verified, reviewer APPROVE. Note: var keeps NEXT_PUBLIC_ name (no Vercel change)",
         "testStrategy": "npm test --silent && npx tsc --noEmit; new unit test covers on/off/unset; git grep shows every under-construction decision routes through the one helper.",
         "complexity": 4,
         "review": true,
@@ -992,7 +992,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T19:38:06-05:00"
+      "updated": "2026-11-11T19:40:20-05:00"
     }
   }
 }

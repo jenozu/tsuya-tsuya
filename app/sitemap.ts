@@ -5,13 +5,14 @@ import {
   productCanonicalUrl,
   publicIndexingEnabled,
 } from '@/lib/seo'
+import { underConstructionEnabled } from '@/lib/under-construction'
 
 export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!publicIndexingEnabled({
     deploymentEnvironment: process.env.VERCEL_ENV,
-    underConstruction: process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true',
+    underConstruction: underConstructionEnabled(),
   })) return []
 
   const products = await getProducts()
