@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 5/51 tasks done.**
+**Progress: 6/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -76,12 +76,16 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **17. Owner: Printify account, credentials and availability decision** **[HUMAN]** _(after 16)_  
   Provide what only the owner can.  
   _Test:_ Owner confirms the decision and that the variables exist by NAME in Vercel preview; the agent records the decision in the PRD log.
-- [ ] **18. Printify config, schema and client (mock-tested)** _(after 16)_  
+- [x] **18. Printify config, schema and client (mock-tested)** _(after 16)_  
   Server-only config, an additive table for Printify orders, and a typed client.  
   _Test:_ New unit tests pass with the mock; `npx tsc --noEmit`; `npm run migrations:check`; `git grep NEXT_PUBLIC_PRINTIFY` finds nothing.
-  - [ ] 18.1 Config module and env template names
-  - [ ] 18.2 Additive printify_orders migration
-  - [ ] 18.3 Typed client with mock and error mapping
+  - [~] 18.1 Config module and env template names
+  - [~] 18.2 Additive printify_orders migration
+  - [~] 18.3 Typed client with mock and error mapping
+  - [x] 18.4 Printify server config, flag and env template names
+  - [x] 18.5 Forward migration 004_printify_orders (written and checked, never applied)
+  - [x] 18.6 Typed Printify client: createOrder with mock fetch and error mapping
+  - [x] 18.7 Client getOrder plus task-level checks
 - [ ] **19. Submit the order after verified Stripe payment, idempotently** _(after 18)_  
   Create the Printify order from the webhook path only after payment is confirmed; retry safely.  
   _Test:_ New integration tests: paid -> one Printify order; duplicate event -> still one; Printify 5xx -> retry state, then success; unpaid -> none; captured logs contain no customer data.

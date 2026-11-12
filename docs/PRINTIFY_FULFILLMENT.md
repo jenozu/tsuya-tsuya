@@ -7,7 +7,7 @@ Design only (task 16). No code, no live Printify calls, no credentials were used
 - Tokens are shown once and expire after one year: owner must rotate yearly (calendar reminder).
 - Every request must send a `User-Agent` header (client type or app name; use `TsuyaNoUchi`).
 - Base URL: `https://api.printify.com/v1/`. Order/webhook endpoints need `{shop_id}` (from `GET /v1/shops.json`).
-- Env vars, server only, never `NEXT_PUBLIC_*`: `PRINTIFY_API_TOKEN`, `PRINTIFY_SHOP_ID`, `PRINTIFY_WEBHOOK_SECRET`, and a feature flag (proposed `PRINTIFY_FULFILLMENT_ENABLED`, default off). The build task adds the names to ENV_TEMPLATE.md.
+- Env vars, server only, never `NEXT_PUBLIC_*`: `PRINTIFY_API_TOKEN`, `PRINTIFY_SHOP_ID`, `PRINTIFY_WEBHOOK_SECRET`, and the feature flag `PRINTIFY_ORDERS_ENABLED` (default off; only the exact value `true` enables it). The build task adds the names to ENV_TEMPLATE.md.
 - OAuth 2.0 is for multi-merchant platforms: not needed.
 
 ## 2. Order submission

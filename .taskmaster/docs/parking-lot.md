@@ -7,3 +7,5 @@ promote to a task (`tasks.py add` or the `adapt` skill), defer, or delete on pur
 - 2026-11-11: audit the other 63 checked [x] items in master_plan.md for evidence (from task 2); Printify R15 has no master_plan id.
 - 2026-11-11: remove unused createPaymentIntent/updatePaymentIntent in lib/stripe.ts (from task 47)
 - 2026-11-11: task 16 evidence ids (no boxes ticked): TSU-M14-003, TSU-M15-005, TSU-M3-005, TSU-M6-006, TSU-M14-005. Owner decisions listed in docs/PRINTIFY_FULFILLMENT.md s9; Printify auto-approval risk: order may go to production before owner ready.
+- 2026-11-11: Printify 409/8503 duplicate response body shape unverified; check against docs/sandbox before go-live (lib/printify.ts tolerant parsing)
+- 2026-11-11: lib/printify.ts hardcodes shipping_method:1 and send_shipping_notification:false; confirm against Printify docs / owner before go-live (task 19/20). Also replace 'any' with unknown in printify.ts readJson/providerCodeOf/existingIdOf.

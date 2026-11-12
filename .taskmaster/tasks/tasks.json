@@ -327,12 +327,12 @@
       {
         "title": "Printify config, schema and client (mock-tested)",
         "description": "Server-only config, an additive table for Printify orders, and a typed client.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           16
         ],
-        "details": "Files: lib/printify-config.ts (validated server env; never NEXT_PUBLIC), lib/printify.ts (client), migrations/forward/00N_printify_orders.json (our order id, Printify order id, state, attempts, timestamps; unique per Stripe session), tests with tests/fixtures/mock-printify.mjs, names added to ENV_TEMPLATE.md (names only). No live calls. [adapt 2026-11-11] Ledger task 10 dropped as a dep: idempotency comes from printify_orders unique per Stripe session. Add PRINTIFY_ORDERS_ENABLED (server env, default off). Migration file is written and checked only; never applied.",
+        "details": "Files: lib/printify-config.ts (validated server env; never NEXT_PUBLIC), lib/printify.ts (client), migrations/forward/00N_printify_orders.json (our order id, Printify order id, state, attempts, timestamps; unique per Stripe session), tests with tests/fixtures/mock-printify.mjs, names added to ENV_TEMPLATE.md (names only). No live calls. [adapt 2026-11-11] Ledger task 10 dropped as a dep: idempotency comes from printify_orders unique per Stripe session. Add PRINTIFY_ORDERS_ENABLED (server env, default off). Migration file is written and checked only; never applied.\n\n[2026-11-11T19:50:42-05:00] split (opus): 18.1-18.3 were title-only stubs, cancelled; replaced by detailed 18.4 config+env (c3), 18.5 migration 004_printify_orders written/checked only (c4), 18.6 createOrder client+mock+tests (c5, dep 18.4), 18.7 getOrder + task-level checks (c3, dep 18.6). Flag name PRINTIFY_ORDERS_ENABLED per adapt decision; design doc name to be aligned in 18.4.\n\n[2026-11-11T19:58:43-05:00] done (subtasks 18.4-18.7: haiku/opus/sonnet/haiku); verified, reviewer APPROVE. Migration 004 written/checked, never applied.",
         "testStrategy": "New unit tests pass with the mock; `npx tsc --noEmit`; `npm run migrations:check`; `git grep NEXT_PUBLIC_PRINTIFY` finds nothing.",
         "complexity": 7,
         "review": true,
@@ -342,7 +342,7 @@
           {
             "title": "Config module and env template names",
             "description": "Validated server env.",
-            "status": "pending",
+            "status": "cancelled",
             "dependencies": [],
             "details": "Files: lib/printify-config.ts, ENV_TEMPLATE.md (names only).",
             "testStrategy": "Unit test: a missing variable throws and no value is logged.",
@@ -352,7 +352,7 @@
           {
             "title": "Additive printify_orders migration",
             "description": "Schema with uniqueness per Stripe session.",
-            "status": "pending",
+            "status": "cancelled",
             "dependencies": [],
             "details": "File: migrations/forward/00N_printify_orders.json.",
             "testStrategy": "`npm run migrations:check` passes; tests/migration-plan.test.mjs updated.",
@@ -362,12 +362,56 @@
           {
             "title": "Typed client with mock and error mapping",
             "description": "Create-order and get-order calls; errors mapped without raw provider text.",
-            "status": "pending",
+            "status": "cancelled",
             "dependencies": [],
             "details": "Files: lib/printify.ts, tests/fixtures/mock-printify.mjs, tests.",
             "testStrategy": "Mock tests cover success, 4xx, 5xx and timeout.",
             "complexity": 5,
             "id": 3
+          },
+          {
+            "title": "Printify server config, flag and env template names",
+            "description": "Validated server-only Printify env with PRINTIFY_ORDERS_ENABLED default off.",
+            "status": "done",
+            "dependencies": [],
+            "details": "Files: lib/printify-config.ts (new), ENV_TEMPLATE.md (append names only), docs/PRINTIFY_FULFILLMENT.md section 1 (replace proposed flag name PRINTIFY_FULFILLMENT_ENABLED with PRINTIFY_ORDERS_ENABLED per the 2026-11-11 adapt decision), tests/printify-config.test.mjs (new). Env names: PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET, PRINTIFY_ORDERS_ENABLED. Exports: isPrintifyOrdersEnabled() is true only when PRINTIFY_ORDERS_ENABLED is exactly the string true (unset, empty, 1, yes, TRUE all mean off). getPrintifyConfig() returns { apiToken, shopId } trimmed; throws an Error naming the missing variable (never its value) when token or shop id is missing or blank; read process.env at call time, not module load, so the build and tests need no secrets. Webhook secret getter is separate (used by task 20), same rules. Style: follow lib/email-config.ts (plain process.env reads, no new dependency; Zod only if it stays shorter). ENV_TEMPLATE.md: add a Printify block with empty placeholders and PRINTIFY_ORDERS_ENABLED=false; never NEXT_PUBLIC_. No network, no logging of values.\n\n[2026-11-11T19:51:30-05:00] plan (haiku-5.5): lib/printify-config.ts (new), tests/printify-config.test.mjs (new), ENV_TEMPLATE.md (append Printify names), docs/PRINTIFY_FULFILLMENT.md sec 1 (flag rename) - plain process.env reads at call time, exact 'true' flag match, trimmed getters, errors name the variable only\n\n[2026-11-11T19:52:11-05:00] built (haiku-5.5): lib/printify-config.ts (isPrintifyOrdersEnabled, getPrintifyConfig, getPrintifyWebhookSecret), tests/printify-config.test.mjs (3 tests pass alone), ENV_TEMPLATE.md Printify block (empty placeholders, PRINTIFY_ORDERS_ENABLED=false), docs/PRINTIFY_FULFILLMENT.md sec 1 flag renamed. tsc --noEmit exit 0. Full npm test: 3 failures outside this change: #40/#41 tests/ci-guard-policy.test.mjs (CI workflow guard), #66 tests/migration-cli.test.mjs (expects 004_printify_orders; concurrent 004 builder's files). git grep NEXT_PUBLIC_PRINTIFY: no code hits; only hits are the testStrategy text in tasks.json/TASKS.md.\n\n[2026-11-11T19:53:43-05:00] done; verified (only baseline failures 40/41 remain)",
+            "testStrategy": "npm test --silent (tests/printify-config.test.mjs: flag off when unset/empty/1/TRUE, on only for true; missing token or shop id throws and the message contains the variable name but not any set value; whitespace trimmed); npx tsc --noEmit; git grep -n NEXT_PUBLIC_PRINTIFY returns nothing.",
+            "complexity": 3,
+            "id": 4
+          },
+          {
+            "title": "Forward migration 004_printify_orders (written and checked, never applied)",
+            "description": "Additive printify_orders table, one row per order, unique per Stripe Checkout Session.",
+            "status": "done",
+            "dependencies": [],
+            "details": "Files: migrations/forward/004_printify_orders.json (new; same shape as 003_payment_delivery_foundation.json: {id, statements[]}), tests/printify-orders-migration.test.mjs (new, modeled on tests/payment-ledger-migration.test.mjs). Read .claude/skills/db-migration/SKILL.md first if present. Table public.printify_orders: order_id TEXT PRIMARY KEY REFERENCES public.orders (order_id) ON DELETE RESTRICT; stripe_checkout_session_id TEXT NOT NULL UNIQUE CHECK (char_length BETWEEN 1 AND 255) (orders has no session column today, so this is the idempotency key); printify_order_id TEXT UNIQUE (null until submitted); state TEXT NOT NULL DEFAULT pending CHECK IN (pending, submitting, submitted, in_production, shipped, delivered, canceled, needs_attention) per docs/PRINTIFY_FULFILLMENT.md section 5; attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0); claim_expires_at TIMESTAMPTZ; last_error_code TEXT (code only, never provider text); submitted_at TIMESTAMPTZ; created_at/updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(). One partial index idx_printify_orders_due ON public.printify_orders (state, claim_expires_at) WHERE state IN (pending, submitting, submitted) for the retry sweep and stuck-order poll. Only CREATE TABLE IF NOT EXISTS / CREATE INDEX IF NOT EXISTS; no ALTER/DROP/UPDATE/DELETE; do not touch 003 or orders. Hard stop: never run scripts/migrate.mjs --apply or anything with DATABASE_URL; applying is a human step.\n\n[2026-11-11T19:51:33-05:00] plan (opus): migrations/forward/004_printify_orders.json (new), tests/printify-orders-migration.test.mjs (new), tests/migration-cli.test.mjs (add 004 to expected list), migrations/README.md (short section) - additive CREATE TABLE/INDEX IF NOT EXISTS only; never applied\n\n[2026-11-11T19:52:26-05:00] built 004_printify_orders.json (1 table + 1 partial index, additive only), tests/printify-orders-migration.test.mjs, added 004 to tests/migration-cli.test.mjs expected list, README section. migrations:check lists 004 after 003 with checksum; migration tests 7/7 pass. Full npm test 130 pass / 2 fail, both in tests/ci-guard-policy.test.mjs (synthetic workflow assertions, untouched by this task, unrelated). Never applied; no DATABASE_URL used.\n\n[2026-11-11T19:53:44-05:00] done; verified (only baseline failures 40/41 remain)",
+            "testStrategy": "npm run migrations:check lists 004_printify_orders after 003 with a checksum; npm test --silent (tests/printify-orders-migration.test.mjs: statements are additive-only, session id column is NOT NULL UNIQUE, state CHECK lists exactly the 8 states, order_id references public.orders, planMigrations accepts it after the baseline and 003); tests/migration-plan.test.mjs still passes.",
+            "complexity": 4,
+            "id": 5
+          },
+          {
+            "title": "Typed Printify client: createOrder with mock fetch and error mapping",
+            "description": "POST order with external_id = Stripe session id; 409/8503 treated as success; errors mapped to codes without provider text.",
+            "status": "done",
+            "dependencies": [
+              4
+            ],
+            "details": "Files: lib/printify.ts (new), tests/fixtures/mock-printify.mjs (new; scripted fake fetch that records calls, like tests/fixtures/mock-stripe.mjs; no network), tests/printify-client.test.mjs (new). Use global fetch with an injectable fetch parameter for tests; no SDK, no new dependency. Base https://api.printify.com/v1/, endpoint POST shops/{shop_id}/orders.json; headers Authorization: Bearer <token>, User-Agent: TsuyaNoUchi, Content-Type: application/json; timeout via AbortSignal.timeout (e.g. 15s). Config from lib/printify-config.ts (subtask 18.4). Input type: externalId (cs_ session id), label, lineItems [{productId: string, variantId: number, quantity, externalId}], shippingMethod fixed 1, sendShippingNotification false, addressTo fields per docs/PRINTIFY_FULFILLMENT.md section 2. Result union: {ok:true, printifyOrderId, duplicate:boolean} or {ok:false, code: validation|not_found|ineligible|auth|rate_limited|server|network|timeout, retryable:boolean, providerCode?:number, retryAfterSeconds?:number}. Mapping per design section 5: 2xx -> ok with body.id; 409 with code 8503 -> ok duplicate:true with the existing id read from the body (shape Needs verification: tolerate missing id -> ok:false code server retryable false and note it); 400 -> validation; 401/403 -> auth; 404 -> not_found; 422 -> ineligible (all not retryable); 429 -> rate_limited retryable, parse Retry-After if present; 5xx -> server retryable; fetch throw -> network retryable; abort -> timeout retryable. Never include response text, address or email in errors, thrown messages or logs (use lib/safe-server-log.ts if logging at all). The client does not check PRINTIFY_ORDERS_ENABLED; the caller (task 19) does. No live calls in tests or anywhere.\n\n[2026-11-11T19:55:36-05:00] built lib/printify.ts createOrder, mock fetch fixture, 12 tests pass; tsc clean\n\n[2026-11-11T19:55:51-05:00] done by sonnet; verified at parent level",
+            "testStrategy": "npm test --silent (tests/printify-client.test.mjs with the mock: request URL, method, headers and external_id are correct; success returns id; 409/8503 returns duplicate with existing id; 400, 404, 422 not retryable; 429 retryable with Retry-After; 500 retryable; thrown fetch -> network; aborted -> timeout; serialized results and any captured console output contain no address/email from the fixture); npx tsc --noEmit.",
+            "complexity": 5,
+            "id": 6
+          },
+          {
+            "title": "Client getOrder plus task-level checks",
+            "description": "Typed read of a Printify order for later status sync; run the full task 18 test strategy.",
+            "status": "done",
+            "dependencies": [
+              6
+            ],
+            "details": "Files: lib/printify.ts (add getOrder), tests/fixtures/mock-printify.mjs, tests/printify-client.test.mjs. getOrder(printifyOrderId) -> GET shops/{shop_id}/orders/{id}.json, same headers/timeout/error mapping as createOrder; returns {ok:true, order:{id, status (raw Printify string, no mapping here: state mapping is task 20), lineItems:[{status}], shipments:[{carrier, number, url, deliveredAt}]}} with only those fields picked (drop address and customer fields from the parsed body). Then run the parent testStrategy end to end and log results on task 18. Do not wire anything into app/api (that is task 19).\n\n[2026-11-11T19:56:06-05:00] plan (haiku): lib/printify.ts (getOrder; factor non-409 status->error mapping out of createOrder unchanged), tests/fixtures/mock-printify.mjs (no change expected), tests/printify-client.test.mjs (getOrder tests) - GET shops/{shop}/orders/{id}.json, same headers/timeout, pick-only fields, unknown-narrowing parse\n\n[2026-11-11T19:57:14-05:00] built (haiku): lib/printify.ts - added getOrder (GET shops/{shop}/orders/{id}.json, same timeout/network mapping), pickOrder with unknown-narrowing (keeps id,status,line_items[].status, shipments carrier/number/url/delivered_at->deliveredAt; drops address_to and all other fields); factored non-409 status mapping into failFromStatus (behaviour unchanged). tests/printify-client.test.mjs: 5 getOrder tests. Results: npm test 147 pass / 2 fail (40,41 baseline only); tsc exit 0; lint 0 errors (37 pre-existing warnings, none in printify files); migrations:check exit 0 (004 listed); git grep NEXT_PUBLIC_PRINTIFY code hits none (only testStrategy text in tasks.json/TASKS.md).\n\n[2026-11-11T19:58:43-05:00] done by haiku; verified",
+            "testStrategy": "npm test --silent (getOrder: success picks only the listed fields and drops address_to; 404 -> not_found; 500 -> server retryable); npx tsc --noEmit; npm run migrations:check; git grep -n NEXT_PUBLIC_PRINTIFY finds nothing; npm run lint --silent.",
+            "complexity": 3,
+            "id": 7
           }
         ]
       },
@@ -992,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T19:48:40-05:00"
+      "updated": "2026-11-11T19:58:43-05:00"
     }
   }
 }
