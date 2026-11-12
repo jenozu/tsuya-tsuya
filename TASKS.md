@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 11/51 tasks done.**
+**Progress: 12/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -16,7 +16,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **3. Owner: review and approve the PRD** **[HUMAN]**  
   The PRD is a DRAFT generated from the repo docs; the plan is only as good as it is.  
   _Test:_ PRD Status line no longer says DRAFT and the decision log has a dated 'approved' entry.
-- [ ] **4. Owner: provide isolated test resources** **[HUMAN]**  
+- [x] **4. Owner: provide isolated test resources** **[HUMAN]**  
   Integration tests need a disposable database; agents must never touch production.  
   _Test:_ Owner confirms in chat. Later tasks verify with `npm run test:disposable-db`; until then tasks needing a database stay offline-only.
 
