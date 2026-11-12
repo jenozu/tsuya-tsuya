@@ -950,12 +950,12 @@
       {
         "title": "BF: policy page scaffolding",
         "description": "Shipping, returns, privacy and terms pages with [OWNER TO SUPPLY] placeholders.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "Reuse the existing shipping page/FAQ if present (don't overwrite published shipping text). Add returns, privacy, terms routes with the site layout, placeholders marked [OWNER TO SUPPLY], no legal wording, linked from the footer, noindex until approved. Owner text comes via task 43.",
+        "details": "Reuse the existing shipping page/FAQ if present (don't overwrite published shipping text). Add returns, privacy, terms routes with the site layout, placeholders marked [OWNER TO SUPPLY], no legal wording, linked from the footer, noindex until approved. Owner text comes via task 43.\n\n[2026-11-11T20:10:37-05:00] plan (haiku): app/returns/page.tsx, app/privacy/page.tsx, app/terms/page.tsx (new, noindex, placeholders, Navbar+Footer like app/shipping); components/footer.tsx add links; tests/policy-pages.test.mjs (new). Reuse app/shipping (untouched). Not in sitemap (noindex).\n\n[2026-11-11T20:11:29-05:00] Created app/returns, app/privacy, app/terms (page.tsx; Navbar+Footer like app/shipping; robots noindex; [OWNER TO SUPPLY] placeholder). app/shipping untouched (reused). Footer: added Returns/Privacy/Terms links. Added tests/policy-pages.test.mjs (reads source; asserts noindex + placeholder). npm test: 161 pass, only 40/41 fail (baseline ci-guard). tsc: pass. lint: 0 errors, 37 pre-existing warnings, none in new files. Not committed; not marked done.\n\n[2026-11-11T20:12:31-05:00] done by haiku; verified PASS",
         "testStrategy": "npm test --silent && npx tsc --noEmit && npm run lint --silent; each route renders (unit or build check); grep finds no legal wording beyond placeholders.",
         "complexity": 3,
         "phase": 8,
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T20:10:11-05:00"
+      "updated": "2026-11-11T20:12:31-05:00"
     }
   }
 }

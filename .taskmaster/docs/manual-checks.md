@@ -18,3 +18,7 @@ with numbered steps and the expected result.
 ## Task 19 (Printify submission) - eyes-on
 - Before setting PRINTIFY_ORDERS_ENABLED=true in any environment: human applies migration 004 (forward JSON) to that DB, otherwise the Stripe webhook returns 500 and Stripe retries.
 - Integration suite command needs the loader: node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test tests/printify-webhook.integration.mjs
+
+### Task 49 - Policy page scaffolding (2026-11-11) - Eyes-on
+1. Open /returns, /privacy, /terms: Navbar, Footer and "[OWNER TO SUPPLY]" placeholder render; view source shows meta robots noindex.
+2. Footer shows Returns, Privacy, Terms links.

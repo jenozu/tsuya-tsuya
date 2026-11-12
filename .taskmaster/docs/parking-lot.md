@@ -11,3 +11,4 @@ promote to a task (`tasks.py add` or the `adapt` skill), defer, or delete on pur
 - 2026-11-11: lib/printify.ts hardcodes shipping_method:1 and send_shipping_notification:false; confirm against Printify docs / owner before go-live (task 19/20). Also replace 'any' with unknown in printify.ts readJson/providerCodeOf/existingIdOf.
 - 2026-11-11: (task 19) Printify submitting-row stuck up to lease if throw after claim + fast Stripe retry; add sweep or non-2xx on not_claimable/submitting.
 - 2026-11-11: (task 19) add tests/printify-webhook.integration.mjs to infra-guard.yml integration list; admin resubmit action; admin fields for printifyProductId/VariantId per size; owner alert email on needs_attention; submit admin-created pending orders.
+- 2026-11-11: (task 49) after owner text (task 43) remove noindex and add the three pages to sitemap.
