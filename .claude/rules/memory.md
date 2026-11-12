@@ -19,16 +19,16 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- Phase 0: tasks 1, 2 done. Tasks 3 (approve PRD), 4 (test Neon DB) wait on the owner.
-- Baseline: lint/tsc/build/verify:infra pass; npm test has 2 failing ci-guard-policy tests (task 46, phase 1).
-- master_plan.md verified 67 done / 74 open; no boxes ticked.
-- Manual checks waiting: none.
+- 2026-11-11: tasks 47,48,16,18,19,49,50,51,46 done on chore/harness-bootstrap (phase 8 closed, R15 code behind flag).
+- Baseline now clean: npm test 0 failures (46 fixed CRLF in test loader).
+- Before PRINTIFY_ORDERS_ENABLED=true: human applies migration 004; owner supplies Printify ids and mapping.
+- Next: owner tasks (3, 4) and phases 1-7 as the owner directs. Manual checks waiting: 47, 19, 49 (eyes-on).
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
 - Production: Vercel project tsuya-tsuya; tsuyanouchi.com + www; main = production, PRs get previews.
 - Roadmap state at bootstrap: master_plan.md 67 done / 74 open (from Sept 2026 audits, not re-verified: task 2).
-- Payments: Stripe only, USD only, Adaptive Pricing off. Printify fulfilment code does not exist yet (R15).
+- Payments: Stripe only, USD only, Adaptive Pricing off. Printify submission code exists (lib/printify*.ts), flag PRINTIFY_ORDERS_ENABLED default off.
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
@@ -37,14 +37,16 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
+- Repo has CRLF checkouts (autocrlf): tests using 
+ string replaces must normalise line endings.
 - Running `npm run build` rewrites next-env.d.ts; `git checkout next-env.d.ts` after.
 
 ## Model routing record (update counts at each close-out)
 | Tier | Done first try | Escalated up | Notes |
 |---|---|---|---|
-| haiku | 1 | 0 | |
-| sonnet | 1 | 0 | |
-| opus | 0 | 0 | |
+| haiku | 3 | 0 | |
+| sonnet | 3 | 0 | |
+| opus | 1 | 0 | task 19 |
 <!-- If one tier escalates on 3 tasks in a row, the phase-runner escalates to the lead, who may raise that tier's
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->
 
