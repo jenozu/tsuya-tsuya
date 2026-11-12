@@ -874,12 +874,12 @@
       {
         "title": "BF: payment-path review and fixes",
         "description": "Review server-side pricing, Stripe webhook signature verification, USD-only Checkout with adaptive_pricing disabled; fix gaps with tests.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           2
         ],
-        "details": "Files: app/api/checkout/create-session/route.ts, app/api/webhooks/stripe/route.ts, lib/checkout-*.ts, lib/stripe.ts. Confirm: price/shipping/tax derived server-side, client totals ignored; webhook rejects missing/invalid signature and uses the raw body; currency hard-coded usd; adaptive_pricing disabled. Write docs/PAYMENT_PATH_REVIEW.md with findings (file:line). Mocks only (tests/fixtures/mock-stripe.mjs), no live keys. Overlaps TSU-M18-004 (task 13) for signature/tamper cases only; leave the rest of 13 pending.",
+        "details": "Files: app/api/checkout/create-session/route.ts, app/api/webhooks/stripe/route.ts, lib/checkout-*.ts, lib/stripe.ts. Confirm: price/shipping/tax derived server-side, client totals ignored; webhook rejects missing/invalid signature and uses the raw body; currency hard-coded usd; adaptive_pricing disabled. Write docs/PAYMENT_PATH_REVIEW.md with findings (file:line). Mocks only (tests/fixtures/mock-stripe.mjs), no live keys. Overlaps TSU-M18-004 (task 13) for signature/tamper cases only; leave the rest of 13 pending.\n\n[2026-11-11T19:33:27-05:00] plan (sonnet): read checkout/webhook routes, add tests + docs/PAYMENT_PATH_REVIEW.md\n\n[2026-11-11T19:34:41-05:00] added tests/payment-path.test.mjs + docs/PAYMENT_PATH_REVIEW.md; no route gaps found; npm test has 2 pre-existing ci-guard-policy failures (tests 40,41), tsc clean\n\n[2026-11-11T19:38:05-05:00] done by sonnet; verified, reviewer APPROVE",
         "testStrategy": "npm test --silent && npx tsc --noEmit; new tests: tampered client price ignored, bad/missing webhook signature -> 400, session params include currency usd and adaptive_pricing disabled; docs/PAYMENT_PATH_REVIEW.md exists.",
         "complexity": 5,
         "review": true,
@@ -992,7 +992,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T19:32:42-05:00"
+      "updated": "2026-11-11T19:38:06-05:00"
     }
   }
 }

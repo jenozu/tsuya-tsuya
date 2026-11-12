@@ -11,3 +11,6 @@ with numbered steps and the expected result.
 ## Agent-checkable
 
 ## Eyes-on
+
+### Task 47 - Payment path review (2026-11-11)
+(Eyes-on) 1. With Stripe CLI in TEST mode, send a signed and an unsigned webhook; expect 200 and 400. 2. Confirm Stripe dashboard webhook endpoint API version matches apiVersion pinned in lib/stripe.ts.

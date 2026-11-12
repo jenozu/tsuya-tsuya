@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 2/51 tasks done.**
+**Progress: 3/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -184,7 +184,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 8 - Black Friday lean launch
 
-- [ ] **47. BF: payment-path review and fixes** _(after 2)_  
+- [x] **47. BF: payment-path review and fixes** _(after 2)_  
   Review server-side pricing, Stripe webhook signature verification, USD-only Checkout with adaptive_pricing disabled; fix gaps with tests.  
   _Test:_ npm test --silent && npx tsc --noEmit; new tests: tampered client price ignored, bad/missing webhook signature -> 400, session params include currency usd and adaptive_pricing disabled; docs/PAYMENT_PATH_REVIEW.md exists.
 - [ ] **48. BF: one setting controls under-construction mode** _(after 2)_  
