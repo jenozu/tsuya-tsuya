@@ -19,12 +19,11 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- HANDOFF 2026-11-13. Nothing merged. Merge order: PR #58 (task 52: next 16.4.6 critical advisories + TASKS.md renderer/LF fix) first, then rebase PR #57 (branch chore/plan-approval-and-rules: task 3 PRD approval, task 4 reopen, restore-point rule, doc alignment) onto main; expect tasks.json/TASKS.md/memory.md conflicts.
-- Task 3 done (on #57). Task 4 REOPENED: owner must confirm test DB. Task 52 in progress (closes when #58 merges green).
-- Test DB: Neon branch test-integration (project holy-wave-33455099) is schema-only (init_source=parent-schema, 0 rows); empty db+role tsuya_test on endpoint ep-wild-surf-a5u3fu6y (prod is ep-cold-dawn-a53nmatg); TEST_DATABASE_URL in Windows user env; 002/003/004 applied there only.
-- Owner open items: hide or keep live placeholder pages /returns /terms /privacy (noindexed, in prod since #56); destinations (task 41); task 4 confirm. Deferred: zod major upgrade (high advisory); pre-existing e2e failure (admin synthetic login stays on /admin/login, same on next 16.3.6).
-- #58 CI: all green except browser-e2e, which fails installing Playwright 1.56.1 on ubuntu-latest=26.04 (unsupported), not our change; tests never ran. Fix awaits owner: pin ubuntu-24.04 or upgrade Playwright (see task 52 log).
-- Next command for owner after /clear: merge #58 when green, then ask the lead "rebase PR #57 onto main", then /run-phase 1.
+- HANDOFF 2026-11-13. PR #58 merged (a1876f0: next 16.4.6, TASKS.md renderer/LF fix, browser-e2e pinned to ubuntu-24.04); prod deployment READY. PR #57 (PRD approval, restore-point rule, doc alignment, task 4 close) rebased on main.
+- Phase 0 closed (tasks 1-4). Task 52 done. Phase 1 next: 5, 6, 7, 8, 9, 53 (Playwright >=1.61.0 + unpin runner; 46 and 52 done).
+- Waiting on owner: hide or keep live noindexed placeholder pages /returns /terms /privacy + their text (task 43); destinations (task 41); Printify decisions (task 17: account/ids, availability sync vs manual, approval mode); tax (task 42).
+- Deferred: zod major upgrade (high advisory, later task). Local-only e2e failure (admin synthetic login on Windows; passes in CI).
+- Next command (fresh session): /run-phase 1
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
@@ -34,7 +33,8 @@ Never update it per task.
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
-- 2026-11-13: Before any migration/change to production Neon, create + log a restore-point branch. Remaining stops: vercel env, push to main, stripe, gh pr merge (+ AGENTS.md hard stops). On #57.
+- 2026-11-13: Before any migration/change to production Neon, create + log a restore-point branch. Remaining stops: vercel env, push to main, stripe, gh pr merge (+ AGENTS.md hard stops); migrate.mjs and neon allowed in settings.
+- 2026-11-13: PRD approved (task 3); destinations deferred.
 - 2026-11-11: Lean Black Friday launch: phase 8 (47-51) + R15 16/18/19 (flag off) + 46 run first.
 - 2026-11-10: Built with master-harness v1.3.1: lead (Opus) → phase-runner (Sonnet) → builders
   haiku → sonnet → opus. Manual checks batched per phase.
@@ -56,8 +56,7 @@ Never update it per task.
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->
 
 ## Open questions for the human (max 5; delete once answered)
-- PRD is DRAFT: owner approval pending (task 3).
+- Launch destinations: owner deferred (task 41).
 - Printify availability: automatic sync or manual toggle? (owner decision 6, task 17)
 - Do M14-004/M14-005/M3-005/M6-006 (pick/pack, stock reconciliation, inventory) still apply to made-to-order? (task 27)
 - Error-monitoring provider for M20-002? (task 36)
-- Is a disposable Neon branch available for integration tests? (task 4)

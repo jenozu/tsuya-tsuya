@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 11/53 tasks done.**
+**Progress: 14/53 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -13,10 +13,10 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **2. Reconcile master_plan.md and the PRD against current main** _(after 1)_\
   Replace the unverified 67 done / 74 open snapshot with checked facts.\
   _Test:_ `grep -c '^- \[x\]' master_plan.md` and the open count equal the numbers logged; the drift list is in the task log.
-- [ ] **3. Owner: review and approve the PRD** **[HUMAN]**\
+- [x] **3. Owner: review and approve the PRD** **[HUMAN]**\
   The PRD is a DRAFT generated from the repo docs; the plan is only as good as it is.\
   _Test:_ PRD Status line no longer says DRAFT and the decision log has a dated 'approved' entry.
-- [ ] **4. Owner: provide isolated test resources** **[HUMAN]**\
+- [x] **4. Owner: provide isolated test resources** **[HUMAN]**\
   Integration tests need a disposable database; agents must never touch production.\
   _Test:_ Owner confirms in chat. Later tasks verify with `npm run test:disposable-db`; until then tasks needing a database stay offline-only.
 
@@ -43,7 +43,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**\
   npm test fails on tests #40 and #41 in tests/ci-guard-policy.test.mjs on current main.\
   _Test:_ npm test --silent passes with 0 failures
-- [>] **52. Upgrade next to clear critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)** _(after 2)_\
+- [x] **52. Upgrade next to clear critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)** _(after 2)_\
   Infrastructure Guard candidate-build fails on npm audit --audit-level=critical: next 16.3.6 is in the vulnerable range; first patched 16.4.1 per both advisories.\
   _Test:_ npm ci; npm test; npx tsc --noEmit; npm run lint; npm run build; npm run test:e2e; npm audit --omit=dev --audit-level=critical exits 0; Infrastructure Guard green on the PR.
 - [ ] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\

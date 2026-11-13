@@ -1,5 +1,7 @@
 # Tsuya — Autonomous Execution Plan
 
+> **Owner override, 2026-11-13:** the production-database hard stop below is replaced by the Neon restore-point rule: before any migration or other change to production Neon, create a restore-point branch from production and log its name, then proceed (see `AGENTS.md`, PRD decision log). Remaining stops: `vercel env`, pushing to main, `stripe` and `gh pr merge`, plus the other `AGENTS.md` hard stops (live charges/refunds, production object deletes, live Printify orders, `vercel --prod`/rollback/promote). The text below is unchanged.
+
 Last audited: 2026-09-27. Canonical feature/task status remains `master_plan.md`. This is an execution and evidence plan, **not** another checklist; `MASTER_LIST.md` describes historical deployment claims only.
 
 ## Operating rules
