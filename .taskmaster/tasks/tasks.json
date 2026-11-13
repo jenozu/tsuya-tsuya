@@ -60,7 +60,7 @@
       {
         "title": "Harden admin login: throttling, session revocation, inactivity timeout",
         "description": "Close the open admin-auth gaps without claiming per-instance counters are distributed protection.",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "high",
         "dependencies": [
           1
@@ -75,9 +75,9 @@
           {
             "title": "Design the store and write failing tests",
             "description": "Define the throttle/revocation table and tests first.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: migrations/forward/004_*.json (additive, not applied), tests/admin-session.test.mjs, new tests/admin-throttle.test.mjs.",
+            "details": "Files: migrations/forward/004_*.json (additive, not applied), tests/admin-session.test.mjs, new tests/admin-throttle.test.mjs.\n\n[2026-11-13T16:18:24-05:00] plan (opus): migrations/forward/005_admin_auth_hardening.json (004 is taken by printify_orders; numbering must be gapless), tests/admin-session.test.mjs (v2 ledger tokens, revocation, idle timeout via injected AdminSessionStore), new tests/admin-throttle.test.mjs (attempt-first atomic throttle via injected store, HMAC'd IP bucket), tests/migration-cli.test.mjs (+005 in expected plan). New tests marked node:test todo so the branch stays green; 5.2/5.3 remove todo.\n\n[2026-11-13T16:22:06-05:00] done (opus): migration 005_admin_auth_hardening (admin_sessions: session_id 32-hex PK, created_at, last_seen_at, expires_at, revoked_at; admin_login_attempts: bucket 64-hex PK, attempts, window_started_at, updated_at), not applied. 13 new node:test cases marked todo (fail for the right reason: missing exports / ERR_MODULE_NOT_FOUND / v1 token returned), 2 migration-shape tests pass. npm test: 180 tests, 0 fail, 13 todo; migrations:check, tsc, lint pass. CONTRACT for 5.2/5.3: lib/admin-session.ts -> createAdminSessionToken(store?), hasAdminSession(req, store?), revokeAdminSession(req, store), ADMIN_SESSION_IDLE_TIMEOUT (int, 300..MAX_AGE); store = {create(id, now, expiresAt), find(id)->{expiresAt,lastSeenAt,revokedAt}|null, touch(id, now), revoke(id, now)} in epoch seconds from the app clock; with store: v2.<id>.<exp>.<hmac over v2.id.exp>, v1 rejected; without store v2 rejected; store errors -> false / no token. lib/admin-throttle.ts -> ADMIN_LOGIN_MAX_ATTEMPTS (3..10), ADMIN_LOGIN_WINDOW_SECONDS (300..3600), consumeAdminLoginAttempt(bucket, store, now) -> {allowed, retryAfterSeconds} (count BEFORE password compare, one atomic upsert), clearAdminLoginAttempts(bucket, store), adminLoginBucket(req) -> HMAC(secret, first x-forwarded-for) hex; store = {hit(bucket, now, windowSeconds)->{count, windowStartedAt}, reset(bucket)}. Default DB store must stay OFF behind an env switch (e.g. ADMIN_AUTH_STORE_ENABLED) until 005 is applied in production, else admin login breaks. Remove the todo options in 5.2/5.3. Also touched tests/migration-cli.test.mjs (+005 in expected plan) and migrations/README.md (section); normalized stray CRLF in README worktree to match HEAD.\n\n[2026-11-13T16:23:56-05:00] done by opus; verified; reviewed APPROVE",
             "testStrategy": "`npm test --silent` shows the new tests failing for the right reason before implementation.",
             "complexity": 4,
             "id": 1
@@ -1068,7 +1068,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T15:54:26-05:00"
+      "updated": "2026-11-13T16:23:56-05:00"
     }
   }
 }

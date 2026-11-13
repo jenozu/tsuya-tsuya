@@ -22,10 +22,10 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 1 - Hardening
 
-- [ ] **5. Harden admin login: throttling, session revocation, inactivity timeout** _(after 1)_\
+- [>] **5. Harden admin login: throttling, session revocation, inactivity timeout** _(after 1)_\
   Close the open admin-auth gaps without claiming per-instance counters are distributed protection.\
   _Test:_ `npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.
-  - [ ] 5.1 Design the store and write failing tests
+  - [x] 5.1 Design the store and write failing tests
   - [ ] 5.2 Implement throttling and revocation
   - [ ] 5.3 Inactivity timeout and docs
 - [ ] **6. Upload abuse limits and object ownership** _(after 5)_\
