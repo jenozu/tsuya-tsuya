@@ -1059,7 +1059,7 @@
         "status": "pending",
         "priority": "high",
         "dependencies": [],
-        "details": "npm audit --omit=dev (2026-11-13): 1 high (zod 4.6.7, fix is a semver-major bump, already deferred in memory.md), 4 low (resend -> @react-email/render, deepmerge, html-to-text; fix = resend major). Review whether the zod advisory is reachable from untrusted input, then upgrade zod and resend with tests.",
+        "details": "npm audit --omit=dev (2026-11-13): 1 high (zod 4.6.7, fix is a semver-major bump, already deferred in memory.md), 4 low (resend -> @react-email/render, deepmerge, html-to-text; fix = resend major). Review whether the zod advisory is reachable from untrusted input, then upgrade zod and resend with tests.\n\n[2026-11-13T16:57:11-05:00] held by phase-runner: needs zod semver-major + resend major (memory.md lists zod major as deferred); not built, awaiting lead/owner go-ahead",
         "testStrategy": "npm audit --omit=dev reports no high; npm test and tsc pass.",
         "complexity": 3,
         "phase": 1,
@@ -1109,7 +1109,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:57:00-05:00"
+      "updated": "2026-11-13T16:57:11-05:00"
     }
   }
 }
