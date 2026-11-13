@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 19/56 tasks done.**
+**Progress: 20/56 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -49,7 +49,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\
   Playwright 1.56.1 cannot install Chromium on ubuntu-latest (26.04); browser-e2e is pinned to ubuntu-24.04 as a stopgap (task 52, commit 10c327f).\
   _Test:_ npm run test:e2e locally; browser-e2e installs Chromium and runs on ubuntu-latest in CI; tests/ci-guard-policy.test.mjs passes.
-- [ ] **54. Security: throttle and constant-time compare on /api/preview-access**\
+- [x] **54. Security: throttle and constant-time compare on /api/preview-access**\
   _Test:_ Unit test: wrong passwords beyond the limit get 429; correct password still works; compare uses timingSafeEqual.
 - [ ] **55. Security: add Content-Security-Policy (report-only first)**\
   _Test:_ Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.
