@@ -123,12 +123,12 @@
       {
         "title": "Expand isolated integration tests for admin and catalog",
         "description": "Cover authorized/unauthorized admin actions and catalog mutations.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M18-003. Existing: tests/*.integration.mjs and tests/fixtures/. Read them first and add only missing cases; keep doubles zero-network; no production data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M18-003. Existing: tests/*.integration.mjs and tests/fixtures/. Read them first and add only missing cases; keep doubles zero-network; no production data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:34:56-05:00] added tests/admin-catalog-guards.integration.mjs (tampered/expired/rotated cookies, orders auth, injected ledger store). Run with admin-route-loader (as CI does): 60 pass. Mutation check: removing hasAdminSession in orders route fails the new orders test. Not added to infra-guard.yml file list (risky path).\n\n[2026-11-13T16:36:04-05:00] done by sonnet; verified (integration tests need the admin-route-loader flag)",
         "testStrategy": "`node --experimental-strip-types --test tests/*.integration.mjs` passes; new cases fail when the guard they test is removed (noted in the log).",
         "complexity": 5,
         "phase": 1,
@@ -143,7 +143,7 @@
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M18-007 plus the lint-warning cleanup in the execution plan's next tranche. Read .github/workflows/infra-guard.yml, docs/CI_QUALITY_GATES.md, scripts/check-ci-workflow.mjs, lib/ci-guard-policy.mjs. Extend the existing workflow and guard policy; do not create a parallel pipeline or weaken the guard. Branch protection itself is an owner step. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M18-007 plus the lint-warning cleanup in the execution plan's next tranche. Read .github/workflows/infra-guard.yml, docs/CI_QUALITY_GATES.md, scripts/check-ci-workflow.mjs, lib/ci-guard-policy.mjs. Extend the existing workflow and guard policy; do not create a parallel pipeline or weaken the guard. Branch protection itself is an owner step. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:35:09-05:00] note from 7: new tests/admin-catalog-guards.integration.mjs is not in the explicit file list at .github/workflows/infra-guard.yml (~line 195); add it or glob tests/*.integration.mjs with the loader.",
         "testStrategy": "`npm run ci:check` passes; the workflow runs lint, tsc, npm test, migrations:check and build; tests/ci-guard-policy.test.mjs updated and green.",
         "complexity": 5,
         "review": true,
@@ -1068,7 +1068,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:33:57-05:00"
+      "updated": "2026-11-13T16:36:04-05:00"
     }
   }
 }

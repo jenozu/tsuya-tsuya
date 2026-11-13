@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 16/53 tasks done.**
+**Progress: 17/53 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -31,7 +31,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **6. Upload abuse limits and object ownership** _(after 5)_\
   Finish the image-upload gaps left after the magic-byte checks.\
   _Test:_ tests/image-validation.test.mjs plus new tests cover rate limit and ownership; `npm test --silent` green.
-- [ ] **7. Expand isolated integration tests for admin and catalog** _(after 1)_\
+- [x] **7. Expand isolated integration tests for admin and catalog** _(after 1)_\
   Cover authorized/unauthorized admin actions and catalog mutations.\
   _Test:_ `node --experimental-strip-types --test tests/*.integration.mjs` passes; new cases fail when the guard they test is removed (noted in the log).
 - [ ] **8. Enforce checks and a release checklist in CI** _(after 1)_\
