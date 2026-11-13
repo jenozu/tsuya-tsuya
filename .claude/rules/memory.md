@@ -29,7 +29,7 @@ Never update it per task.
 - Production: Vercel project tsuya-tsuya; tsuyanouchi.com + www; main = production, PRs get previews.
 - Roadmap state at bootstrap: master_plan.md 67 done / 74 open (from Sept 2026 audits, not re-verified: task 2).
 - Payments: Stripe only, USD only, Adaptive Pricing off. Printify submission code exists (lib/printify*.ts), flag PRINTIFY_ORDERS_ENABLED default off.
-- Test DB: Neon branch test-integration, db/role tsuya_test; TEST_DATABASE_URL in Windows user env (task 4).
+- Test DB: agent-created Neon branch test-integration, db/role tsuya_test; awaiting owner confirmation (task 4 reopened).
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
