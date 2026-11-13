@@ -23,6 +23,7 @@ Never update it per task.
 - Task 3 done (on #57). Task 4 REOPENED: owner must confirm test DB. Task 52 in progress (closes when #58 merges green).
 - Test DB: Neon branch test-integration (project holy-wave-33455099) is schema-only (init_source=parent-schema, 0 rows); empty db+role tsuya_test on endpoint ep-wild-surf-a5u3fu6y (prod is ep-cold-dawn-a53nmatg); TEST_DATABASE_URL in Windows user env; 002/003/004 applied there only.
 - Owner open items: hide or keep live placeholder pages /returns /terms /privacy (noindexed, in prod since #56); destinations (task 41); task 4 confirm. Deferred: zod major upgrade (high advisory); pre-existing e2e failure (admin synthetic login stays on /admin/login, same on next 16.3.6).
+- #58 CI: all green except browser-e2e, which fails installing Playwright 1.56.1 on ubuntu-latest=26.04 (unsupported), not our change; tests never ran. Fix awaits owner: pin ubuntu-24.04 or upgrade Playwright (see task 52 log).
 - Next command for owner after /clear: merge #58 when green, then ask the lead "rebase PR #57 onto main", then /run-phase 1.
 
 ## Facts (stable, max 15 lines)
