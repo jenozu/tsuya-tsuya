@@ -53,7 +53,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   _Test:_ Unit test: wrong passwords beyond the limit get 429; correct password still works; compare uses timingSafeEqual.
 - [x] **55. Security: add Content-Security-Policy (report-only first)**\
   _Test:_ Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.
-- [ ] **56. Security: zod high advisory (npm audit) and resend low chain**\
+- [-] **56. Security: zod high advisory (npm audit) and resend low chain**\
   _Test:_ npm audit --omit=dev reports no high; npm test and tsc pass.
 
 ## Phase 2 - Order integrity
