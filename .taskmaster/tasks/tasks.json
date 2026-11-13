@@ -138,12 +138,12 @@
       {
         "title": "Enforce checks and a release checklist in CI",
         "description": "Make lint, typecheck, tests and the migrations check required and documented.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M18-007 plus the lint-warning cleanup in the execution plan's next tranche. Read .github/workflows/infra-guard.yml, docs/CI_QUALITY_GATES.md, scripts/check-ci-workflow.mjs, lib/ci-guard-policy.mjs. Extend the existing workflow and guard policy; do not create a parallel pipeline or weaken the guard. Branch protection itself is an owner step. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:35:09-05:00] note from 7: new tests/admin-catalog-guards.integration.mjs is not in the explicit file list at .github/workflows/infra-guard.yml (~line 195); add it or glob tests/*.integration.mjs with the loader.",
+        "details": "Roadmap: TSU-M18-007 plus the lint-warning cleanup in the execution plan's next tranche. Read .github/workflows/infra-guard.yml, docs/CI_QUALITY_GATES.md, scripts/check-ci-workflow.mjs, lib/ci-guard-policy.mjs. Extend the existing workflow and guard policy; do not create a parallel pipeline or weaken the guard. Branch protection itself is an owner step. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:35:09-05:00] note from 7: new tests/admin-catalog-guards.integration.mjs is not in the explicit file list at .github/workflows/infra-guard.yml (~line 195); add it or glob tests/*.integration.mjs with the loader.\n\n[2026-11-13T16:37:56-05:00] sonnet: added admin-catalog-guards + printify-webhook integration tests to workflow and policy, sync test, release checklist + branch protection owner step in docs/CI_QUALITY_GATES.md, lint warnings 37->20 (unused imports/catch bindings). Remaining 20: set-state-in-effect, img, any - need real refactors.\n\n[2026-11-13T16:40:10-05:00] done by sonnet; verified; reviewed APPROVE",
         "testStrategy": "`npm run ci:check` passes; the workflow runs lint, tsc, npm test, migrations:check and build; tests/ci-guard-policy.test.mjs updated and green.",
         "complexity": 5,
         "review": true,
@@ -1068,7 +1068,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:36:04-05:00"
+      "updated": "2026-11-13T16:40:10-05:00"
     }
   }
 }

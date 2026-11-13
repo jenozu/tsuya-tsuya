@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 17/53 tasks done.**
+**Progress: 18/53 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -34,7 +34,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **7. Expand isolated integration tests for admin and catalog** _(after 1)_\
   Cover authorized/unauthorized admin actions and catalog mutations.\
   _Test:_ `node --experimental-strip-types --test tests/*.integration.mjs` passes; new cases fail when the guard they test is removed (noted in the log).
-- [ ] **8. Enforce checks and a release checklist in CI** _(after 1)_\
+- [x] **8. Enforce checks and a release checklist in CI** _(after 1)_\
   Make lint, typecheck, tests and the migrations check required and documented.\
   _Test:_ `npm run ci:check` passes; the workflow runs lint, tsc, npm test, migrations:check and build; tests/ci-guard-policy.test.mjs updated and green.
 - [ ] **9. Review dependencies, R2 exposure and preview access** _(after 1)_\

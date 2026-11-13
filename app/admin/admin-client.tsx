@@ -8,7 +8,7 @@ import {
 } from 'recharts';
 import { 
   LayoutDashboard, Package, Settings, LogOut, Plus, Trash2, Edit2, Wand2, 
-  Upload, Image as ImageIcon, X, GripVertical, Copy, FileSpreadsheet,
+  Upload, X, GripVertical, Copy, FileSpreadsheet,
   TrendingUp, AlertCircle, DollarSign, ArrowRight, ShoppingCart, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -197,7 +197,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
         const fresh = await res.json();
         setProducts(fresh);
       }
-    } catch (err) {
+    } catch {
       console.error('Error refreshing products');
     }
     router.refresh();
@@ -300,7 +300,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
       } else {
         alert('Failed to duplicate product');
       }
-    } catch (error) {
+    } catch {
       console.error('Error duplicating product');
       alert('Error duplicating product');
     }
@@ -323,7 +323,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
         } else {
           alert('Failed to delete product');
         }
-      } catch (error) {
+      } catch {
         console.error('Error deleting product');
         alert('Error deleting product');
       }
@@ -359,7 +359,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
       if (result.failed > 0) {
         alert(`Deleted ${result.deleted} product(s). ${result.failed} could not be deleted.`);
       }
-    } catch (error) {
+    } catch {
       console.error('Bulk delete error');
       alert('Failed to delete selected products');
     } finally {
@@ -415,7 +415,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
       } else {
         alert('Failed to save product');
       }
-    } catch (error) {
+    } catch {
       console.error('Error saving product');
       alert('Error saving product');
     }
@@ -573,7 +573,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
           (result.details ? `Details:\n${Array.isArray(result.details) ? result.details.slice(0, 5).join('\n') : result.details}` : '')
         );
       }
-    } catch (error) {
+    } catch {
       console.error('CSV import error');
       alert('Failed to import CSV. Please check your file format and try again.');
     } finally {
@@ -586,7 +586,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
     try {
       await fetch('/api/admin/auth', { method: 'DELETE' });
       router.push('/admin/login');
-    } catch (error) {
+    } catch {
       console.error('Logout error');
     }
   };

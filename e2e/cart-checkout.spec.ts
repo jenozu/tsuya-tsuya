@@ -1,4 +1,4 @@
-import { test, expect, type BrowserContext, type Page } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
 const storageKey = 'tsuyanouchi_cart'
 const id = '00000000-0000-4000-8000-000000000001'

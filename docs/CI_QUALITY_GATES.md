@@ -34,3 +34,15 @@ The static guard checks for several high-risk regressions: unsafe Next image/Typ
 - `npm run verify:infra` and `npm run verify:security` validate infrastructure/security source invariants.
 - `npm test`, `npm run lint`, `npm run migrations:check`, `npx tsc --noEmit` and `npm run build` are reproducible after dependency installation.
 - `npm run format:check -- <40-character-merge-base-sha>` checks changed source/config line endings, final newlines and JSON syntax. The workflow also runs `git diff --check` to reject added whitespace mistakes.
+
+## Required checks and release checklist
+
+Owner step (not done by the repo): in GitHub, Settings > Branches > protect `main` and require these status checks to pass before merging: `verify`, `baseline-build`, `candidate-build`, `browser-e2e`. Also require a pull request and block force pushes. Until this is set, CI is advisory only.
+
+Before merging a PR that will deploy to production:
+
+1. `verify`, `candidate-build` and `browser-e2e` are green (lint, `tsc`, `npm test`, `npm run migrations:check`, integration tests and build all run inside `candidate-build`).
+2. Any new `tests/*.integration.mjs` must be added to the integration step in the workflow (a unit test in `tests/ci-guard-policy.test.mjs` fails if it is not); add it to `requiredSteps` in `lib/ci-guard-policy.mjs` only if the guard must enforce it.
+3. A migration PR has a logged Neon restore-point branch and is applied only by the owner.
+4. The Vercel preview loads and checkout is only exercised in Stripe test mode.
+5. Merge, then confirm the production deployment is READY.

@@ -31,3 +31,7 @@ with numbered steps and the expected result.
 ### Task 6 - Upload limits and key ownership (2026-11-13) - Eyes-on
 1. Upload limit (30 per 10 min per IP) is only live once ADMIN_AUTH_STORE_ENABLED=true (see task 5.2 cutover); with the flag off no upload limit applies.
 2. Legacy non-uuid product keys (e.g. from scripts/bulk-upload-images.js) cannot be deleted via the admin API; remove them via a separate owner-approved task if needed.
+
+### Task 8 - Branch protection (2026-11-13) - Eyes-on
+1. Owner: GitHub Settings > Branches, protect main; require checks verify, baseline-build, candidate-build, browser-e2e, PR required, no force pushes (see docs/CI_QUALITY_GATES.md).
+2. Confirm the CI run on the PR is green.

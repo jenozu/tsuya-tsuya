@@ -16,3 +16,4 @@ promote to a task (`tasks.py add` or the `adapt` skill), defer, or delete on pur
 - 2026-11-11: (task 51) confirm 'Printify has no sandbox' against Printify docs; migration 003 not covered in runbook.
 - 2026-11-11: (task 46) make lib/ci-guard-policy.mjs regexes tolerate CRLF, or add .gitattributes '*.yml text eol=lf'.
 - 2026-11-13: (task 5.2) disposable-db integration test for throttle upsert and admin session store SQL; document ADMIN_AUTH_STORE_ENABLED in ENV_TEMPLATE.md.
+- 2026-11-13: (task 8) 20 remaining lint warnings need real refactors (react-hooks set-state-in-effect, no-img-element, no-explicit-any); follow-up cleanup task.
