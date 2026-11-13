@@ -133,6 +133,7 @@ These block launch and must not be decided by an engineer or an AI agent.
 | 2026-11-13 | Owner approved the PRD (task 3). R15 wording updated to reflect the flag-gated submission code. Launch destinations deferred: decide later (task 41); R6 regional docs are not a commitment. |
 | 2026-11-13 | Owner: agent permissions loosened for build work. `.claude/settings.json` no longer denies or asks for `scripts/migrate.mjs` (--apply, --adopt-baseline, --init-empty); Neon CLI/API commands are not blocked. Standing rule: before any migration or other change to a production Neon branch, create a restore-point branch from production and log its name on the task (see `.claude/rules/rules.md`). Other hard stops (force push, reset --hard, push to main, vercel prod/env, reading .env) stay denied. |
 | 2026-11-13 | Non-goals reworded: production database migrations are no longer excluded; they require a logged Neon restore-point branch first. AGENTS.md and AUTONOMOUS_EXECUTION_PLAN.md (dated note) aligned. |
+| 2026-11-13 | Owner confirmed the isolated test database (task 4 closed): Neon branch `test-integration`, schema-only, empty database and role `tsuya_test`, separate endpoint from production. |
 
 ## 13. Open questions (TBD)
 

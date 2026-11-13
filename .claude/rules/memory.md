@@ -19,27 +19,29 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- 2026-11-11: tasks 47,48,16,18,19,49,50,51,46 done on chore/harness-bootstrap (phase 8 closed, R15 code behind flag).
-- Baseline now clean: npm test 0 failures (46 fixed CRLF in test loader).
-- Before PRINTIFY_ORDERS_ENABLED=true: human applies migration 004; owner supplies Printify ids and mapping.
-- Next: owner tasks (3, 4) and phases 1-7 as the owner directs. Manual checks waiting: 47, 19, 49 (eyes-on).
+- HANDOFF 2026-11-13. PR #58 merged (a1876f0: next 16.4.6, TASKS.md renderer/LF fix, browser-e2e pinned to ubuntu-24.04); prod deployment READY. PR #57 (PRD approval, restore-point rule, doc alignment, task 4 close) rebased on main.
+- Phase 0 closed (tasks 1-4). Task 52 done. Phase 1 next: 5, 6, 7, 8, 9, 53 (Playwright >=1.61.0 + unpin runner; 46 and 52 done).
+- Waiting on owner: hide or keep live noindexed placeholder pages /returns /terms /privacy + their text (task 43); destinations (task 41); Printify decisions (task 17: account/ids, availability sync vs manual, approval mode); tax (task 42).
+- Deferred: zod major upgrade (high advisory, later task). Local-only e2e failure (admin synthetic login on Windows; passes in CI).
+- Next command (fresh session): /run-phase 1
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
 - Production: Vercel project tsuya-tsuya; tsuyanouchi.com + www; main = production, PRs get previews.
 - Roadmap state at bootstrap: master_plan.md 67 done / 74 open (from Sept 2026 audits, not re-verified: task 2).
 - Payments: Stripe only, USD only, Adaptive Pricing off. Printify submission code exists (lib/printify*.ts), flag PRINTIFY_ORDERS_ENABLED default off.
-- Test DB: agent-created Neon branch test-integration, db/role tsuya_test; awaiting owner confirmation (task 4 reopened).
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
-- 2026-11-13: migrate.mjs no longer denied; before any prod Neon change, create + log a restore-point branch.
+- 2026-11-13: Before any migration/change to production Neon, create + log a restore-point branch. Remaining stops: vercel env, push to main, stripe, gh pr merge (+ AGENTS.md hard stops); migrate.mjs and neon allowed in settings.
 - 2026-11-13: PRD approved (task 3); destinations deferred.
 - 2026-11-11: Lean Black Friday launch: phase 8 (47-51) + R15 16/18/19 (flag off) + 46 run first.
 - 2026-11-10: Built with master-harness v1.3.1: lead (Opus) → phase-runner (Sonnet) → builders
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
+- `next dev` (e2e webServer) appends a Next.js agent-rules block to AGENTS.md; revert it, never commit it.
+- Infra Guard runs on PRs only; candidate-build = critical npm audit, then git diff --check + format:check on changed files.
 - Repo has CRLF checkouts (autocrlf): tests using 
  string replaces must normalise line endings.
 - Running `npm run build` rewrites next-env.d.ts; `git checkout next-env.d.ts` after.
