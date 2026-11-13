@@ -33,6 +33,7 @@ Never update it per task.
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
+- 2026-11-13: PRD approved (task 3); destinations deferred.
 - 2026-11-11: Lean Black Friday launch: phase 8 (47-51) + R15 16/18/19 (flag off) + 46 run first.
 - 2026-11-10: Built with master-harness v1.3.1: lead (Opus) → phase-runner (Sonnet) → builders
   haiku → sonnet → opus. Manual checks batched per phase.
@@ -52,7 +53,7 @@ Never update it per task.
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->
 
 ## Open questions for the human (max 5; delete once answered)
-- PRD is DRAFT: owner approval pending (task 3).
+- Launch destinations: owner deferred (task 41).
 - Printify availability: automatic sync or manual toggle? (owner decision 6, task 17)
 - Do M14-004/M14-005/M3-005/M6-006 (pick/pack, stock reconciliation, inventory) still apply to made-to-order? (task 27)
 - Error-monitoring provider for M20-002? (task 36)

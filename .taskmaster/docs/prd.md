@@ -1,6 +1,6 @@
 # PRD: TsuyaNoUchi Print Store
 
-**Status:** DRAFT, generated from the repository's own documentation on 2026-11-10. Needs owner review before it is treated as the source of truth.
+**Status:** APPROVED by the owner on 2026-11-13 (drafted 2026-11-10 from the repository's own documentation).
 **Repository:** `jenozu/tsuya-tsuya` (`main`)
 **Sources used:** `README.md`, `master_plan.md`, `AUTONOMOUS_EXECUTION_PLAN.md`, `docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md`, `docs/CATALOG_PRICE_INVENTORY.md`, `shipping/*.md`, `MASTER_TAX_TABLE.md`, `package.json`.
 
@@ -53,7 +53,7 @@ The roadmap in `master_plan.md` (milestones M1 to M21) is the authoritative task
 
 **R5. Fulfilment.** Orders go to Printify on a made-to-order basis. Until a provider connection exists, the owner disables a size manually when Printify cannot fulfil it. Automatic availability sync is an open item.
 
-**R6. Shipping, destinations, and tax.** Shipping rules are documented per region (`shipping/UK.md`, `shipping/EU.md`, `shipping/EFTA-Northern EU.md`, `shipping/AUS.md`) and in `config/shipping-profile.json`. Tax rules are in `MASTER_TAX_TABLE.md` and `lib/tax.ts`. Tax treatment, destination eligibility, and duty liability need owner and qualified-reviewer decisions before launch (M12, M13).
+**R6. Shipping, destinations, and tax.** Shipping rules are documented per region (`shipping/UK.md`, `shipping/EU.md`, `shipping/EFTA-Northern EU.md`, `shipping/AUS.md`) and in `config/shipping-profile.json`. Tax rules are in `MASTER_TAX_TABLE.md` and `lib/tax.ts`. Launch destinations are not yet decided (owner, 2026-11-13: decide later). Tax treatment, destination eligibility, and duty liability need owner and qualified-reviewer decisions before launch (M12, M13).
 
 **R7. Admin security.** Every admin mutation uses session checks and same-origin or CSRF checks, and validates its payload with schemas. Still open: distributed login throttling, session revocation, inactivity timeout, and per-staff audit logs (M7-003, M7-004).
 
@@ -76,7 +76,7 @@ The roadmap in `master_plan.md` (milestones M1 to M21) is the authoritative task
 - Adaptive Pricing is off in the Dashboard and explicitly disabled per Checkout Session in `app/api/checkout/create-session/route.ts`.
 - Needs accountant review: US sales tax and Canadian tax obligations.
 
-**R15. Printify order submission (new, not yet built).** After a successful Stripe payment (verified by webhook), the server creates the order through the Printify API, stores the Printify order ID against the order, and handles failure and retry safely and idempotently. Printify order status and tracking are synced back to the order and customer email. Printify availability for sizes is synced automatically or flagged to the admin (replacing the manual toggle in R5). Printify API credentials are server-only secrets. Orders are submitted only after payment is confirmed, never from the browser.
+**R15. Printify order submission (submission built behind `PRINTIFY_ORDERS_ENABLED`, off by default; status/tracking and availability sync not yet built).** After a successful Stripe payment (verified by webhook), the server creates the order through the Printify API, stores the Printify order ID against the order, and handles failure and retry safely and idempotently. Printify order status and tracking are synced back to the order and customer email. Printify availability for sizes is synced automatically or flagged to the admin (replacing the manual toggle in R5). Printify API credentials are server-only secrets. Orders are submitted only after payment is confirmed, never from the browser.
 
 ## 7. Constraints
 
@@ -130,10 +130,11 @@ These block launch and must not be decided by an engineer or an AI agent.
 | 2026-11-10 | R15 (Printify order submission) added to the plan as new work in phase 3. Printify availability sync vs manual toggle is still an owner decision (section 9, item 6). |
 | 2026-11-11 | Owner: lean Black Friday launch. New phase 8 (tasks 47-51: payment-path review, single under-construction setting, policy scaffolding with [OWNER TO SUPPLY] placeholders, email render + configurable sender, docs/LAUNCH_RUNBOOK.md) runs ahead of phases 1-7, together with R15 tasks 16/18/19 and task 46. R15 ships behind PRINTIFY_ORDERS_ENABLED, off by default, mock-tested only; ledger task 10 is no longer a prerequisite for 18 (idempotency via a unique printify_orders row per Stripe session). Goals and non-goals unchanged; hard stops unchanged. |
 | 2026-11-11 | R15 design written from Printify's official docs: `docs/PRINTIFY_FULFILLMENT.md`. Stripe Checkout Session id is the Printify order `external_id` (409 = already submitted, treated as success); submission only after the signature-verified Stripe webhook; status via signed Printify webhook (`X-Pfy-Signature`, HMAC-SHA256) plus polling fallback; mapping stored in the existing JSONB sizes; behind a flag. Owner items stay TBD (approval mode, availability sync, alert recipient, account setup). |
+| 2026-11-13 | Owner approved the PRD (task 3). R15 wording updated to reflect the flag-gated submission code. Launch destinations deferred: decide later (task 41); R6 regional docs are not a commitment. |
 
 ## 13. Open questions (TBD)
 
-- TBD: PRD approval by the owner (task 3).
+- TBD: launch destinations (owner deferred, 2026-11-13; task 41).
 - TBD: Printify availability: automatic sync or manual toggle (task 17).
 - TBD: whether M3-005, M6-006, M14-004 and M14-005 apply to a made-to-order model (task 27).
 - TBD: error-monitoring provider (task 36).

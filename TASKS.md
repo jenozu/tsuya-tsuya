@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 12/51 tasks done.**
+**Progress: 13/51 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -13,7 +13,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **2. Reconcile master_plan.md and the PRD against current main** _(after 1)_  
   Replace the unverified 67 done / 74 open snapshot with checked facts.  
   _Test:_ `grep -c '^- \[x\]' master_plan.md` and the open count equal the numbers logged; the drift list is in the task log.
-- [ ] **3. Owner: review and approve the PRD** **[HUMAN]**  
+- [x] **3. Owner: review and approve the PRD** **[HUMAN]**  
   The PRD is a DRAFT generated from the repo docs; the plan is only as good as it is.  
   _Test:_ PRD Status line no longer says DRAFT and the decision log has a dated 'approved' entry.
 - [x] **4. Owner: provide isolated test resources** **[HUMAN]**  

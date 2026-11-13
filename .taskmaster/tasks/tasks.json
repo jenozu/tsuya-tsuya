@@ -32,10 +32,10 @@
       {
         "title": "Owner: review and approve the PRD",
         "description": "The PRD is a DRAFT generated from the repo docs; the plan is only as good as it is.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [],
-        "details": "Owner steps: read .taskmaster/docs/prd.md, especially sections 6 (R1-R15), 9 (owner decisions) and R14 payment decisions; edit anything wrong; reply 'approved' or list changes. The agent then changes the Status line from DRAFT and records the approval in the PRD decision log.",
+        "details": "Owner steps: read .taskmaster/docs/prd.md, especially sections 6 (R1-R15), 9 (owner decisions) and R14 payment decisions; edit anything wrong; reply 'approved' or list changes. The agent then changes the Status line from DRAFT and records the approval in the PRD decision log.\n\n[2026-11-13T10:42:18-05:00] owner approved 2026-11-13 with: R15 wording fixed; destinations decide later",
         "testStrategy": "PRD Status line no longer says DRAFT and the decision log has a dated 'approved' entry.",
         "complexity": 1,
         "human": true,
@@ -1036,7 +1036,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-12T14:56:07-05:00"
+      "updated": "2026-11-13T10:42:18-05:00"
     }
   }
 }
