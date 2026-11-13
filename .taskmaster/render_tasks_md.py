@@ -24,11 +24,13 @@ for t in sorted(tasks, key=lambda t: (t.get("phase", 10**6), t["id"])):
         out += ["", f"## {head}", ""]
     deps = f" _(after {', '.join(map(str, t.get('dependencies', [])))})_" if t.get("dependencies") else ""
     tag = " **[HUMAN]**" if t.get("human") else ""
-    out.append(f"- {box.get(t.get('status'), '[ ]')} **{t['id']}. {t['title']}**{tag}{deps}  ")
+    lines = [f"- {box.get(t.get('status'), '[ ]')} **{t['id']}. {t['title']}**{tag}{deps}"]
     if t.get("description"):
-        out.append(f"  {t['description']}  ")
+        lines.append(f"  {t['description']}")
     if t.get("testStrategy"):
-        out.append(f"  _Test:_ {' '.join(t['testStrategy'].split())}")
+        lines.append(f"  _Test:_ {' '.join(t['testStrategy'].split())}")
+    # Backslash = hard line break, only between lines of one paragraph (a trailing one renders literally).
+    out += [l + "\\" for l in lines[:-1]] + lines[-1:]
     for s in t.get("subtasks", []):
         out.append(f"  - {box.get(s.get('status'), '[ ]')} {t['id']}.{s['id']} {s['title']}")
 (root / "TASKS.md").write_text("\n".join(out) + "\n", encoding="utf-8")
