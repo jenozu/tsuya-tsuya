@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 18/53 tasks done.**
+**Progress: 19/56 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -37,7 +37,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **8. Enforce checks and a release checklist in CI** _(after 1)_\
   Make lint, typecheck, tests and the migrations check required and documented.\
   _Test:_ `npm run ci:check` passes; the workflow runs lint, tsc, npm test, migrations:check and build; tests/ci-guard-policy.test.mjs updated and green.
-- [ ] **9. Review dependencies, R2 exposure and preview access** _(after 1)_\
+- [x] **9. Review dependencies, R2 exposure and preview access** _(after 1)_\
   Record findings for the remaining security-review items.\
   _Test:_ Report logged with counts by severity; each finding became a task or a parking-lot line.
 - [x] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**\
@@ -49,6 +49,12 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\
   Playwright 1.56.1 cannot install Chromium on ubuntu-latest (26.04); browser-e2e is pinned to ubuntu-24.04 as a stopgap (task 52, commit 10c327f).\
   _Test:_ npm run test:e2e locally; browser-e2e installs Chromium and runs on ubuntu-latest in CI; tests/ci-guard-policy.test.mjs passes.
+- [ ] **54. Security: throttle and constant-time compare on /api/preview-access**\
+  _Test:_ Unit test: wrong passwords beyond the limit get 429; correct password still works; compare uses timingSafeEqual.
+- [ ] **55. Security: add Content-Security-Policy (report-only first)**\
+  _Test:_ Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.
+- [ ] **56. Security: zod high advisory (npm audit) and resend low chain**\
+  _Test:_ npm audit --omit=dev reports no high; npm test and tsc pass.
 
 ## Phase 2 - Order integrity
 

@@ -154,12 +154,12 @@
       {
         "title": "Review dependencies, R2 exposure and preview access",
         "description": "Record findings for the remaining security-review items.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M17-006. Run the security-review skill (areas 1-6) read-only. Output: findings as new tasks via tasks.py add (Security: ...), not code changes. No bucket or Vercel changes. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M17-006. Run the security-review skill (areas 1-6) read-only. Output: findings as new tasks via tasks.py add (Security: ...), not code changes. No bucket or Vercel changes. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:40:31-05:00] plan (sonnet): read-only review per security-review skill areas 1-6; npm audit, grep r2/preview/images config; findings -> tasks/parking-lot\n\n[2026-11-13T16:41:18-05:00] Review done (areas 1-6, read-only). Counts: critical 0, high 1 (zod advisory, already deferred, now tracked), medium 1 (preview-access no throttle/timing-safe compare), low 2 (no CSP; resend low-severity chain). Area 1 secrets clean (only synthetic test values); area 2/3 routes guarded, same-origin present, create-intent stubs 410; R2 live bucket config and Vercel preview protection unverifiable from repo -> parking-lot + manual check. Note: admin store/throttle (5) and upload limits (6) inert until ADMIN_AUTH_STORE_ENABLED=true; auth-store-off means in-memory/legacy path remains.\n\n[2026-11-13T16:42:44-05:00] done by sonnet; verified; reviewed APPROVE; task 56 priority raised to high",
         "testStrategy": "Report logged with counts by severity; each finding became a task or a parking-lot line.",
         "complexity": 3,
         "review": true,
@@ -1024,6 +1024,47 @@
         "phase": 1,
         "id": 53,
         "subtasks": []
+      },
+      {
+        "title": "Security: throttle and constant-time compare on /api/preview-access",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [],
+        "details": "app/api/preview-access/route.ts:32 uses !== on PREVIEW_PASSWORD (not timing-safe) and has no attempt throttle, so the shared preview password can be brute-forced. Fix: crypto.timingSafeEqual on hashed values; reuse the task 5 login throttle (inert until ADMIN_AUTH_STORE_ENABLED) or a per-IP limit.",
+        "testStrategy": "Unit test: wrong passwords beyond the limit get 429; correct password still works; compare uses timingSafeEqual.",
+        "complexity": 3,
+        "review": true,
+        "phase": 1,
+        "id": 54,
+        "subtasks": []
+      },
+      {
+        "title": "Security: add Content-Security-Policy (report-only first)",
+        "description": "",
+        "status": "pending",
+        "priority": "low",
+        "dependencies": [],
+        "details": "lib/security-headers.ts sets nosniff, XFO, referrer, permissions, HSTS but no CSP. Stripe Checkout is a redirect so script-src can be tight; img-src must allow R2_PUBLIC_URL host + images.unsplash.com. Start with Content-Security-Policy-Report-Only.",
+        "testStrategy": "Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.",
+        "complexity": 4,
+        "review": true,
+        "phase": 1,
+        "id": 55,
+        "subtasks": []
+      },
+      {
+        "title": "Security: zod high advisory (npm audit) and resend low chain",
+        "description": "",
+        "status": "pending",
+        "priority": "high",
+        "dependencies": [],
+        "details": "npm audit --omit=dev (2026-11-13): 1 high (zod 4.6.7, fix is a semver-major bump, already deferred in memory.md), 4 low (resend -> @react-email/render, deepmerge, html-to-text; fix = resend major). Review whether the zod advisory is reachable from untrusted input, then upgrade zod and resend with tests.",
+        "testStrategy": "npm audit --omit=dev reports no high; npm test and tsc pass.",
+        "complexity": 3,
+        "phase": 1,
+        "id": 56,
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -1068,7 +1109,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:40:10-05:00"
+      "updated": "2026-11-13T16:42:44-05:00"
     }
   }
 }
