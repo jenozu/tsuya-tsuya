@@ -19,6 +19,10 @@
 - Never ssh to a server or deploy unless the human asked for it, or it's a planned deploy task done through the
   `vps` skill (`ssh vps ...`, `git push vps main`): that key is limited on the server to safe operations.
 - Never spend money or create accounts.
+- Neon restore point (owner rule, 2026-11-13): before any migration or other change to a production Neon branch,
+  create a Neon branch from production as a restore point (`neon branches create --project-id holy-wave-33455099
+  --parent production --name restore-<yyyymmdd-hhmm>-<reason>`), then log its name with `tasks.py log <id>`.
+  Never print connection strings.
 
 ## Code
 - Small, direct changes that match the surrounding style. No speculative abstractions, no drive-by refactors.

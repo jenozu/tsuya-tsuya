@@ -38,7 +38,6 @@
     ],
     "ask": [
       "Bash(dropdb *)",
-      "Bash(node scripts/migrate.mjs --init-empty*)",
       "Bash(stripe *)",
       "Bash(gh pr merge*)"
     ],
@@ -60,9 +59,7 @@
       "Bash(vercel deploy --prod*)",
       "Bash(vercel promote*)",
       "Bash(vercel rollback*)",
-      "Bash(vercel env *)",
-      "Bash(node scripts/migrate.mjs --apply*)",
-      "Bash(node scripts/migrate.mjs --adopt-baseline*)"
+      "Bash(vercel env *)"
     ]
   }
 }

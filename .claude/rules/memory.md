@@ -33,6 +33,7 @@ Never update it per task.
 - Harness commits go on a topic branch, never main; the owner merges PRs.
 
 ## Decisions since the PRD (max 8 lines, newest first; full text in the PRD decision log)
+- 2026-11-13: migrate.mjs no longer denied; before any prod Neon change, create + log a restore-point branch.
 - 2026-11-13: PRD approved (task 3); destinations deferred.
 - 2026-11-11: Lean Black Friday launch: phase 8 (47-51) + R15 16/18/19 (flag off) + 46 run first.
 - 2026-11-10: Built with master-harness v1.3.1: lead (Opus) → phase-runner (Sonnet) → builders
