@@ -20,7 +20,7 @@ TsuyaNoUchi (the "House of Lustre" collection) is an online store selling Japane
 
 - No customer-visible stock counts, "only N left" messaging, or invented SKUs. The owner has approved per-size availability, which is private.
 - No physical inventory model. Products are made to order.
-- No live charges, refunds, production database migrations, or production object deletions as part of validation work.
+- No live charges, refunds, or production object deletions as part of validation work. Production database migrations are allowed only after a Neon restore-point branch is created and logged (owner rule, 2026-11-13).
 
 ## 4. Users
 
@@ -132,6 +132,7 @@ These block launch and must not be decided by an engineer or an AI agent.
 | 2026-11-11 | R15 design written from Printify's official docs: `docs/PRINTIFY_FULFILLMENT.md`. Stripe Checkout Session id is the Printify order `external_id` (409 = already submitted, treated as success); submission only after the signature-verified Stripe webhook; status via signed Printify webhook (`X-Pfy-Signature`, HMAC-SHA256) plus polling fallback; mapping stored in the existing JSONB sizes; behind a flag. Owner items stay TBD (approval mode, availability sync, alert recipient, account setup). |
 | 2026-11-13 | Owner approved the PRD (task 3). R15 wording updated to reflect the flag-gated submission code. Launch destinations deferred: decide later (task 41); R6 regional docs are not a commitment. |
 | 2026-11-13 | Owner: agent permissions loosened for build work. `.claude/settings.json` no longer denies or asks for `scripts/migrate.mjs` (--apply, --adopt-baseline, --init-empty); Neon CLI/API commands are not blocked. Standing rule: before any migration or other change to a production Neon branch, create a restore-point branch from production and log its name on the task (see `.claude/rules/rules.md`). Other hard stops (force push, reset --hard, push to main, vercel prod/env, reading .env) stay denied. |
+| 2026-11-13 | Non-goals reworded: production database migrations are no longer excluded; they require a logged Neon restore-point branch first. AGENTS.md and AUTONOMOUS_EXECUTION_PLAN.md (dated note) aligned. |
 
 ## 13. Open questions (TBD)
 
