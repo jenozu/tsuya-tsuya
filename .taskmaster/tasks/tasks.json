@@ -60,12 +60,12 @@
       {
         "title": "Harden admin login: throttling, session revocation, inactivity timeout",
         "description": "Close the open admin-auth gaps without claiming per-instance counters are distributed protection.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M7-004, TSU-M17-004 (remaining parts). Read docs/ADMIN_ACCESS_RECOVERY.md, lib/admin-session.ts, app/api/admin/auth/route.ts, middleware.ts. Use a persistent store: an additive migrations/forward JSON table (db-migration skill), not in-memory. Do not change the shared-login model or password policy wording without owner input. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M7-004, TSU-M17-004 (remaining parts). Read docs/ADMIN_ACCESS_RECOVERY.md, lib/admin-session.ts, app/api/admin/auth/route.ts, middleware.ts. Use a persistent store: an additive migrations/forward JSON table (db-migration skill), not in-memory. Do not change the shared-login model or password policy wording without owner input. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:31:03-05:00] all subtasks done; npm test, tsc, lint, build, migrations:check pass; integration route-authorization suite needs disposable DB (not run locally)",
         "testStrategy": "`npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.",
         "complexity": 8,
         "review": true,
@@ -95,9 +95,9 @@
           {
             "title": "Inactivity timeout and docs",
             "description": "Add the timeout and update the recovery doc.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: lib/admin-session.ts, docs/ADMIN_ACCESS_RECOVERY.md (merge; keep existing text).",
+            "details": "Files: lib/admin-session.ts, docs/ADMIN_ACCESS_RECOVERY.md (merge; keep existing text).\n\n[2026-11-13T16:31:03-05:00] done by sonnet; verified; reviewed APPROVE",
             "testStrategy": "A unit test proves an idle session is rejected; the doc diff is additive.",
             "complexity": 4,
             "id": 3
@@ -1068,7 +1068,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:28:38-05:00"
+      "updated": "2026-11-13T16:31:03-05:00"
     }
   }
 }

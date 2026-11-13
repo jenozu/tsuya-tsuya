@@ -1,6 +1,8 @@
 const SESSION_COOKIE = 'admin_session'
 const SESSION_VERSION = 'v1'
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 7
+// Ledger sessions end after this long without an authenticated request (seconds).
+export const ADMIN_SESSION_IDLE_TIMEOUT = 60 * 30
 
 function getSessionSecret(): string | null {
   return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || null
@@ -111,7 +113,12 @@ export async function hasAdminSession(request: Request, store?: AdminSessionStor
     if (id === null) return false
     if (!store) return true
     const row = await store.find(id)
-    return Boolean(row && row.revokedAt === null && row.expiresAt > Math.floor(Date.now() / 1000))
+    const now = Math.floor(Date.now() / 1000)
+    if (!row || row.revokedAt !== null || row.expiresAt <= now || now - row.lastSeenAt > ADMIN_SESSION_IDLE_TIMEOUT) {
+      return false
+    }
+    await store.touch(id, now)
+    return true
   } catch {
     return false
   }

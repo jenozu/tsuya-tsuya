@@ -100,8 +100,6 @@ test('sessions fail closed when both signing-key configuration sources are unava
 // With an AdminSessionStore passed in, tokens are `v2.<128-bit hex id>.<expiry>.<hmac>` and every check consults
 // the ledger. Without a store the stateless v1 path above is unchanged (keeps production working until
 // migration 005 is applied and the store is switched on). Times are epoch seconds from the app clock.
-// TODO 5.3 (inactivity timeout): remove the `todo` options once implemented.
-const TODO_IDLE = '5.3: inactivity timeout not built yet'
 
 // Mirrors the intended admin_sessions SQL; one row per issued session.
 function memorySessionStore() {
@@ -186,7 +184,7 @@ test('ledger failures fail closed: no session accepted, no token issued', async 
   await assert.rejects(createAdminSessionToken({ ...store, async create() { throw new Error('synthetic store failure') } }))
 })
 
-test('inactivity timeout: activity keeps a session alive, idling past the timeout ends it', { todo: TODO_IDLE }, async () => {
+test('inactivity timeout: activity keeps a session alive, idling past the timeout ends it', async () => {
   const idle = adminSession.ADMIN_SESSION_IDLE_TIMEOUT
   assert.ok(Number.isInteger(idle) && idle >= 300 && idle < ADMIN_SESSION_MAX_AGE, String(idle))
   const store = memorySessionStore()

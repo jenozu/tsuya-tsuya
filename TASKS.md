@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 14/53 tasks done.**
+**Progress: 15/53 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -22,12 +22,12 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 1 - Hardening
 
-- [>] **5. Harden admin login: throttling, session revocation, inactivity timeout** _(after 1)_\
+- [x] **5. Harden admin login: throttling, session revocation, inactivity timeout** _(after 1)_\
   Close the open admin-auth gaps without claiming per-instance counters are distributed protection.\
   _Test:_ `npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.
   - [x] 5.1 Design the store and write failing tests
   - [x] 5.2 Implement throttling and revocation
-  - [ ] 5.3 Inactivity timeout and docs
+  - [x] 5.3 Inactivity timeout and docs
 - [ ] **6. Upload abuse limits and object ownership** _(after 5)_\
   Finish the image-upload gaps left after the magic-byte checks.\
   _Test:_ tests/image-validation.test.mjs plus new tests cover rate limit and ownership; `npm test --silent` green.
