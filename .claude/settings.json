@@ -30,6 +30,8 @@
       "Bash(npx tsc *)",
       "Bash(npm ci *)",
       "Bash(pg_isready *)",
+      "Bash(neon *)",
+      "Bash(node scripts/migrate.mjs *)",
       "Bash",
       "Edit",
       "Write",
