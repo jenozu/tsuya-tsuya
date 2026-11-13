@@ -2,13 +2,11 @@
 // The store is injected, so these run without a database. The in-memory store mirrors the intended SQL: one
 // atomic upsert per attempt (fixed window, keyed by an HMAC'd client bucket), so this proves the logic, not
 // PostgreSQL row locking (that belongs to npm run test:disposable-db).
-// TODO 5.2: remove every `todo` option once the module exists; they keep the branch green until then.
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { after, before, test } from 'node:test'
 
-const TODO = '5.2: lib/admin-throttle.ts not built yet'
 const load = () => import('../lib/admin-throttle.ts')
 
 const previousSecret = process.env.ADMIN_SESSION_SECRET
@@ -56,14 +54,14 @@ test('admin_login_attempts migration is additive, keyed by an opaque 64-hex buck
   assert.doesNotMatch(table, /\bip\b|address|email/i)
 })
 
-test('limits are exported and sane', { todo: TODO }, async () => {
+test('limits are exported and sane', async () => {
   const { ADMIN_LOGIN_MAX_ATTEMPTS, ADMIN_LOGIN_WINDOW_SECONDS } = await load()
   assert.ok(Number.isInteger(ADMIN_LOGIN_MAX_ATTEMPTS) && ADMIN_LOGIN_MAX_ATTEMPTS >= 3 && ADMIN_LOGIN_MAX_ATTEMPTS <= 10)
   assert.ok(Number.isInteger(ADMIN_LOGIN_WINDOW_SECONDS) && ADMIN_LOGIN_WINDOW_SECONDS >= 300
     && ADMIN_LOGIN_WINDOW_SECONDS <= 3600)
 })
 
-test('allows the max attempts per window, then blocks with a bounded Retry-After', { todo: TODO }, async () => {
+test('allows the max attempts per window, then blocks with a bounded Retry-After', async () => {
   const { ADMIN_LOGIN_MAX_ATTEMPTS: max, ADMIN_LOGIN_WINDOW_SECONDS: win, consumeAdminLoginAttempt } = await load()
   const store = memoryThrottleStore()
   for (let i = 0; i < max; i += 1) {
@@ -76,7 +74,7 @@ test('allows the max attempts per window, then blocks with a bounded Retry-After
   assert.equal((await consumeAdminLoginAttempt(BUCKET_A, store, T0 + win)).allowed, true, 'window elapsed')
 })
 
-test('a successful login clears the bucket', { todo: TODO }, async () => {
+test('a successful login clears the bucket', async () => {
   const { ADMIN_LOGIN_MAX_ATTEMPTS: max, consumeAdminLoginAttempt, clearAdminLoginAttempts } = await load()
   const store = memoryThrottleStore()
   for (let i = 0; i < max - 1; i += 1) await consumeAdminLoginAttempt(BUCKET_A, store, T0)
@@ -86,7 +84,7 @@ test('a successful login clears the bucket', { todo: TODO }, async () => {
   }
 })
 
-test('one blocked client does not lock out another', { todo: TODO }, async () => {
+test('one blocked client does not lock out another', async () => {
   const { ADMIN_LOGIN_MAX_ATTEMPTS: max, consumeAdminLoginAttempt } = await load()
   const store = memoryThrottleStore()
   for (let i = 0; i <= max; i += 1) await consumeAdminLoginAttempt(BUCKET_A, store, T0)
@@ -95,7 +93,7 @@ test('one blocked client does not lock out another', { todo: TODO }, async () =>
 })
 
 test('attempts are counted atomically before the password check, so parallel guesses cannot exceed the limit',
-  { todo: TODO }, async () => {
+  async () => {
     const { ADMIN_LOGIN_MAX_ATTEMPTS: max, consumeAdminLoginAttempt } = await load()
     const store = memoryThrottleStore()
     const results = await Promise.all(
@@ -103,14 +101,14 @@ test('attempts are counted atomically before the password check, so parallel gue
     assert.equal(results.filter(r => r.allowed).length, max)
   })
 
-test('store failures propagate so the login route fails closed', { todo: TODO }, async () => {
+test('store failures propagate so the login route fails closed', async () => {
   const { consumeAdminLoginAttempt } = await load()
   const broken = { async hit() { throw new Error('synthetic store failure') }, async reset() {} }
   await assert.rejects(consumeAdminLoginAttempt(BUCKET_A, broken, T0), /synthetic store failure/)
 })
 
 test('client bucket is a keyed hash of the first forwarded IP and never the raw or plain-hashed IP',
-  { todo: TODO }, async () => {
+  async () => {
     const { adminLoginBucket } = await load()
     const ip = '203.0.113.7'
     const a = await adminLoginBucket(loginRequest({ 'x-forwarded-for': ip }))

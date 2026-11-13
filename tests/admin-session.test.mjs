@@ -100,8 +100,7 @@ test('sessions fail closed when both signing-key configuration sources are unava
 // With an AdminSessionStore passed in, tokens are `v2.<128-bit hex id>.<expiry>.<hmac>` and every check consults
 // the ledger. Without a store the stateless v1 path above is unchanged (keeps production working until
 // migration 005 is applied and the store is switched on). Times are epoch seconds from the app clock.
-// TODO 5.2 (revocation) / 5.3 (inactivity timeout): remove the `todo` options once implemented.
-const TODO_REVOKE = '5.2: session ledger/revocation not built yet'
+// TODO 5.3 (inactivity timeout): remove the `todo` options once implemented.
 const TODO_IDLE = '5.3: inactivity timeout not built yet'
 
 // Mirrors the intended admin_sessions SQL; one row per issued session.
@@ -139,7 +138,7 @@ test('admin_sessions migration is additive with an opaque id, activity and revoc
   }
 })
 
-test('ledger session: v2 token with a random id recorded in the store, same expiry', { todo: TODO_REVOKE }, async () => {
+test('ledger session: v2 token with a random id recorded in the store, same expiry', async () => {
   const store = memorySessionStore()
   const token = await createAdminSessionToken(store)
   assert.match(token, /^v2\.[0-9a-f]{32}\.\d+\.[0-9a-f]{64}$/)
@@ -150,7 +149,7 @@ test('ledger session: v2 token with a random id recorded in the store, same expi
   assert.notEqual(other.split('.')[1], id)
 })
 
-test('ledger: the signature covers the session id', { todo: TODO_REVOKE }, async () => {
+test('ledger: the signature covers the session id', async () => {
   const store = memorySessionStore()
   const token = await createAdminSessionToken(store)
   const victim = await createAdminSessionToken(store)
@@ -160,7 +159,7 @@ test('ledger: the signature covers the session id', { todo: TODO_REVOKE }, async
   assert.equal(await hasAdminSession(withToken(swapped), store), false)
 })
 
-test('logout revokes only that session server-side; unknown ids are rejected', { todo: TODO_REVOKE }, async () => {
+test('logout revokes only that session server-side; unknown ids are rejected', async () => {
   const store = memorySessionStore()
   const mine = await createAdminSessionToken(store)
   const other = await createAdminSessionToken(store)
@@ -173,13 +172,13 @@ test('logout revokes only that session server-side; unknown ids are rejected', {
   await adminSession.revokeAdminSession(new Request('https://example.test/'), store)
 })
 
-test('with a ledger, legacy v1 tokens are rejected; without one, v2 tokens are rejected', { todo: TODO_REVOKE }, async () => {
+test('with a ledger, legacy v1 tokens are rejected; without one, v2 tokens are rejected', async () => {
   const store = memorySessionStore()
   assert.equal(await hasAdminSession(withToken(await createAdminSessionToken()), store), false)
   assert.equal(await hasAdminSession(withToken(await createAdminSessionToken(store))), false)
 })
 
-test('ledger failures fail closed: no session accepted, no token issued', { todo: TODO_REVOKE }, async () => {
+test('ledger failures fail closed: no session accepted, no token issued', async () => {
   const store = memorySessionStore()
   const token = await createAdminSessionToken(store)
   const broken = { ...store, async find() { throw new Error('synthetic store failure') } }

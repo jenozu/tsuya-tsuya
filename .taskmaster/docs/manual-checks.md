@@ -22,3 +22,8 @@ with numbered steps and the expected result.
 ### Task 49 - Policy page scaffolding (2026-11-11) - Eyes-on
 1. Open /returns, /privacy, /terms: Navbar, Footer and "[OWNER TO SUPPLY]" placeholder render; view source shows meta robots noindex.
 2. Footer shows Returns, Privacy, Terms links.
+
+### Task 5.2 - Admin throttle and session ledger cutover (2026-11-13) - Eyes-on
+1. Take a Neon restore-point branch, apply migration 005, set ADMIN_AUTH_STORE_ENABLED=true (owner step; existing admin cookies are invalidated).
+2. Log in, log out, log in again: all succeed; old cookie after logout is rejected.
+3. Submit 6 wrong passwords: the 6th returns 429 with Retry-After.

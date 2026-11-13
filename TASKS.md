@@ -26,7 +26,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   Close the open admin-auth gaps without claiming per-instance counters are distributed protection.\
   _Test:_ `npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.
   - [x] 5.1 Design the store and write failing tests
-  - [ ] 5.2 Implement throttling and revocation
+  - [x] 5.2 Implement throttling and revocation
   - [ ] 5.3 Inactivity timeout and docs
 - [ ] **6. Upload abuse limits and object ownership** _(after 5)_\
   Finish the image-upload gaps left after the magic-byte checks.\
