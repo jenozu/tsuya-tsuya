@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 21/56 tasks done.**
+**Progress: 22/56 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -46,7 +46,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **52. Upgrade next to clear critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)** _(after 2)_\
   Infrastructure Guard candidate-build fails on npm audit --audit-level=critical: next 16.3.6 is in the vulnerable range; first patched 16.4.1 per both advisories.\
   _Test:_ npm ci; npm test; npx tsc --noEmit; npm run lint; npm run build; npm run test:e2e; npm audit --omit=dev --audit-level=critical exits 0; Infrastructure Guard green on the PR.
-- [ ] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\
+- [x] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\
   Playwright 1.56.1 cannot install Chromium on ubuntu-latest (26.04); browser-e2e is pinned to ubuntu-24.04 as a stopgap (task 52, commit 10c327f).\
   _Test:_ npm run test:e2e locally; browser-e2e installs Chromium and runs on ubuntu-latest in CI; tests/ci-guard-policy.test.mjs passes.
 - [x] **54. Security: throttle and constant-time compare on /api/preview-access**\

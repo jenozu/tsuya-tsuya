@@ -40,3 +40,7 @@ with numbered steps and the expected result.
 1. Open storefront home, a product page and checkout cancel/return in Chrome with DevTools Console open. Expected: no "Content Security Policy" report-only violations (record any).
 2. Repeat on admin login and admin pages. Expected: same.
 3. Confirm R2 and images.unsplash.com images load. Expected: yes.
+
+### Task 53 - Playwright 1.65.1, browser-e2e on ubuntu-latest (2026-11-13)
+1. On the PR, confirm infra-guard browser-e2e installs Chromium and passes on ubuntu-latest. Expected: green.
+2. Confirm storefront-admin.spec.ts:46 and :91 pass in CI (both fail locally on Windows after admin synthetic login; if :91 fails in CI it is a real regression, possibly Playwright 1.65 behaviour).
