@@ -45,7 +45,7 @@ def load(path, tag):
 def save(path, data, tag):
     data[tag].setdefault("metadata", {})["updated"] = now()
     tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
     os.replace(tmp, path)
