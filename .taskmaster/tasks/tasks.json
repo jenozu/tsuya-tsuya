@@ -1008,6 +1008,22 @@
         "phase": 1,
         "id": 52,
         "subtasks": []
+      },
+      {
+        "title": "Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner",
+        "description": "Playwright 1.56.1 cannot install Chromium on ubuntu-latest (26.04); browser-e2e is pinned to ubuntu-24.04 as a stopgap (task 52, commit 10c327f).",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          52
+        ],
+        "details": "Playwright release notes, v1.61.0 (2026-06-15): 'Playwright now supports Ubuntu 26.04.' (github.com/microsoft/playwright/releases/tag/v1.61.0). Upgrade @playwright/test (pinned exact) to >= 1.61.0, adjust e2e specs if APIs changed, then set browser-e2e back to runs-on: ubuntu-latest in .github/workflows/infra-guard.yml (risky path, reviewer). Existing dependency upgrade, owner-approved 2026-11-13.",
+        "testStrategy": "npm run test:e2e locally; browser-e2e installs Chromium and runs on ubuntu-latest in CI; tests/ci-guard-policy.test.mjs passes.",
+        "complexity": 4,
+        "review": true,
+        "phase": 1,
+        "id": 53,
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -1052,7 +1068,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T14:14:48-05:00"
+      "updated": "2026-11-13T15:04:28-05:00"
     }
   }
 }
