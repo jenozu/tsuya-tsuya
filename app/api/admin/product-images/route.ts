@@ -2,27 +2,33 @@ import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextRequest, NextResponse } from 'next/server'
 import { hasAdminSession } from '@/lib/admin-session'
-import { inspectImageUpload, InvalidImageError } from '@/lib/image-validation'
+import { inspectImageUpload, InvalidImageError, isOwnedUploadKey } from '@/lib/image-validation'
+import { adminUploadBucket, consumeAdminUploadAttempt, defaultAdminThrottleStore } from '@/lib/admin-throttle'
 import { deleteR2Object, objectKeyFromPublicUrl, putR2Object } from '@/lib/r2'
 
 export const runtime = 'nodejs'
 
 const MAX_INPUT_SIZE = 10 * 1024 * 1024
 
-// Reject traversal and ambiguous object identifiers before even contacting R2.
-// Existing product object names remain usable; historical ownership checks are
-// a separate migration-backed task, not inferred merely from the prefix.
-function isSafeProductKey(key: unknown): key is string {
-  return typeof key === 'string' && key.length <= 1024 &&
-    key.startsWith('products/') &&
-    key.split('/').every(segment => segment !== '' && segment !== '.' && segment !== '..') &&
-    !key.includes('\\') &&
-    !/[\u0000-\u001f\u007f?#]/.test(key)
-}
 export async function POST(request: NextRequest) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
   if (!(await hasAdminSession(request))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Persistent upload limit (shared admin_login_attempts table, flag-gated); counted before any body parsing.
+  try {
+    const throttle = await defaultAdminThrottleStore()
+    if (throttle) {
+      const attempt = await consumeAdminUploadAttempt(await adminUploadBucket(request), throttle, Math.floor(Date.now() / 1000))
+      if (!attempt.allowed) {
+        return NextResponse.json({ error: 'Too many uploads. Try again later.' },
+          { status: 429, headers: { 'Retry-After': String(attempt.retryAfterSeconds) } })
+      }
+    }
+  } catch {
+    reportServerError('api.admin_product_images.failure')
+    return NextResponse.json({ error: 'Image upload failed' }, { status: 500 })
   }
 
   // Fast preflight for declared giant multipart requests. file.size and
@@ -78,7 +84,7 @@ export async function DELETE(request: NextRequest) {
     const body = await request.json().catch(() => ({})) as { url?: string; key?: string }
     const key = body.key || (body.url ? objectKeyFromPublicUrl(body.url) : null)
 
-    if (!isSafeProductKey(key)) {
+    if (!isOwnedUploadKey(key)) {
       return NextResponse.json({ error: 'Invalid R2 product image key' }, { status: 400 })
     }
 

@@ -75,3 +75,9 @@ export async function inspectImageUpload(body: Buffer, declaredType: string): Pr
   }
   return { extension: kind.extension, width, height }
 }
+
+// Ownership: only keys this server generated (products/<day>/<uuid>.<ext>) may be deleted via the admin API.
+export const UPLOAD_KEY_PATTERN = /^products\/\d{4}-\d{2}-\d{2}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpg|jpeg|png|webp|gif|avif)$/
+export function isOwnedUploadKey(key: unknown): key is string {
+  return typeof key === 'string' && UPLOAD_KEY_PATTERN.test(key)
+}

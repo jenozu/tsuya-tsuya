@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 15/53 tasks done.**
+**Progress: 16/53 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -28,7 +28,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   - [x] 5.1 Design the store and write failing tests
   - [x] 5.2 Implement throttling and revocation
   - [x] 5.3 Inactivity timeout and docs
-- [ ] **6. Upload abuse limits and object ownership** _(after 5)_\
+- [x] **6. Upload abuse limits and object ownership** _(after 5)_\
   Finish the image-upload gaps left after the magic-byte checks.\
   _Test:_ tests/image-validation.test.mjs plus new tests cover rate limit and ownership; `npm test --silent` green.
 - [ ] **7. Expand isolated integration tests for admin and catalog** _(after 1)_\

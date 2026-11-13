@@ -29,3 +29,19 @@ export function adminLoginBucket(request: Request): Promise<string> {
   const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown'
   return signWithAdminSecret('login-bucket:' + ip)
 }
+
+export const ADMIN_UPLOAD_MAX_PER_WINDOW = 30
+export const ADMIN_UPLOAD_WINDOW_SECONDS = 600
+
+// Same table and atomic upsert as login throttling; the "upload:" HMAC prefix keeps the buckets distinct.
+export function adminUploadBucket(request: Request): Promise<string> {
+  const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown'
+  return signWithAdminSecret('upload:' + ip)
+}
+
+export async function consumeAdminUploadAttempt(bucket: string, store: AdminThrottleStore, now: number) {
+  const { count, windowStartedAt } = await store.hit(bucket, now, ADMIN_UPLOAD_WINDOW_SECONDS)
+  if (count <= ADMIN_UPLOAD_MAX_PER_WINDOW) return { allowed: true, retryAfterSeconds: 0 }
+  const retry = windowStartedAt + ADMIN_UPLOAD_WINDOW_SECONDS - now
+  return { allowed: false, retryAfterSeconds: Math.min(ADMIN_UPLOAD_WINDOW_SECONDS, Math.max(1, retry)) }
+}

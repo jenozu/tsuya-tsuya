@@ -27,3 +27,7 @@ with numbered steps and the expected result.
 1. Take a Neon restore-point branch, apply migration 005, set ADMIN_AUTH_STORE_ENABLED=true (owner step; existing admin cookies are invalidated).
 2. Log in, log out, log in again: all succeed; old cookie after logout is rejected.
 3. Submit 6 wrong passwords: the 6th returns 429 with Retry-After.
+
+### Task 6 - Upload limits and key ownership (2026-11-13) - Eyes-on
+1. Upload limit (30 per 10 min per IP) is only live once ADMIN_AUTH_STORE_ENABLED=true (see task 5.2 cutover); with the flag off no upload limit applies.
+2. Legacy non-uuid product keys (e.g. from scripts/bulk-upload-images.js) cannot be deleted via the admin API; remove them via a separate owner-approved task if needed.

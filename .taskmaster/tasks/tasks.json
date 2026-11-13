@@ -107,12 +107,12 @@
       {
         "title": "Upload abuse limits and object ownership",
         "description": "Finish the image-upload gaps left after the magic-byte checks.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           5
         ],
-        "details": "Roadmap: TSU-M8-004 (rate and object ownership), TSU-M17-006 (upload abuse part). Files: app/api/admin/product-images/route.ts, lib/image-validation.ts, lib/r2.ts. Persistent counters only; tests use mocks (tests/fixtures/mock-r2.mjs); never touch the real bucket. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M8-004 (rate and object ownership), TSU-M17-006 (upload abuse part). Files: app/api/admin/product-images/route.ts, lib/image-validation.ts, lib/r2.ts. Persistent counters only; tests use mocks (tests/fixtures/mock-r2.mjs); never touch the real bucket. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:32:02-05:00] built (sonnet): upload limit 30/10min via admin-throttle upload: bucket in POST (flag-gated, 429), DELETE restricted to server-generated keys; no migration\n\n[2026-11-13T16:33:57-05:00] done by sonnet; verified; reviewed APPROVE; limit inert until ADMIN_AUTH_STORE_ENABLED; legacy keys undeletable via API",
         "testStrategy": "tests/image-validation.test.mjs plus new tests cover rate limit and ownership; `npm test --silent` green.",
         "complexity": 6,
         "review": true,
@@ -1068,7 +1068,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:31:03-05:00"
+      "updated": "2026-11-13T16:33:57-05:00"
     }
   }
 }
