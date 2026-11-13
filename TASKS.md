@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 20/56 tasks done.**
+**Progress: 21/56 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -51,7 +51,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   _Test:_ npm run test:e2e locally; browser-e2e installs Chromium and runs on ubuntu-latest in CI; tests/ci-guard-policy.test.mjs passes.
 - [x] **54. Security: throttle and constant-time compare on /api/preview-access**\
   _Test:_ Unit test: wrong passwords beyond the limit get 429; correct password still works; compare uses timingSafeEqual.
-- [ ] **55. Security: add Content-Security-Policy (report-only first)**\
+- [x] **55. Security: add Content-Security-Policy (report-only first)**\
   _Test:_ Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.
 - [ ] **56. Security: zod high advisory (npm audit) and resend low chain**\
   _Test:_ npm audit --omit=dev reports no high; npm test and tsc pass.

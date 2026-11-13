@@ -35,3 +35,8 @@ with numbered steps and the expected result.
 ### Task 8 - Branch protection (2026-11-13) - Eyes-on
 1. Owner: GitHub Settings > Branches, protect main; require checks verify, baseline-build, candidate-build, browser-e2e, PR required, no force pushes (see docs/CI_QUALITY_GATES.md).
 2. Confirm the CI run on the PR is green.
+
+### Task 55 - CSP report-only (2026-11-13)
+1. Open storefront home, a product page and checkout cancel/return in Chrome with DevTools Console open. Expected: no "Content Security Policy" report-only violations (record any).
+2. Repeat on admin login and admin pages. Expected: same.
+3. Confirm R2 and images.unsplash.com images load. Expected: yes.

@@ -1042,10 +1042,10 @@
       {
         "title": "Security: add Content-Security-Policy (report-only first)",
         "description": "",
-        "status": "pending",
+        "status": "done",
         "priority": "low",
         "dependencies": [],
-        "details": "lib/security-headers.ts sets nosniff, XFO, referrer, permissions, HSTS but no CSP. Stripe Checkout is a redirect so script-src can be tight; img-src must allow R2_PUBLIC_URL host + images.unsplash.com. Start with Content-Security-Policy-Report-Only.",
+        "details": "lib/security-headers.ts sets nosniff, XFO, referrer, permissions, HSTS but no CSP. Stripe Checkout is a redirect so script-src can be tight; img-src must allow R2_PUBLIC_URL host + images.unsplash.com. Start with Content-Security-Policy-Report-Only.\n\n[2026-11-13T16:49:29-05:00] done by sonnet; verified; reviewed APPROVE; done pending manual check (console violations)",
         "testStrategy": "Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.",
         "complexity": 4,
         "review": true,
@@ -1109,7 +1109,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T16:46:26-05:00"
+      "updated": "2026-11-13T16:49:29-05:00"
     }
   }
 }
