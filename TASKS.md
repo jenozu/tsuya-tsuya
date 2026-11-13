@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 11/51 tasks done.**
+**Progress: 11/52 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -43,6 +43,9 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**  
   npm test fails on tests #40 and #41 in tests/ci-guard-policy.test.mjs on current main.  
   _Test:_ npm test --silent passes with 0 failures
+- [>] **52. Upgrade next to clear critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)** _(after 2)_  
+  Infrastructure Guard candidate-build fails on npm audit --audit-level=critical: next 16.3.6 is in the vulnerable range; first patched 16.4.1 per both advisories.  
+  _Test:_ npm ci; npm test; npx tsc --noEmit; npm run lint; npm run build; npm run test:e2e; npm audit --omit=dev --audit-level=critical exits 0; Infrastructure Guard green on the PR.
 
 ## Phase 2 - Order integrity
 

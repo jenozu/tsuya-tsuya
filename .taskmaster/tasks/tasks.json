@@ -992,6 +992,22 @@
         "phase": 8,
         "id": 51,
         "subtasks": []
+      },
+      {
+        "title": "Upgrade next to clear critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)",
+        "description": "Infrastructure Guard candidate-build fails on npm audit --audit-level=critical: next 16.3.6 is in the vulnerable range; first patched 16.4.1 per both advisories.",
+        "status": "in-progress",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "details": "Owner-approved 2026-11-13 as an existing-dependency upgrade (not a new dependency). Upgrade next and eslint-config-next together to a version >= 16.4.1; take sharp/source-map-js only if plain npm audit fix covers them without breaking anything. zod major upgrade is out of scope (later task). Own branch and PR from origin/main, not merged.\n\n[2026-11-13T13:49:46-05:00] advisories: GHSA-2464-fhr4-w9xw and GHSA-673q-mjm6-r5xr both list next >=16.0.0 <=16.4.0 vulnerable, first patched 16.4.1. Upgraded next ^16.4.6 + eslint-config-next 16.4.6; sharp 0.35.5, source-map-js 1.2.2 via plain npm audit fix. zod left. Gates: npm ci ok; npm test 165/0; tsc ok; lint 0 errors 37 warnings; build ok; audit critical exit 0 (remaining: zod high, 4 low). e2e 13 pass / 1 fail (admin synthetic login redirect) - same failure on next 16.3.6 baseline, pre-existing.",
+        "testStrategy": "npm ci; npm test; npx tsc --noEmit; npm run lint; npm run build; npm run test:e2e; npm audit --omit=dev --audit-level=critical exits 0; Infrastructure Guard green on the PR.",
+        "complexity": 4,
+        "review": true,
+        "phase": 1,
+        "id": 52,
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -1036,7 +1052,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-11T20:27:38-05:00"
+      "updated": "2026-11-13T13:49:46-05:00"
     }
   }
 }
