@@ -24,14 +24,12 @@ for t in sorted(tasks, key=lambda t: (t.get("phase", 10**6), t["id"])):
         out += ["", f"## {head}", ""]
     deps = f" _(after {', '.join(map(str, t.get('dependencies', [])))})_" if t.get("dependencies") else ""
     tag = " **[HUMAN]**" if t.get("human") else ""
-    lines = [f"- {box.get(t.get('status'), '[ ]')} **{t['id']}. {t['title']}**{tag}{deps}"]
+    out.append(f"- {box.get(t.get('status'), '[ ]')} **{t['id']}. {t['title']}**{tag}{deps}  ")
     if t.get("description"):
-        lines.append(f"  {t['description']}")
+        out.append(f"  {t['description']}  ")
     if t.get("testStrategy"):
-        lines.append(f"  _Test:_ {' '.join(t['testStrategy'].split())}")
-    # Backslash = hard line break, only between lines of one paragraph (a trailing one renders literally).
-    out += [l + "\\" for l in lines[:-1]] + lines[-1:]
+        out.append(f"  _Test:_ {' '.join(t['testStrategy'].split())}")
     for s in t.get("subtasks", []):
         out.append(f"  - {box.get(s.get('status'), '[ ]')} {t['id']}.{s['id']} {s['title']}")
-(root / "TASKS.md").write_text("\n".join(out) + "\n", encoding="utf-8", newline="\n")
+(root / "TASKS.md").write_text("\n".join(out) + "\n", encoding="utf-8")
 print(f"wrote TASKS.md ({len(tasks)} tasks)")

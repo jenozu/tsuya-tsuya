@@ -36,7 +36,11 @@
       "Edit",
       "Write",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python .taskmaster/run_checks.py *)",
+      "Bash(python3 .taskmaster/run_checks.py *)",
+      "Bash(python .claude/scripts/context_check.py*)",
+      "Bash(python3 .claude/scripts/context_check.py*)"
     ],
     "ask": [
       "Bash(dropdb *)",

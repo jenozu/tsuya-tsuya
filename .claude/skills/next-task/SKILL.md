@@ -14,6 +14,23 @@ Task id: `$ARGUMENTS` if given, else `python .taskmaster/tasks.py next`.
 `python .taskmaster/tasks.py show <id>`: description, phase, complexity, flags, testStrategy, the end of the log.
 Don't open source files. Flag `human` → not a builder task; see the phase-runner's rules.
 
+## 1b. Script tasks (free checks)
+`show` prints `runner: script` → the task is only commands that need no judgment (lint, type check, tests, build,
+CI status). Don't dispatch a builder or the verifier. Run `python .taskmaster/run_checks.py run --only <id>`:
+- **exit 0** → it already logged and marked the task done. Do close-out steps 4-5 only (render, commit
+  `task <id>: <title> (script check)`), then go on.
+- **exit 1** → a check failed and the status is unchanged; the command and its last lines were printed, the full
+  record is in `.claude/tmp/checks/<id>.log`. The code needs fixing: route by complexity (section 3) with
+  `Task <id>: its script check failed. Read .claude/tmp/checks/<id>.log and fix the cause. Don't edit
+  .taskmaster/, and don't weaken, skip or delete a test, lint rule or check. Run the failing command yourself to
+  confirm, then reply in your STATUS format.` After DONE: verifier with `Verify task <id>: the fix for its failed
+  script check; no test, rule or check may be weakened.` On PASS run `run_checks.py run --only <id>` again; exit 0
+  closes it, exit 1 is a failure for the ladder (section 5).
+- **exit 2** → refused or not runnable (command not on the allowlist in `.taskmaster/checks.json`, a shell
+  operator, waiting on a dependency). That's a plan problem, not a code problem: fix the task's `check` (or add a
+  check-only tool to the allowlist) and log why; anything that would let it send, publish, delete or spend is an
+  escalation to the lead. Never route exit 2 to a builder.
+
 ## 2. Split big tasks first
 Complexity ≥ 7 with no subtasks: dispatch **builder-opus** with "Split task <id> into subtasks; do not build."
 Then run each subtask through this procedure. The parent is done when all subtasks are done and its own
@@ -53,7 +70,9 @@ Ladder: **haiku → sonnet → opus**. Move one rung up when the builder reports
 reviewer says CHANGES NEEDED, or the builder hit maxTurns (partial output).
 - One rung per failure. Retry the same tier only for a mechanical failure (service not running, wrong test path):
   fix the environment and retry once.
-- BLOCKED for a missing decision, credential or human-only step → don't climb the ladder; escalate to the lead.
+- BLOCKED for a missing decision, credential or human-only step → don't climb the ladder. If the rest of the task can
+  be built against a placeholder, mock or env var, do that and queue the step in `human-checklist.md` (see the
+  phase-runner's rules). Otherwise leave the task pending, move to another task, and escalate only if nothing else is workable.
 - Log every rung: `python .taskmaster/tasks.py log <id> "escalate <from>→<to>: <one-line reason>"`.
 - Opus failed, or 2 escalations and still failing → stop this task and escalate to the lead (the phase-runner's
   rules say how). Run alone by a human, report to the human instead.
@@ -66,7 +85,8 @@ reviewer says CHANGES NEEDED, or the builder hit maxTurns (partial output).
 4. `python .taskmaster/tasks.py set-status <id> done && python .taskmaster/render_tasks_md.py`
 5. Stage the builder's FILES CHANGED plus `.taskmaster/` and `TASKS.md`, then `git status --short`: nothing the
    task created may stay untracked. `git commit -q -m "task <id>: <short title>"` (add your environment's
-   attribution lines if it asks for them). Don't push.
+   attribution lines if it asks for them), then `git push -q -u origin HEAD` as a backup. The PR and merge happen
+   at phase end through the `deliver` skill, not here.
 6. Keep a running tally for the end-of-phase report (tier, first try or escalated). Don't update memory.md per
    task; the phase-runner does it once at the end.
 7. No progress message. Go straight to the next task.

@@ -1024,6 +1024,240 @@
         "phase": 1,
         "id": 53,
         "subtasks": []
+      },
+      {
+        "title": "Phase 2 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 57",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 2,
+        "id": 57,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 3 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 58",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 3,
+        "id": 58,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 4 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 59",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 4,
+        "id": 59,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 5 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 60",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 5,
+        "id": 60,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 6 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 61",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 6,
+        "id": 61,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 7 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          40,
+          41,
+          42,
+          43,
+          44,
+          45
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 62",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 7,
+        "id": 62,
+        "subtasks": []
       }
     ],
     "metadata": {

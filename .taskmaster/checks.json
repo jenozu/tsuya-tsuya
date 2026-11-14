@@ -1,0 +1,20 @@
+{
+  "_about": "Allowlist for run_checks.py (free checks, no model). A command runs only if it starts with one of these entries: a program name (\"pytest\") or a program plus its first arguments (\"npm run\"). Keep it to commands that only check things. Edit for this project's stack; remove what it doesn't use.",
+  "allow": [
+    "npm run",
+    "npm test",
+    "npx tsc",
+    "npx eslint",
+    "npx prettier --check",
+    "node",
+    "python",
+    "git status",
+    "git diff",
+    "gh pr view",
+    "gh pr checks",
+    "gh run view"
+  ],
+  "timeout_seconds": 900,
+  "retries_on_timeout": 1,
+  "tail_lines": 20
+}
