@@ -9,3 +9,5 @@ restore-<yyyymmdd-hhmm>-<reason>`), then log its name with `tasks.py log <id>`. 
 - Never push to or merge into main; `gh pr merge` (including `--auto`) is a hard stop. Don't auto-merge.
 - Push the topic branch and open a PR only when the human says so; otherwise commit and report.
 - The `deliver` skill's merge step does not apply here: stop after the PR is open and CI status is reported.
+- Remaining stops (also in settings.json): `vercel env *`, push to main, `stripe *`, `gh pr merge*`, plus the
+  AGENTS.md hard stops.
