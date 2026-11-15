@@ -40,12 +40,16 @@
       "Bash(python .taskmaster/run_checks.py *)",
       "Bash(python3 .taskmaster/run_checks.py *)",
       "Bash(python .claude/scripts/context_check.py*)",
-      "Bash(python3 .claude/scripts/context_check.py*)"
+      "Bash(python3 .claude/scripts/context_check.py*)",
+      "Bash(python .claude/scripts/merge_gate.py *)",
+      "Bash(python3 .claude/scripts/merge_gate.py *)"
     ],
     "ask": [
       "Bash(dropdb *)",
       "Bash(stripe *)",
-      "Bash(gh pr merge*)"
+      "Bash(gh pr merge*)",
+      "Bash(gh api *pulls/*/merge*)",
+      "Bash(gh api *merge_method*)"
     ],
     "deny": [
       "Bash(git push --force *)",
