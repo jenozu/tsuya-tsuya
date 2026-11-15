@@ -40,7 +40,7 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
-- Builders mix CRLF/LF; run `sed -i 's/$//'` on touched files before verify or `git diff --check` fails.
+- Builders mix CRLF/LF; run `sed -i 's/$//'` on touched files before verify or `git diff --check` fails.
 - Integration tests need `--experimental-loader ./tests/fixtures/admin-route-loader.mjs`.
 - `next dev` (e2e webServer) appends a Next.js agent-rules block to AGENTS.md; revert it, never commit it.
 - Infra Guard runs on PRs only; candidate-build = critical npm audit, then git diff --check + format:check on changed files.
