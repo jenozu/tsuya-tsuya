@@ -565,13 +565,13 @@
       {
         "title": "Cancellation and refund procedure (guarded, test-only)",
         "description": "Safe cancel/refund mechanics and docs without any live refund.",
-        "status": "in-progress",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           24,
           23
         ],
-        "details": "Roadmap: TSU-M16-002, TSU-M16-003, TSU-M16-004 (docs), TSU-M16-005 (mock scenarios). An admin-initiated Stripe refund path behind explicit confirmation, tested with mock-stripe only; it syncs order state and email. Policy windows and wording are owner decisions: leave TBD:. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M16-002, TSU-M16-003, TSU-M16-004 (docs), TSU-M16-005 (mock scenarios). An admin-initiated Stripe refund path behind explicit confirmation, tested with mock-stripe only; it syncs order state and email. Policy windows and wording are owner decisions: leave TBD:. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T13:01:52-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "Mock tests: full and partial refunds update the order and send one email; no code path issues a refund without admin confirmation.",
         "complexity": 7,
         "review": true,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T13:00:30-05:00",
+      "updated": "2026-11-16T13:01:52-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
