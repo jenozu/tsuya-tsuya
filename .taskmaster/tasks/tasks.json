@@ -483,13 +483,13 @@
       {
         "title": "Printify availability sync or admin flag",
         "description": "Replace the manual size toggle according to the owner's decision.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           17,
           18
         ],
-        "details": "Depends on the owner decision recorded in the PRD. Automatic: a scheduled or admin-triggered read-only sync that flips private per-size availability and flags mismatches. Manual: an admin warning list only. Never show counts to customers (R1). Files: lib/product-availability.ts, admin client, tests.",
+        "details": "Depends on the owner decision recorded in the PRD. Automatic: a scheduled or admin-triggered read-only sync that flips private per-size availability and flags mismatches. Manual: an admin warning list only. Never show counts to customers (R1). Files: lib/product-availability.ts, admin client, tests.\n\n[2026-11-16T08:11:00-05:00] built (sonnet): lib/printify-availability-sync.ts (GET-only sync, never re-enables), admin POST route, admin warning list in Unavailable modal, tests/printify-availability-sync.test.mjs. Task 17 decision not recorded; works for either. Variant fetch endpoint/fields need verification against live Printify docs.\n\n[2026-11-16T08:12:19-05:00] escalate sonnet→opus: reviewer CHANGES NEEDED (apply result ignored, no revalidatePath, stale-snapshot overwrite, unverified Printify fields)\n\n[2026-11-16T08:15:03-05:00] opus fix: (1) runAvailabilitySync takes {getProduct, updateProduct}; null from updateProduct (or product gone) is not counted and raises an update_failed flag; returns updatedIds + disabled. (2) route revalidates '/', '/shop', '/shop/<id>' per updated id. (3) Printify fetches run in parallel; each product is re-read just before the write and only planned labels flip to available=false, so concurrent admin edits survive (updateProduct's own read-merge-write window remains; noted ponytail comment). (4) Verified on developers.printify.com: GET /v1/shops/{shop_id}/products/{product_id}.json variants[{id,is_enabled(optional, publish selection),is_available(read-only stock)}]. is_enabled false => unavailable; missing is_available => variant_state_unknown flag, no change. `sizes as never` cast removed. Tests: 6 in tests/printify-availability-sync.test.mjs (update fail, deleted product, concurrent edit, unknown state). npm test 214 pass, tsc 0, lint 0 errors.\n\n[2026-11-16T08:16:21-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "Tests with the mock Printify: an unavailable variant disables the size or raises an admin flag per the decision; customer pages unchanged (no counts).",
         "complexity": 6,
         "review": true,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T08:08:24-05:00",
+      "updated": "2026-11-16T08:16:21-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

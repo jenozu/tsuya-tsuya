@@ -61,3 +61,6 @@ with numbered steps and the expected result.
 1. On a non-production DB with migration 007 applied (restore-point branch first for prod) and PRINTIFY_ORDERS_ENABLED on, POST a signed order:shipment:created fixture to /api/webhooks/printify. Expected: 200, one shipped email to a safe recipient.
 2. Open /admin > Orders. Expected: "Printify: shipped · carrier · number · track" with a working link.
 3. Confirm the real Printify payload fields (carrier, tracking_number, tracking_url) against a simulated event.
+
+### Task 21 - Printify availability sync (2026-11-16)
+1. With admin login and Printify sandbox credentials, open the Unavailable modal and click "Sync availability from Printify". Expected: warning list fills; a turned-off size shows unavailable on /shop/<id>; no counts visible to customers.

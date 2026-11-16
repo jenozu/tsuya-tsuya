@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 29/62 tasks done.**
+**Progress: 30/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -109,7 +109,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **20. Printify status and tracking sync to the order and customer email** _(after 19)_\
   Receive Printify status/tracking and reflect it on the order and in a shipped email.\
   _Test:_ A signed-event fixture test updates the order and sends exactly one email; an unsigned or tampered event is rejected; tests green.
-- [ ] **21. Printify availability sync or admin flag** _(after 17, 18)_\
+- [x] **21. Printify availability sync or admin flag** _(after 17, 18)_\
   Replace the manual size toggle according to the owner's decision.\
   _Test:_ Tests with the mock Printify: an unavailable variant disables the size or raises an admin flag per the decision; customer pages unchanged (no counts).
 - [ ] **22. Owner: one controlled real Printify order and cancellation** **[HUMAN]** _(after 20, 21)_\

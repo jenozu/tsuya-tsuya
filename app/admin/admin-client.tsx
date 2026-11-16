@@ -35,6 +35,7 @@ interface AdminDashboardProps {
 export function AdminDashboard({ initialProducts, initialOrders, printifyFlags = {}, printifyTracking = {} }: AdminDashboardProps) {
   const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
+  const [syncFlags, setSyncFlags] = useState<{ productId: string; label: string; reason: string }[] | null>(null);
   const [orders, setOrders] = useState(initialOrders);
   const [activeTab, setActiveTab] = useState<AdminTab>('DASHBOARD');
   const [isEditing, setIsEditing] = useState(false);
@@ -90,6 +91,14 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
   };
 
   const clearProductSelection = () => setSelectedProductIds(new Set());
+
+  const runPrintifySync = async () => {
+    const res = await fetch('/api/admin/printify-availability-sync', { method: 'POST' });
+    if (!res.ok) { alert('Availability sync failed'); return; }
+    setSyncFlags((await res.json()).flags);
+    const list = await fetch('/api/products');
+    if (list.ok) setProducts(await list.json());
+  };
 
   // --- Calculations for Dashboard ---
   const unavailableProducts = useMemo(() => products.filter(p => !productIsPurchasable(p)), [products]);
@@ -606,6 +615,15 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
             <button onClick={() => setDetailModal('NONE')}><X size={24} className="text-[#786B59] hover:text-[#2D2A26]" /></button>
           </div>
           <div className="p-6">
+            {detailModal === 'LOW_STOCK' && (
+              <div className="mb-4 text-sm">
+                <button onClick={runPrintifySync} className="underline text-[#2D2A26]">Sync availability from Printify</button>
+                {syncFlags?.length === 0 && <p className="text-[#5C7C66]">No mismatches.</p>}
+                {syncFlags?.map((f, i) => (
+                  <p key={i} className="text-[#8C3F3F]">{products.find(x => x.id === f.productId)?.name ?? f.productId} / {f.label}: {f.reason.replace(/_/g, ' ')}</p>
+                ))}
+              </div>
+            )}
             {detailModal === 'LOW_STOCK' && (
               <div>
                 {unavailableProducts.length === 0 ? (
