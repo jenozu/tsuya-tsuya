@@ -19,11 +19,12 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- 2026-11-16 phase 3 run: tasks 20, 21, 58 done on harness-1.5.0. Only human tasks 17, 22 remain (queued on checklist).
-- Migrations 005, 007 (Printify webhook tables) NOT applied to prod; restore-point branch first.
-- Manual checks waiting: 20 (webhook+admin tracking), 21 (availability sync); Printify field shapes unverified live.
-- Waiting on owner: Printify token/shop id/webhook secret + availability decision (17); tax (42); destinations (41).
-- Next: /run-phase 4
+- 2026-11-16: phases 2+3 done on harness-1.5.0 (pushed). PR #60 (https://github.com/jenozu/tsuya-tsuya/pull/60) waits for OWNER merge; CI all green 2026-11-16 incl. browser-e2e (so :46/:91 are Windows-only).
+- Before merge, lead offered: (a) reviewer pass on task 21 fixes (opus fixed 4 review findings, re-review never run); (b) create disposable Neon branch, apply 003/006/007 there, run test:disposable-db (tasks 10, 11). Owner hasn't answered yet.
+- Migrations 003, 005, 006, 007 NOT applied to prod; restore-point branch first.
+- Owner to-do (human-checklist.md): branch protection, Printify token+env names (17), Stripe test cases (15), real Printify test order (22, after merge); eyes-on checks in manual-checks.md.
+- Owner decisions open: 17 availability, 41 destinations, 42 tax, 43 policy text, 36 monitoring, 14 reconciliation schedule.
+- Next: after PR #60 merges -> git checkout main && git pull, then /run-phase 4.
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
