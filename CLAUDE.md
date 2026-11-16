@@ -17,8 +17,13 @@
 | reviewer | sonnet, read-only | Tasks flagged `review`, or diffs touching Risky paths |
 
 Escalation: haiku → sonnet → opus inside a task; phase-runner → lead when opus fails, scope changes, something is
-destructive, or a human-only step comes up. Manual checks never stop a phase; they collect in
-`.taskmaster/docs/manual-checks.md`. Nesting is capped by `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2`.
+destructive, or nothing is workable without the human. Manual checks and human-only steps never stop a phase; they
+collect in `.taskmaster/docs/manual-checks.md` and `.taskmaster/docs/human-checklist.md` (only the human closes
+those steps). Phases end with a PR (`deliver`); `merge_gate.py` merges it only if `.claude/harness.json` on the
+default branch allows it (auto / safe-only / owner, stricter when merging deploys), else the lead stops for you.
+The lead starts the next phase itself; it stops only for the owner, the phase cap, or context over ~150K
+(then: `/clear`, `/run-phase <next>`). Owner rules in `.claude/rules/project.md` override harness rules.
+Nesting is capped by `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=2`. Commands are bash: on Windows, Git Bash.
 
 ## Phases
 0 Foundation · 1 Hardening · 2 Order integrity · 3 Printify (R15) · 4 Fulfilment ops · 5 Experience quality · 6 Operations · 7 Launch gates (owner) (see `tasks.py phase`)
@@ -37,8 +42,8 @@ Core: `/run-phase [n|ids]` · `/status` · `/manual-checks run|results` · `/ada
 Project: `db-migration` · `security-review`
 
 ## Keeping cost down
-- One phase per launch. The lead's context grows by one report per phase.
-- `/clear` between phases: everything needed is in the files.
+- The lead's context grows by one report per phase, so it runs phases back to back without reading details.
+- `/clear` when the lead stops for context: everything needed is in the files.
 - memory.md is updated once per phase run; details live in `tasks.py log`.
 - Pass task ids and failure notes in prompts, not file contents or task JSON.
 

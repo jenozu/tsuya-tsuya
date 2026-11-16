@@ -21,8 +21,6 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git stash *)",
-      "Bash(curl -s *)",
-      "Bash(curl -fsS *)",
       "Bash(npm run *)",
       "Bash(npm test *)",
       "Bash(npm test)",
@@ -69,7 +67,21 @@
       "Bash(vercel deploy --prod*)",
       "Bash(vercel promote*)",
       "Bash(vercel rollback*)",
-      "Bash(vercel env *)"
+      "Bash(vercel env *)",
+      "Bash(git push *--force*)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push * +*)",
+      "Bash(git push *:main)",
+      "Bash(git push *:main *)",
+      "Bash(git push *:master)",
+      "Bash(git push *:master *)",
+      "Bash(git push origin main)",
+      "Bash(git push origin main *)",
+      "Bash(git push origin master)",
+      "Bash(git push origin master *)",
+      "Bash(git push -u origin main*)",
+      "Bash(git push -u origin master*)"
     ]
   }
 }

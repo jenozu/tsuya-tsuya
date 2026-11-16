@@ -1343,7 +1343,13 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-15T19:55:15-05:00"
+      "updated": "2026-11-16T07:19:45-05:00",
+      "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
+      "non_goals": [
+        "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
+        "No physical inventory model; products are made to order.",
+        "No live charges, refunds or production object deletions during validation; production DB migrations only after a logged Neon restore-point branch."
+      ]
     }
   }
 }
