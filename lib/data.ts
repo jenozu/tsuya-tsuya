@@ -469,3 +469,15 @@ export async function addWaitlistEmail(email: string): Promise<'added' | 'duplic
   const rows = (await sql`INSERT INTO waitlist (email) VALUES (${email.toLowerCase().trim()}) ON CONFLICT (email) DO NOTHING RETURNING id`) as unknown as Row[]
   return rows.length > 0 ? 'added' : 'duplicate'
 }
+
+/** Compare-and-set: only updates while the order still has the status the transition was validated against. */
+export async function transitionOrderStatus(orderId: string, from: string, to: string): Promise<boolean> {
+  try {
+    const sql = getDb()
+    const rows = (await sql`UPDATE orders SET status = ${to}, updated_at = NOW() WHERE order_id = ${orderId} AND status = ${from} RETURNING id`) as unknown as Row[]
+    return rows.length > 0
+  } catch {
+    reportServerError('db.updating_order_status')
+    return false
+  }
+}

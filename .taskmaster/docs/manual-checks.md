@@ -64,3 +64,7 @@ with numbered steps and the expected result.
 
 ### Task 21 - Printify availability sync (2026-11-16)
 1. With admin login and Printify sandbox credentials, open the Unavailable modal and click "Sync availability from Printify". Expected: warning list fills; a turned-off size shows unavailable on /shop/<id>; no counts visible to customers.
+
+### Task 23 - Admin order details and fulfilment states (2026-11-16)
+1. Log in at /admin, Orders tab, click an order id. Expected: payment, ship-to, items, totals shown.
+2. A processing order shows only "Mark shipped"; a shipped order only "Mark delivered"; no cancel button; refund note visible.

@@ -518,12 +518,12 @@
       {
         "title": "Admin order details and explicit fulfilment states",
         "description": "Make order state transitions explicit and authorized.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           20
         ],
-        "details": "Roadmap: TSU-M14-002, TSU-M14-003. Build on the Printify status sync. Files: app/admin/admin-client.tsx, app/api/orders/route.ts, lib/types.ts. Transitions validated on the server. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M14-002, TSU-M14-003. Build on the Printify status sync. Files: app/admin/admin-client.tsx, app/api/orders/route.ts, lib/types.ts. Transitions validated on the server. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T11:06:21-05:00] sonnet: lib/order-status.ts transitions, PATCH /api/orders (guarded, compare-and-set), admin order detail + Mark buttons, tests/order-status.test.mjs; npm test + tsc pass\n\n[2026-11-16T11:07:45-05:00] escalate sonnet→opus: reviewer CHANGES NEEDED (cancel reverted by webhook, processing->cancelled w/o refund, fulfilled status stuck, behavioural auth tests missing)\n\n[2026-11-16T11:10:11-05:00] opus: fixed 4 review findings. (1)+(2) removed admin cancel entirely (pending->cancelled would be reopened by the paid webhook; processing->cancelled needs refund+Printify cancel = owner decision, TBD comment in lib/order-status.ts + admin UI note); webhook SQL untouched. (3) 'fulfilled' is set by no code path (only preserved by the paid webhook CASE); mapped fulfilled->delivered like shipped. ALLOWED lookup uses Object.hasOwn (no prototype keys). (4) tests/order-status.test.mjs now registers tests/fixtures/admin-route-loader.mjs via node:module register() and imports the route dynamically, so behavioural PATCH tests run under plain npm test: no session 401, forged cookie 401, foreign Origin 403 (with valid session), each asserting getOrder/transition not called; plus 200 allowed, 409 disallowed, 404/400. mock-catalog.mjs gained transitionOrderStatus + orderReads spy. npm test 222 pass, tsc ok, eslint ok, integration 65 pass, git diff --check clean, CRLF normalised.\n\n[2026-11-16T11:11:23-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "Tests for allowed and rejected transitions and for unauthorized access; `npm test --silent` green.",
         "complexity": 6,
         "review": true,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T08:16:50-05:00",
+      "updated": "2026-11-16T11:11:23-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

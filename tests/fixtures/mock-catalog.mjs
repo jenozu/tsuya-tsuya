@@ -37,10 +37,11 @@ export async function addWaitlistEmail() { throw new Error('Test must not persis
 const orders = new Map()
 export const orderMutations = []
 let failOrderWrite = false
-export function resetMockOrders() { orders.clear(); orderMutations.length = 0; failOrderWrite = false }
+export function resetMockOrders() { orders.clear(); orderMutations.length = 0; orderReads.length = 0; failOrderWrite = false }
 export function setMockOrder(order) { orders.set(order.order_id, { ...order }) }
 export function failMockOrderWrite(value) { failOrderWrite = value }
-export async function getOrder(id) { return orders.get(id) ?? null }
+export const orderReads = []
+export async function getOrder(id) { orderReads.push(id); return orders.get(id) ?? null }
 export async function createOrder(data, lineItems = []) {
   if (failOrderWrite) return null
   orderMutations.push({ kind: 'create', id: data.order_id, lineItems })
@@ -57,6 +58,13 @@ export async function markUnpaidOrderPaymentState(id, intentId, nextStatus) {
   orderMutations.push({ kind: 'unpaid', id, state: nextStatus })
   orders.set(id, { ...order, status: nextStatus, payment_status: nextStatus })
   return 'updated'
+}
+export async function transitionOrderStatus(id, from, to) {
+  const order = orders.get(id)
+  if (!order || order.status !== from) return false
+  orderMutations.push({ kind: 'transition', id, from, to })
+  orders.set(id, { ...order, status: to })
+  return true
 }
 export async function markExistingOrderPaidForIntent(id, intentId) {
   if (failOrderWrite) return false

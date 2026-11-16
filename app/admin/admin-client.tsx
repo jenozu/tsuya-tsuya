@@ -16,6 +16,7 @@ import { Product, Order, ProductSize } from '@/lib/types'
 import type { PrintifyAdminFlag, PrintifyAdminTracking } from '@/lib/printify-store'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { internalAvailabilityCount, productIsPurchasable, purchasableSizes } from '@/lib/product-availability';
+import { allowedNextStatuses } from '@/lib/order-status';
 import { generateProductDescription } from '@/services/gemini';
 import { uploadProductImage } from '@/lib/image-upload-client'
 
@@ -37,6 +38,21 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
   const [products, setProducts] = useState(initialProducts);
   const [syncFlags, setSyncFlags] = useState<{ productId: string; label: string; reason: string }[] | null>(null);
   const [orders, setOrders] = useState(initialOrders);
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const changeOrderStatus = async (orderId: string, status: string) => {
+    setOrderError(null);
+    const res = await fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order_id: orderId, status }),
+    });
+    if (!res.ok) {
+      setOrderError(res.status === 409 ? 'That status change is not allowed or the order changed. Reload and retry.' : 'Could not update the order.');
+      return;
+    }
+    setOrders(prev => prev.map(o => (o.order_id === orderId ? { ...o, status } : o)));
+  };
   const [activeTab, setActiveTab] = useState<AdminTab>('DASHBOARD');
   const [isEditing, setIsEditing] = useState(false);
   
@@ -1322,6 +1338,7 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
           {activeTab === 'ORDERS' && (
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-3xl font-serif text-[#2D2A26]">Order Management</h2>
+              {orderError && <p className="text-sm text-red-600">{orderError}</p>}
               
               <div className="bg-white rounded-none shadow-sm border border-[#E5E0D8] overflow-hidden">
                 <table className="w-full text-left">
@@ -1336,15 +1353,19 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
                   </thead>
                   <tbody className="divide-y divide-[#E5E0D8]">
                     {orders.map((order) => (
-                      <tr key={order.id} className="hover:bg-[#F9F8F4] transition-colors">
-                        <td className="p-4 font-medium text-[#2D2A26]">{order.order_id}</td>
+                      <React.Fragment key={order.id}>
+                      <tr className="hover:bg-[#F9F8F4] transition-colors">
+                        <td className="p-4 font-medium text-[#2D2A26]">
+                          <button type="button" className="underline" onClick={() => setExpandedOrder(expandedOrder === order.order_id ? null : order.order_id)}>{order.order_id}</button>
+                        </td>
                         <td className="p-4 text-[#4A4036] text-sm">{order.email}</td>
                         <td className="p-4 text-right text-[#2D2A26] font-medium">${order.total.toFixed(2)}</td>
                         <td className="p-4">
                           <span className={`px-2 py-1 text-xs ${
                             order.status === 'processing' ? 'bg-blue-50 text-blue-600' :
                             order.status === 'pending' ? 'bg-yellow-50 text-yellow-600' :
-                            order.status === 'completed' ? 'bg-green-50 text-green-600' :
+                            order.status === 'shipped' ? 'bg-indigo-50 text-indigo-600' :
+                            order.status === 'delivered' || order.status === 'completed' ? 'bg-green-50 text-green-600' :
                             'bg-red-50 text-red-600'
                           }`}>
                             {order.status}
@@ -1370,6 +1391,33 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
                           {new Date(order.created_at).toLocaleDateString()}
                         </td>
                       </tr>
+                      {expandedOrder === order.order_id && (
+                        <tr className="bg-[#F9F8F4]">
+                          <td colSpan={5} className="p-4 text-sm text-[#4A4036] space-y-2">
+                            <div>Payment: {order.payment_status}</div>
+                            <div>
+                              Ship to: {order.shipping_address?.firstName} {order.shipping_address?.lastName}, {order.shipping_address?.address}
+                              {order.shipping_address?.addressLine2 ? `, ${order.shipping_address.addressLine2}` : ''}, {order.shipping_address?.city} {order.shipping_address?.state} {order.shipping_address?.postalCode}, {order.shipping_address?.country}
+                            </div>
+                            <ul className="list-disc pl-5">
+                              {(order.items || []).map((item, i) => (
+                                <li key={i}>{item.quantity} x {item.productName}{item.selectedSize ? ` (${item.selectedSize})` : ''}, ${item.price.toFixed(2)}</li>
+                              ))}
+                            </ul>
+                            <div>Subtotal ${order.subtotal.toFixed(2)}, Shipping ${order.shipping.toFixed(2)}, Tax ${order.taxes.toFixed(2)}, Total ${order.total.toFixed(2)}</div>
+                            <div className="flex gap-2 items-center">
+                              {allowedNextStatuses(order.status).length === 0 && <span className="text-[#786B59]">No further status changes.</span>}
+                              {allowedNextStatuses(order.status).map(next => (
+                                <button key={next} type="button" onClick={() => changeOrderStatus(order.order_id, next)} className="px-3 py-1 border border-[#2D2A26] hover:bg-[#2D2A26] hover:text-white text-xs uppercase">
+                                  Mark {next}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="text-xs text-[#786B59]">Cancellations and refunds are not available here yet (refund policy pending owner decision); handle them in Stripe and Printify.</div>
+                          </td>
+                        </tr>
+                      )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>

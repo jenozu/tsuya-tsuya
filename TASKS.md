@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 31/62 tasks done.**
+**Progress: 32/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -120,7 +120,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 4 - Fulfilment ops and comms
 
-- [ ] **23. Admin order details and explicit fulfilment states** _(after 20)_\
+- [x] **23. Admin order details and explicit fulfilment states** _(after 20)_\
   Make order state transitions explicit and authorized.\
   _Test:_ Tests for allowed and rejected transitions and for unauthorized access; `npm test --silent` green.
 - [ ] **24. Durable email status and lifecycle templates** _(after 10)_\
