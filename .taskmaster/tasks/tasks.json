@@ -1111,7 +1111,7 @@
       {
         "title": "Phase 3 gate: lint, types and tests pass",
         "description": "",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           16,
@@ -1122,7 +1122,7 @@
           21,
           22
         ],
-        "details": "",
+        "details": "[2026-11-16T08:16:50-05:00] script check passed: 3 command(s), 24.7s, no model used",
         "testStrategy": "python .taskmaster/run_checks.py run --only 58",
         "complexity": 3,
         "runner": "script",
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T08:16:21-05:00",
+      "updated": "2026-11-16T08:16:50-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

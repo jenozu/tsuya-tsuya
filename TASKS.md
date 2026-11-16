@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 30/62 tasks done.**
+**Progress: 31/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -115,7 +115,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **22. Owner: one controlled real Printify order and cancellation** **[HUMAN]** _(after 20, 21)_\
   Prove the integration end to end; the owner handles any real cost.\
   _Test:_ Sanitized evidence recorded; the owner confirms in chat.
-- [ ] **58. Phase 3 gate: lint, types and tests pass** _(after 16, 17, 18, 19, 20, 21, 22)_\
+- [x] **58. Phase 3 gate: lint, types and tests pass** _(after 16, 17, 18, 19, 20, 21, 22)_\
   _Test:_ python .taskmaster/run_checks.py run --only 58
 
 ## Phase 4 - Fulfilment ops and comms
