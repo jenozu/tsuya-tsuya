@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 23/62 tasks done.**
+**Progress: 24/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -58,7 +58,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 2 - Order integrity
 
-- [>] **10. Persistent payment-event and email ledger with safe retries** _(after 5, 4)_\
+- [x] **10. Persistent payment-event and email ledger with safe retries** _(after 5, 4)_\
   Activate the staged ledger so webhook and email processing is idempotent and recoverable.\
   _Test:_ tests/stripe-webhook-safety.integration.mjs and the new concurrency/duplicate/out-of-order tests pass; `npm run test:disposable-db` passes on the owner's isolated database once the test-resources task is done.
   - [x] 10.1 Event claim and lease logic with tests

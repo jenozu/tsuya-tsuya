@@ -47,3 +47,6 @@ with numbered steps and the expected result.
 
 ### Task 12 - Duplicate checkout, expiry, returning shoppers (2026-11-16)
 (Section: Eyes-on) 1. In Stripe test mode, double-click Pay: expect one session. 2. Cancel and retry: expect attempt reused. 3. Let a session expire, retry: expect a fresh session. 4. Complete an order, buy same cart again: expect no CHECKOUT_ALREADY_COMPLETED. Tick TSU-M9-006 only after this.
+
+### Task 10 - Payment-event and email ledger (2026-11-16)
+(Section: Agent-checkable once owner supplies disposable Neon DB) 1. Apply migration 003 to the disposable DB only. 2. `npm run test:disposable-db`: expect pass. 3. Before applying 003 to production, create the Neon restore-point branch and seed sent rows for existing orders (see parking-lot 2026-11-16). Roadmap boxes M3-006/M11-002..004 stay unticked until then.
