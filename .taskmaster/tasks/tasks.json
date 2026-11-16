@@ -550,12 +550,12 @@
       {
         "title": "Accessible contact form with spam controls",
         "description": "A server-validated contact form routed to the support inbox.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           5
         ],
-        "details": "Roadmap: TSU-M15-006. New route and page; Zod validation, honeypot and rate limit via the persistent store, same-origin check, email to the configured SUPPORT_EMAIL only. The inbox process doc is left TBD for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M15-006. New route and page; Zod validation, honeypot and rate limit via the persistent store, same-origin check, email to the configured SUPPORT_EMAIL only. The inbox process doc is left TBD for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T11:18:41-05:00] built contact route/page/form, tests pass (sonnet)\n\n[2026-11-16T11:23:21-05:00] done by sonnet; verified",
         "testStrategy": "Route tests for valid, invalid, spam and over-limit requests; an e2e smoke test added.",
         "complexity": 5,
         "phase": 4,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T11:16:17-05:00",
+      "updated": "2026-11-16T11:23:21-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

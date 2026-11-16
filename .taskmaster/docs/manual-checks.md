@@ -68,3 +68,7 @@ with numbered steps and the expected result.
 ### Task 23 - Admin order details and fulfilment states (2026-11-16)
 1. Log in at /admin, Orders tab, click an order id. Expected: payment, ship-to, items, totals shown.
 2. A processing order shows only "Mark shipped"; a shipped order only "Mark delivered"; no cancel button; refund note visible.
+
+### Task 25 - Contact form (2026-11-16)
+1. Run `npm run test:e2e` (e2e/contact.spec.ts was not run locally). Expected: passes.
+2. With SUPPORT_EMAIL and RESEND_* set, submit /contact. Expected: message arrives at SUPPORT_EMAIL with reply-to set; 6th submission within an hour returns 429. Confirm ADMIN_AUTH_STORE_ENABLED in production.

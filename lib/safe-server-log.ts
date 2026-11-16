@@ -29,6 +29,8 @@ export const ALLOWED_SERVER_EVENTS: ReadonlySet<string> = new Set([
   'api.waitlist.notification_failure',
   'api.waitlist.notification_configuration_incomplete',
   'api.waitlist.request_failure',
+  'api.contact.failure',
+  'api.contact.not_configured',
   'stripe.checkout.deferred_pending_payment',
   'stripe.checkout.already_processed',
   'stripe.checkout.processing_complete',

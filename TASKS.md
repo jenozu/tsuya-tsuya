@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 33/62 tasks done.**
+**Progress: 34/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -126,7 +126,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **24. Durable email status and lifecycle templates** _(after 10)_\
   Delivery state, retry, duplicate suppression and the missing templates.\
   _Test:_ tests/email-*.test.mjs extended and green; each template renders with escaped input.
-- [ ] **25. Accessible contact form with spam controls** _(after 5)_\
+- [x] **25. Accessible contact form with spam controls** _(after 5)_\
   A server-validated contact form routed to the support inbox.\
   _Test:_ Route tests for valid, invalid, spam and over-limit requests; an e2e smoke test added.
 - [ ] **26. Cancellation and refund procedure (guarded, test-only)** _(after 24, 23)_\
