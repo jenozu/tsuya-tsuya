@@ -19,12 +19,11 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- 2026-11-16: phases 2+3 done on harness-1.5.0 (pushed). PR #60 (https://github.com/jenozu/tsuya-tsuya/pull/60) waits for OWNER merge; CI all green 2026-11-16 incl. browser-e2e (so :46/:91 are Windows-only).
-- Before merge, lead offered: (a) reviewer pass on task 21 fixes (opus fixed 4 review findings, re-review never run); (b) create disposable Neon branch, apply 003/006/007 there, run test:disposable-db (tasks 10, 11). Owner hasn't answered yet.
-- Migrations 003, 005, 006, 007 NOT applied to prod; restore-point branch first.
-- Owner to-do (human-checklist.md): branch protection, Printify token+env names (17), Stripe test cases (15), real Printify test order (22, after merge); eyes-on checks in manual-checks.md.
-- Owner decisions open: 17 availability, 41 destinations, 42 tax, 43 policy text, 36 monitoring, 14 reconciliation schedule.
-- Next: after PR #60 merges -> git checkout main && git pull, then /run-phase 4.
+- 2026-11-16: phases 2-4 done (4 = tasks 23-27, 59) on branch harness-upgrade-2.2.1, pushed; PR #61 waits for OWNER merge.
+- Migrations 003, 005, 006, 007, 008 NOT applied to prod; restore-point branch first. Lifecycle emails return 'unavailable' until 003+008 applied.
+- Owner to-do (human-checklist.md): branch protection, Printify token+env (17), Stripe test cases (15), Printify test order (22); eyes-on checks in manual-checks.md (23, 25, 26).
+- Owner decisions open: 17 availability, 41 destinations, 42 tax, 43 policy text, 36 monitoring, 14 reconciliation, refund/cancel policy (26), M2 fit (27: m2-fit-assessment.md).
+- Next: after PR merge -> git checkout main && git pull, then /run-phase 5.
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
@@ -41,6 +40,9 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
+- Opus can hit HTTP 429 mid-task leaving partial edits (stray pasted blocks); inspect the diff before re-dispatching.
+- New admin routes must be added to lib/ci-guard-policy.mjs lists and new *.integration.mjs to infra-guard.yml.
+- New server log events need an entry in lib/safe-server-log.ts ALLOWED_SERVER_EVENTS.
 - lib/data.ts updateProduct swallows DB errors and returns null; callers must check the result.
 - Builders skip "admin display" style secondary requirements; name them explicitly in the prompt.
 - Integration tests run with `node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test <file>`; loader mocks the ledgers (legacy path).
@@ -56,8 +58,8 @@ Never update it per task.
 | Tier | Done first try | Escalated up | Notes |
 |---|---|---|---|
 | haiku | 3 | 0 | |
-| sonnet | 19 | 0 | tasks 5-9,53-55,10.1-10.3,12-14 |
-| opus | 2 | 0 | tasks 19, 11 |
+| sonnet | 24 | 0 | tasks 5-9,53-55,10.1-10.3,12-14,23-25,27 |
+| opus | 3 | 0 | tasks 19, 11, 26 (escalated from sonnet) |
 <!-- If one tier escalates on 3 tasks in a row, the phase-runner escalates to the lead, who may raise that tier's
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->
 
