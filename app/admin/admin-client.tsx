@@ -25,6 +25,12 @@ type AnalyticsViewType = 'INVENTORY' | 'CATEGORIES' | 'VALUATION' | 'SALES';
 type DetailModalType = 'NONE' | 'LOW_STOCK' | 'VALUATION_DETAILS';
 
 const COLORS = ['#2D2A26', '#5C5446', '#8C8476', '#CDC6BC', '#8C3F3F', '#5C7C66'];
+const REFUND_ERRORS: Record<string, string> = {
+  not_refundable: 'nothing left to refund, or the order is not paid',
+  exceeds_remaining: 'amount is more than what remains on the charge',
+  invalid_amount: 'amount is not valid',
+  stripe_error: 'Stripe rejected or did not answer the request',
+};
 
 interface AdminDashboardProps {
   initialProducts: Product[];
@@ -52,6 +58,31 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
       return;
     }
     setOrders(prev => prev.map(o => (o.order_id === orderId ? { ...o, status } : o)));
+  };
+  // Refund dialog: token generated once when opened, reused on every retry of the same dialog.
+  const [refund, setRefund] = useState<{ orderId: string; token: string; typed: string; amount: string; busy: boolean; msg: string | null } | null>(null);
+  const openRefund = (orderId: string) =>
+    setRefund({ orderId, token: `rf_${crypto.randomUUID().replace(/-/g, '')}`, typed: '', amount: '', busy: false, msg: null });
+  const submitRefund = async () => {
+    if (!refund || refund.typed !== refund.orderId) return;
+    const cents = refund.amount.trim() === '' ? undefined : Math.round(Number(refund.amount) * 100);
+    setRefund({ ...refund, busy: true, msg: null });
+    let msg: string;
+    try {
+      const res = await fetch('/api/orders/refund', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: refund.orderId, confirm: true, confirm_order_id: refund.typed, idempotencyToken: refund.token, amount_cents: cents }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const reason = typeof data?.error === 'string' ? data.error : `HTTP ${res.status}`;
+      msg = res.ok
+        ? 'Refund issued. Payment status updates when Stripe confirms.'
+        : `Refund not issued: ${REFUND_ERRORS[reason] ?? reason}.` + (res.status === 409 || res.status === 502 ? ' Check Stripe before retrying.' : '');
+    } catch {
+      msg = 'No response from the server. Check Stripe before retrying.';
+    }
+    setRefund(r => r && { ...r, busy: false, msg });
   };
   const [activeTab, setActiveTab] = useState<AdminTab>('DASHBOARD');
   const [isEditing, setIsEditing] = useState(false);
@@ -1413,7 +1444,28 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
                                 </button>
                               ))}
                             </div>
-                            <div className="text-xs text-[#786B59]">Cancellations and refunds are not available here yet (refund policy pending owner decision); handle them in Stripe and Printify.</div>
+                            {['paid', 'partially_refunded'].includes(order.payment_status) && (
+                              <button type="button" onClick={() => openRefund(order.order_id)} className="px-3 py-1 border border-red-700 text-red-700 hover:bg-red-700 hover:text-white text-xs uppercase">
+                                Refund...
+                              </button>
+                            )}
+                            {refund?.orderId === order.order_id && (
+                              <div role="dialog" aria-label="Confirm refund" className="border border-red-700 p-3 space-y-2 bg-white">
+                                <p>Refund order {order.order_id} via Stripe. This cannot be undone. Refund policy: TBD (owner decision).</p>
+                                <label className="block">Amount in USD (blank = full remaining)
+                                  <input value={refund.amount} onChange={e => setRefund({ ...refund, amount: e.target.value })} inputMode="decimal" className="block border p-1" />
+                                </label>
+                                <label className="block">Type the order id to confirm
+                                  <input value={refund.typed} onChange={e => setRefund({ ...refund, typed: e.target.value })} className="block border p-1" />
+                                </label>
+                                <div className="flex gap-2">
+                                  <button type="button" disabled={refund.busy || refund.typed !== refund.orderId} onClick={submitRefund} className="px-3 py-1 bg-red-700 text-white text-xs uppercase disabled:opacity-50">Confirm refund</button>
+                                  <button type="button" onClick={() => setRefund(null)} className="px-3 py-1 border text-xs uppercase">Close</button>
+                                </div>
+                                {refund.msg && <p role="status">{refund.msg}</p>}
+                              </div>
+                            )}
+                            <div className="text-xs text-[#786B59]">Order cancellation is not available here yet; cancel the Printify order in Printify.</div>
                           </td>
                         </tr>
                       )}

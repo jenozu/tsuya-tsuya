@@ -17,6 +17,7 @@ export const ALLOWED_SERVER_EVENTS: ReadonlySet<string> = new Set([
   'api.orders.persist_failed',
   'api.orders.create_failure',
   'api.orders.update_failure',
+  'api.orders.refund_failure',
   'db.orders.create',
   'db.updating_order_status',
   'api.products_id_.failure',

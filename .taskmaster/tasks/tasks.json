@@ -591,9 +591,9 @@
           {
             "title": "Admin confirm step and route checks",
             "description": "An explicit confirmation step.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: admin client, a route with session and same-origin checks.",
+            "details": "Files: admin client, a route with session and same-origin checks.\n\n[2026-11-16T12:52:03-05:00] note from 26.1: issueRefund requires idempotencyToken (8-128 [A-Za-z0-9_-]); create once per confirmation dialog and reuse on retry; remainingCents under-reports on replay, re-read charge if shown.\n\n[2026-11-16T12:53:18-05:00] built refund route + admin dialog + tests/refund-route.integration.mjs (3 pass, tsc clean)\n\n[2026-11-16T12:54:10-05:00] escalate sonnet→opus: reviewer CHANGES NEEDED (log event allowlist, ci-guard policy lists, stale UI text, misleading retry message / replay test)\n\n[2026-11-16T12:54:39-05:00] plan (opus): fix review findings - safe-server-log allowlist, ci-guard-policy lists + test, workflow integration cmd, admin-client stale text + error messages, double-POST replay test\n\n[2026-11-16T12:56:58-05:00] opus fix of review findings: api.orders.refund_failure added to ALLOWED_SERVER_EVENTS; refund route added to ci-guard same-origin+admin-session list and no-exception-details list (+2 ci-guard tests); refund-route.integration.mjs added to infra-guard.yml integration step; admin-client stale \"refunds not available\" text replaced with cancellation-only note; submitRefund shows server reason (mapped), adds \"Check Stripe before retrying\" on 409/502 and on network error, no longer hangs busy on fetch throw. New route test: two POSTs same token (partial replays same refund_id, full retry -> 409 not_refundable, never a 2nd Stripe refund). refund-service unchanged (full-refund replay still returns 409, documented). npm test 241/241, tsc ok, lint 0 errors, refund integration 4/4, files LF.\n\n[2026-11-16T12:58:28-05:00] done by opus, escalated from sonnet; verified",
             "testStrategy": "A route test rejects a missing confirmation.",
             "complexity": 5,
             "id": 2
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T12:51:59-05:00",
+      "updated": "2026-11-16T12:58:28-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
