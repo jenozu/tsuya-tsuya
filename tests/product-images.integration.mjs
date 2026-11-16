@@ -94,7 +94,7 @@ test('storage failures disclose neither provider errors nor write a success resu
 
 test('actual deletion handler denies unauthenticated and foreign-origin requests', async () => {
   resetR2()
-  const body = {key:'products/2026-09-28/example.png'}
+  const body = {key:'products/2026-09-28/11111111-1111-4111-8111-111111111111.png'}
   assert.equal((await DELETE(remove(body, {auth:false}))).status, 401)
   assert.equal((await DELETE(remove(body, {hostile:true}))).status, 403)
   assert.equal(writes.length, 0)
@@ -109,7 +109,7 @@ test('actual deletion handler rejects missing or non-product keys and resolves p
     assert.equal((await DELETE(remove(body))).status, 400)
   }
   assert.equal(writes.length, 0)
-  const key = 'products/2026-09-28/test-image.png'
+  const key = 'products/2026-09-28/22222222-2222-4222-8222-222222222222.png'
   const response = await DELETE(remove({url:'https://test-r2.example.invalid/'+key}))
   assert.equal(response.status, 200)
   assert.deepEqual(writes, [{action:'delete',key}])
@@ -122,7 +122,7 @@ test('deletion error returns generic response without exposing provider metadata
   const log = []
   try {
     console.error = line => log.push(String(line))
-    const response = await DELETE(remove({key:'products/2026-09-28/test-image.png'}))
+    const response = await DELETE(remove({key:'products/2026-09-28/22222222-2222-4222-8222-222222222222.png'}))
     assert.equal(response.status, 500)
     assert.deepEqual(await response.json(), {error:'Image deletion failed'})
     assert.doesNotMatch(JSON.stringify(log), /PRIVATE_R2_DELETE_ERROR/)

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getProducts, createProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
-import { createProductSchema, updateProductSchema, normalizedProductFields } from '@/lib/product-validation'
+import { createProductSchema, normalizedProductFields } from '@/lib/product-validation'
 
 
 // GET /api/products - Get all products

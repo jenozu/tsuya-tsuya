@@ -68,7 +68,7 @@ test('refuses inaccessible HTML without mistaking a fingerprint for a functional
 })
 
 test('rejects cross-domain redirects, missing browser safeguards and missing HSTS', async () => {
-  const foreign = async input => fixture(200,
+  const foreign = async () => fixture(200,
     JSON.stringify({ service: 'tsuya', release: SHA }),
     'https://attacker.invalid/api/release')
   await assert.rejects(verifyRelease({

@@ -94,3 +94,15 @@ test('known production secret fallback is reported, not removed before owner ver
   )
   assert.deepEqual(knownConfigurationWarnings(mockFixed), [])
 })
+
+test('every tests/*.integration.mjs file is listed in the workflow integration step', () => {
+  const missing = fs.readdirSync('tests')
+    .filter(name => name.endsWith('.integration.mjs'))
+    .filter(name => !workflow.includes('tests/' + name))
+  assert.deepEqual(missing, [])
+})
+
+test('workflow self-check fails when the admin catalog guard tests are dropped', () => {
+  assert.ok(ciWorkflowViolations(workflow.replace('tests/admin-catalog-guards.integration.mjs', 'tests/x.mjs'))
+    .some(problem => problem.includes('Admin and catalog guard')))
+})

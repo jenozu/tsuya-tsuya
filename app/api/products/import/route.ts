@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         } else {
           failedProducts.push(`${product.name} (database error)`);
         }
-      } catch (error) {
+      } catch {
         reportServerError('api.product_import.item_failure');
         failedProducts.push(
           `${product.name} (database operation failed)`
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
+  } catch {
     reportServerError('api.product_import.request_failure');
     return NextResponse.json(
       {

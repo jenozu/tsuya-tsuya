@@ -22,3 +22,25 @@ with numbered steps and the expected result.
 ### Task 49 - Policy page scaffolding (2026-11-11) - Eyes-on
 1. Open /returns, /privacy, /terms: Navbar, Footer and "[OWNER TO SUPPLY]" placeholder render; view source shows meta robots noindex.
 2. Footer shows Returns, Privacy, Terms links.
+
+### Task 5.2 - Admin throttle and session ledger cutover (2026-11-13) - Eyes-on
+1. Take a Neon restore-point branch, apply migration 005, set ADMIN_AUTH_STORE_ENABLED=true (owner step; existing admin cookies are invalidated).
+2. Log in, log out, log in again: all succeed; old cookie after logout is rejected.
+3. Submit 6 wrong passwords: the 6th returns 429 with Retry-After.
+
+### Task 6 - Upload limits and key ownership (2026-11-13) - Eyes-on
+1. Upload limit (30 per 10 min per IP) is only live once ADMIN_AUTH_STORE_ENABLED=true (see task 5.2 cutover); with the flag off no upload limit applies.
+2. Legacy non-uuid product keys (e.g. from scripts/bulk-upload-images.js) cannot be deleted via the admin API; remove them via a separate owner-approved task if needed.
+
+### Task 8 - Branch protection (2026-11-13) - Eyes-on
+1. Owner: GitHub Settings > Branches, protect main; require checks verify, baseline-build, candidate-build, browser-e2e, PR required, no force pushes (see docs/CI_QUALITY_GATES.md).
+2. Confirm the CI run on the PR is green.
+
+### Task 55 - CSP report-only (2026-11-13)
+1. Open storefront home, a product page and checkout cancel/return in Chrome with DevTools Console open. Expected: no "Content Security Policy" report-only violations (record any).
+2. Repeat on admin login and admin pages. Expected: same.
+3. Confirm R2 and images.unsplash.com images load. Expected: yes.
+
+### Task 53 - Playwright 1.65.1, browser-e2e on ubuntu-latest (2026-11-13)
+1. On the PR, confirm infra-guard browser-e2e installs Chromium and passes on ubuntu-latest. Expected: green.
+2. Confirm storefront-admin.spec.ts:46 and :91 pass in CI (both fail locally on Windows after admin synthetic login; if :91 fails in CI it is a real regression, possibly Playwright 1.65 behaviour).

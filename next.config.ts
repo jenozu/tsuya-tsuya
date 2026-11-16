@@ -4,7 +4,7 @@ import { siteSecurityHeaders } from './lib/security-headers';
 
 const nextConfig: NextConfig = {
   async headers() {
-    return [{ source: '/:path*', headers: siteSecurityHeaders(process.env.VERCEL_ENV === 'production') }];
+    return [{ source: '/:path*', headers: siteSecurityHeaders(process.env.VERCEL_ENV === 'production', process.env.R2_PUBLIC_URL) }];
   },
   images: {
     remotePatterns: trustedImagePatterns(process.env.R2_PUBLIC_URL),

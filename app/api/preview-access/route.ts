@@ -3,6 +3,9 @@ import { PUBLIC_API_FAILURE } from '@/lib/public-api-failure'
 import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
+import { clearAdminLoginAttempts, consumeAdminLoginAttempt, defaultAdminThrottleStore } from '@/lib/admin-throttle'
+import { signWithAdminSecret } from '@/lib/admin-session'
+import { clearMemoryPreviewAttempts, consumeMemoryPreviewAttempt, previewPasswordMatches } from '@/lib/preview-access'
 import { createPreviewSessionToken, PREVIEW_SESSION_MAX_AGE } from '@/lib/preview-session'
 
 const PREVIEW_PASSWORD = process.env.PREVIEW_PASSWORD
@@ -29,13 +32,29 @@ export async function POST(request: Request) {
       )
     }
 
-    if (password !== PREVIEW_PASSWORD) {
+    const now = Math.floor(Date.now() / 1000)
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'unknown'
+    const store = await defaultAdminThrottleStore()
+    const bucket = store ? await signWithAdminSecret('preview:' + ip) : ''
+    const attempts = [consumeMemoryPreviewAttempt(ip, now)]
+    if (store) attempts.push(await consumeAdminLoginAttempt(bucket, store, now))
+    const blocked = attempts.find((a) => !a.allowed)
+    if (blocked) {
+      return NextResponse.json(
+        { error: 'Too many attempts. Try again later.' },
+        { status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(blocked.retryAfterSeconds) } },
+      )
+    }
+
+    if (!previewPasswordMatches(password, PREVIEW_PASSWORD)) {
       return NextResponse.json(
         { error: 'Invalid password.' },
         { status: 401 },
       )
     }
 
+    clearMemoryPreviewAttempts(ip)
+    if (store) await clearAdminLoginAttempts(bucket, store)
     const response = NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } })
     response.cookies.set('preview_access', await createPreviewSessionToken(), {
       httpOnly: true,

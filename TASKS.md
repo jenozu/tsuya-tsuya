@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 14/53 tasks done.**
+**Progress: 22/56 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -22,22 +22,22 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 1 - Hardening
 
-- [ ] **5. Harden admin login: throttling, session revocation, inactivity timeout** _(after 1)_\
+- [x] **5. Harden admin login: throttling, session revocation, inactivity timeout** _(after 1)_\
   Close the open admin-auth gaps without claiming per-instance counters are distributed protection.\
   _Test:_ `npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.
-  - [ ] 5.1 Design the store and write failing tests
-  - [ ] 5.2 Implement throttling and revocation
-  - [ ] 5.3 Inactivity timeout and docs
-- [ ] **6. Upload abuse limits and object ownership** _(after 5)_\
+  - [x] 5.1 Design the store and write failing tests
+  - [x] 5.2 Implement throttling and revocation
+  - [x] 5.3 Inactivity timeout and docs
+- [x] **6. Upload abuse limits and object ownership** _(after 5)_\
   Finish the image-upload gaps left after the magic-byte checks.\
   _Test:_ tests/image-validation.test.mjs plus new tests cover rate limit and ownership; `npm test --silent` green.
-- [ ] **7. Expand isolated integration tests for admin and catalog** _(after 1)_\
+- [x] **7. Expand isolated integration tests for admin and catalog** _(after 1)_\
   Cover authorized/unauthorized admin actions and catalog mutations.\
   _Test:_ `node --experimental-strip-types --test tests/*.integration.mjs` passes; new cases fail when the guard they test is removed (noted in the log).
-- [ ] **8. Enforce checks and a release checklist in CI** _(after 1)_\
+- [x] **8. Enforce checks and a release checklist in CI** _(after 1)_\
   Make lint, typecheck, tests and the migrations check required and documented.\
   _Test:_ `npm run ci:check` passes; the workflow runs lint, tsc, npm test, migrations:check and build; tests/ci-guard-policy.test.mjs updated and green.
-- [ ] **9. Review dependencies, R2 exposure and preview access** _(after 1)_\
+- [x] **9. Review dependencies, R2 exposure and preview access** _(after 1)_\
   Record findings for the remaining security-review items.\
   _Test:_ Report logged with counts by severity; each finding became a task or a parking-lot line.
 - [x] **46. Fix 2 failing ci-guard-policy tests (baseline finding from task 1)**\
@@ -46,9 +46,15 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **52. Upgrade next to clear critical advisories (GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr)** _(after 2)_\
   Infrastructure Guard candidate-build fails on npm audit --audit-level=critical: next 16.3.6 is in the vulnerable range; first patched 16.4.1 per both advisories.\
   _Test:_ npm ci; npm test; npx tsc --noEmit; npm run lint; npm run build; npm run test:e2e; npm audit --omit=dev --audit-level=critical exits 0; Infrastructure Guard green on the PR.
-- [ ] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\
+- [x] **53. Upgrade @playwright/test to >=1.61.0 and unpin browser-e2e runner** _(after 52)_\
   Playwright 1.56.1 cannot install Chromium on ubuntu-latest (26.04); browser-e2e is pinned to ubuntu-24.04 as a stopgap (task 52, commit 10c327f).\
   _Test:_ npm run test:e2e locally; browser-e2e installs Chromium and runs on ubuntu-latest in CI; tests/ci-guard-policy.test.mjs passes.
+- [x] **54. Security: throttle and constant-time compare on /api/preview-access**\
+  _Test:_ Unit test: wrong passwords beyond the limit get 429; correct password still works; compare uses timingSafeEqual.
+- [x] **55. Security: add Content-Security-Policy (report-only first)**\
+  _Test:_ Headers test asserts CSP-Report-Only present; storefront and admin load with no violations in browser console.
+- [-] **56. Security: zod high advisory (npm audit) and resend low chain**\
+  _Test:_ npm audit --omit=dev reports no high; npm test and tsc pass.
 
 ## Phase 2 - Order integrity
 

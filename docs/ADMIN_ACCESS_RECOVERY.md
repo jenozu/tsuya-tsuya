@@ -34,6 +34,15 @@ For now, GitHub PR history and approved provider audit views can show deployment
 5. After a reviewed PR passes locked dependency install, infrastructure guard, lint, tests, typecheck and production build, inspect the target Vercel preview. Once deployed, confirm the deployed SHA, catalog UI, SKU/variant availability and representative cart totals **without making a live charge**. Do not assert that Stripe/Neon/R2/Resend integrations work solely from a successful build.
 6. For regressions, stop destructive actions; follow `AUTONOMOUS_EXECUTION_PLAN.md` for a code rollback, and use an independently verified database/R2 recovery procedure for external data. Restoring a previous deployment cannot undo orders, payments, image deletions or a SQL migration.
 
+## Login throttle, session revocation and idle timeout (TSU-M7-004)
+
+Built behind `ADMIN_AUTH_STORE_ENABLED` (off by default). Migration `005_admin_auth_hardening` must be applied to production first (restore-point branch first, see `migrations/README.md`); until then login keeps the stateless sessions described above.
+
+- **Throttle:** failed-login attempts are counted per HMAC'd client IP bucket before the password is compared; too many in the window returns 429 with `Retry-After`. A successful login clears the bucket.
+- **Revocation:** with the store on, each session has a server-side record. Signing out revokes that session immediately; a revoked or unknown session is rejected. Rotating `ADMIN_SESSION_SECRET` still invalidates every session at once.
+- **Idle timeout:** a session unused for 30 minutes (`ADMIN_SESSION_IDLE_TIMEOUT`) is rejected, even within its 7-day maximum age. Each authenticated request refreshes it.
+- **Cutover:** apply 005, then set `ADMIN_AUTH_STORE_ENABLED=true` in Production and redeploy. Existing stateless sessions stop working at that point; sign in again. To roll back, unset the variable and redeploy.
+
 ## Outstanding release gates
 
 - Implement and verify distributed login throttling, truly separate production signing secrets, selective session revocation and an inactivity timeout (TSU-M7-004).
