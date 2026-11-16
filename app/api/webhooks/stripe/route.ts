@@ -10,6 +10,7 @@ import type { Order } from '@/lib/types'
 import { isPrintifyOrdersEnabled } from '@/lib/printify-config'
 import { submitPaidOrderToPrintify } from '@/lib/printify-fulfillment'
 import { printifyStore } from '@/lib/printify-store'
+import { claimPaymentEvent, finishPaymentEvent } from '@/lib/payment-events'
 
 export const runtime = 'nodejs'
 
@@ -216,6 +217,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+  let claim: Awaited<ReturnType<typeof claimPaymentEvent>>
+  try {
+    claim = await claimPaymentEvent(event.id, event.type)
+  } catch {
+    reportServerError('stripe.webhook.claim_failure')
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
+      status: 500, headers: { 'Cache-Control': 'no-store' },
+    })
+  }
+  if (claim === 'duplicate') {
+    reportServerInfo('stripe.webhook.duplicate_event')
+    return NextResponse.json({ received: true })
+  }
+  if (claim === 'in_flight') {
+    // Non-2xx so Stripe redelivers after the other run finishes or its lease expires.
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
+      status: 409, headers: { 'Cache-Control': 'no-store' },
+    })
+  }
+
   try {
     reportServerInfo('stripe.webhook.received')
 
@@ -310,9 +331,11 @@ export async function POST(request: Request) {
         reportServerInfo('stripe.webhook.event_ignored')
     }
 
+    if (claim === 'claimed') await finishPaymentEvent(event.id, true)
     return NextResponse.json({ received: true })
   } catch {
     reportServerError('stripe.webhook.processing_failure')
+    if (claim === 'claimed') await finishPaymentEvent(event.id, false).catch(() => {})
     return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
       status: 500, headers: { 'Cache-Control': 'no-store' },
     })

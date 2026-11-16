@@ -186,9 +186,9 @@
           {
             "title": "Event claim and lease logic with tests",
             "description": "Transactional claim per Stripe event id.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: webhook route, a new lib helper, tests. Failing tests first.",
+            "details": "Files: webhook route, a new lib helper, tests. Failing tests first.\n\n[2026-11-16T07:30:27-05:00] built lib/payment-events.ts (atomic upsert claim, 2min lease, 42P01 -> unavailable), wired into stripe webhook, tests/payment-events.test.mjs; tests+tsc pass\n\n[2026-11-16T07:36:50-05:00] done by sonnet; verified",
             "testStrategy": "Duplicate and concurrent-event tests pass.",
             "complexity": 6,
             "id": 1
@@ -1343,7 +1343,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:28:13-05:00",
+      "updated": "2026-11-16T07:36:50-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
