@@ -10,9 +10,12 @@ import type { Order } from '@/lib/types'
 import { isPrintifyOrdersEnabled } from '@/lib/printify-config'
 import { submitPaidOrderToPrintify } from '@/lib/printify-fulfillment'
 import { printifyStore } from '@/lib/printify-store'
+import { sendOrderEmailsOnce } from '@/lib/email-deliveries'
 import { claimPaymentEvent, finishPaymentEvent } from '@/lib/payment-events'
 
 export const runtime = 'nodejs'
+// Must stay below the 2-minute claim lease in lib/payment-events.ts so a live run is never taken over.
+export const maxDuration = 60
 
 // R15: off unless PRINTIFY_ORDERS_ENABLED=true. Runs after the paid order and emails, so it never blocks them.
 // A retryable failure answers non-2xx so Stripe redelivers; the redelivery skips order/email work (already
@@ -21,6 +24,24 @@ async function submitToPrintify(order: Order, sessionId: string) {
   if (!isPrintifyOrdersEnabled()) return
   const outcome = await submitPaidOrderToPrintify(order, sessionId, printifyStore)
   if (outcome === 'retry_pending' || outcome === 'error') throw new Error('Printify submission will be retried')
+}
+
+// Sends the order emails once each. With delivery tracking, a failed send throws (after Printify has been tried)
+// so Stripe redelivers and only the unsent email is retried. Without the table: legacy single attempt, no throw.
+async function sendEmailsAndSubmit(order: Order, email: string, orderId: string, sessionId: string, legacySend: boolean) {
+  const tracked = await sendOrderEmailsOnce(orderId, {
+    customer: () => sendOrderConfirmation(email, orderId, order),
+    owner: () => sendOrderNotification(orderId, order),
+  })
+  if (tracked === null && legacySend) {
+    const a = await sendOrderConfirmation(email, orderId, order)
+    const b = await sendOrderNotification(orderId, order)
+    reportServerInfo(a && b ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
+  } else if (tracked === false) {
+    reportServerInfo('stripe.checkout.processing_complete_email_incomplete')
+  }
+  await submitToPrintify(order, sessionId)
+  if (tracked === false) throw new Error('Order emails will be retried')
 }
 
 async function processCompletedCheckoutSession(sessionId: string) {
@@ -92,7 +113,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
       existing?.payment_status === 'refunded' ||
       existing?.payment_status === 'partially_refunded') {
     reportServerInfo('stripe.checkout.already_processed')
-    await submitToPrintify(existing, session.id)
+    await sendEmailsAndSubmit(existing, existing.email || email, orderId, session.id, false)
     return 'already_processed' as const
   }
 
@@ -178,11 +199,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
     throw new Error('Could not persist paid checkout order')
   }
 
-  const confirmationSent = await sendOrderConfirmation(email, orderId, created)
-  const notificationSent = await sendOrderNotification(orderId, created)
-
-  reportServerInfo(confirmationSent && notificationSent ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
-  await submitToPrintify(created, session.id)
+  await sendEmailsAndSubmit(created, email, orderId, session.id, true)
   return 'processed' as const
 }
 

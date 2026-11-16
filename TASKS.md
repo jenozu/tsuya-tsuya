@@ -58,11 +58,11 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 2 - Order integrity
 
-- [ ] **10. Persistent payment-event and email ledger with safe retries** _(after 5, 4)_\
+- [>] **10. Persistent payment-event and email ledger with safe retries** _(after 5, 4)_\
   Activate the staged ledger so webhook and email processing is idempotent and recoverable.\
   _Test:_ tests/stripe-webhook-safety.integration.mjs and the new concurrency/duplicate/out-of-order tests pass; `npm run test:disposable-db` passes on the owner's isolated database once the test-resources task is done.
   - [x] 10.1 Event claim and lease logic with tests
-  - [ ] 10.2 Retry-safe order creation and email send state
+  - [x] 10.2 Retry-safe order creation and email send state
   - [ ] 10.3 Delayed and out-of-order event handling plus recovery path
 - [ ] **11. Persist authoritative order line items** _(after 10)_\
   Store product, size, unit price, currency and shipping/tax breakdown per order.\

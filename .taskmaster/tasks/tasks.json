@@ -170,7 +170,7 @@
       {
         "title": "Persistent payment-event and email ledger with safe retries",
         "description": "Activate the staged ledger so webhook and email processing is idempotent and recoverable.",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "high",
         "dependencies": [
           5,
@@ -196,9 +196,9 @@
           {
             "title": "Retry-safe order creation and email send state",
             "description": "An order that exists without its email must be recoverable.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: webhook route, lib/email.ts, order_email_deliveries usage.",
+            "details": "Files: webhook route, lib/email.ts, order_email_deliveries usage.\n\n[2026-11-16T07:38:44-05:00] built (sonnet): lib/email-deliveries.ts per-recipient claim, webhook retries unsent emails on redelivery, maxDuration=60 < 2min lease; tests pass\n\n[2026-11-16T07:40:03-05:00] done by sonnet; verified",
             "testStrategy": "Test: order present and no email -> retry sends exactly once.",
             "complexity": 6,
             "id": 2
@@ -1343,7 +1343,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:36:50-05:00",
+      "updated": "2026-11-16T07:40:03-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

@@ -22,3 +22,4 @@ promote to a task (`tasks.py add` or the `adapt` skill), defer, or delete on pur
 - 2026-11-13 task 54/shared: client IP uses leftmost x-forwarded-for in preview-access + admin-throttle (safe on Vercel; fix together in one helper if ever served off-platform). Also: real POST test for preview-access route.
 - 2026-11-13 task 55 follow-up: add report-uri/report-to endpoint, nonce-based script-src, then enforce CSP (allow analytics origins if added).
 2026-11-16: 10.1 reviewer note: finishPaymentEvent throw after success returns 500 (harmless, handlers idempotent); lease 2min vs route maxDuration - check in 10.2.
+2026-11-16: 10.2 review: before applying migration 003, seed sent rows for pre-existing orders or old-event redeliveries resend emails; attempts cap for permanently failing sends; payment_intent.succeeded path sends no emails.
