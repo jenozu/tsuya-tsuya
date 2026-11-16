@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 32/62 tasks done.**
+**Progress: 33/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -123,7 +123,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **23. Admin order details and explicit fulfilment states** _(after 20)_\
   Make order state transitions explicit and authorized.\
   _Test:_ Tests for allowed and rejected transitions and for unauthorized access; `npm test --silent` green.
-- [ ] **24. Durable email status and lifecycle templates** _(after 10)_\
+- [x] **24. Durable email status and lifecycle templates** _(after 10)_\
   Delivery state, retry, duplicate suppression and the missing templates.\
   _Test:_ tests/email-*.test.mjs extended and green; each template renders with escaped input.
 - [ ] **25. Accessible contact form with spam controls** _(after 5)_\

@@ -534,12 +534,12 @@
       {
         "title": "Durable email status and lifecycle templates",
         "description": "Delivery state, retry, duplicate suppression and the missing templates.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           10
         ],
-        "details": "Roadmap: TSU-M15-003, TSU-M15-005. Reuse order_email_deliveries from the ledger task. Templates for shipped, canceled, refunded and failed payment in lib/email-templates/ with HTML escaping; wording is a draft marked TBD: for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M15-003, TSU-M15-005. Reuse order_email_deliveries from the ledger task. Templates for shipped, canceled, refunded and failed payment in lib/email-templates/ with HTML escaping; wording is a draft marked TBD: for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T11:13:49-05:00] built: order-lifecycle templates, sendLifecycleEmailOnce, sendOrderCanceled/Refunded/PaymentFailed; tests pass. Needs migration widening CHECK for new recipient_kind values (not applied).\n\n[2026-11-16T11:13:59-05:00] sonnet done; needs forward migration widening order_email_deliveries.recipient_kind CHECK (003 staged, unapplied). Dispatching opus to add the migration file only (not applied).\n\n[2026-11-16T11:14:40-05:00] plan (opus): migrations/forward/008_lifecycle_email_kinds.json + tests/lifecycle-email-migration.test.mjs + migration-cli.test.mjs + README + email-deliveries comment - widen recipient_kind CHECK via ALTER TABLE IF EXISTS / DROP CONSTRAINT IF EXISTS\n\n[2026-11-16T11:15:09-05:00] opus: added staged migration 008_lifecycle_email_kinds (ALTER TABLE IF EXISTS order_email_deliveries DROP CONSTRAINT IF EXISTS order_email_deliveries_recipient_kind_check, ADD CONSTRAINT ... IN customer/owner/shipped/canceled/refunded/payment_failed). Not applied anywhere. Test tests/lifecycle-email-migration.test.mjs checks structure, kinds match lib/email-deliveries.ts types, plan order after 003; migration-cli.test lists 008; README section added. migrations:check, npm test (227 pass), tsc pass.\n\n[2026-11-16T11:16:17-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "tests/email-*.test.mjs extended and green; each template renders with escaped input.",
         "complexity": 6,
         "review": true,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T11:11:23-05:00",
+      "updated": "2026-11-16T11:16:17-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

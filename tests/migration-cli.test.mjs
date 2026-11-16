@@ -14,6 +14,7 @@ test('offline migration CLI emits stable ordered baseline without needing DB acc
     '002_neon_r2_schema', '003_payment_delivery_foundation', '004_printify_orders', '005_admin_auth_hardening',
     '006_order_line_items',
     '007_printify_status_sync',
+    '008_lifecycle_email_kinds',
   ])
   for (const line of lines) assert.match(line, /^\d{3}_[a-z0-9_]+ [a-f0-9]{64}$/)
   assert.doesNotMatch(result.stdout, /postgres|password|secret/i)

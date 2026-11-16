@@ -1,0 +1,6 @@
+{
+  "id": "008_lifecycle_email_kinds",
+  "statements": [
+    "ALTER TABLE IF EXISTS public.order_email_deliveries DROP CONSTRAINT IF EXISTS order_email_deliveries_recipient_kind_check, ADD CONSTRAINT order_email_deliveries_recipient_kind_check CHECK (recipient_kind IN ('customer','owner','shipped','canceled','refunded','payment_failed'))"
+  ]
+}

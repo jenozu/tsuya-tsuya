@@ -3,6 +3,7 @@ import { Order } from './types'
 import { renderOrderConfirmationHtml } from './email-templates/order-confirmation'
 import { renderOrderShippedHtml } from './email-templates/order-shipped'
 import { renderOwnerNotificationHtml } from './email-templates/order-notification'
+import { renderOrderCanceledHtml, renderOrderRefundedHtml, renderPaymentFailedHtml } from './email-templates/order-lifecycle'
 import { getConfiguredEmailDelivery } from './email-config'
 import { reportServerError, reportServerInfo, reportServerWarn } from './safe-server-log'
 
@@ -103,3 +104,30 @@ export async function sendOrderShipped(
     return false
   }
 }
+
+async function sendLifecycle(to: string, subject: string, html: string): Promise<boolean> {
+  const delivery = getConfiguredEmailDelivery()
+  if (!resend || !delivery) {
+    reportServerWarn('email.lifecycle.configuration_incomplete')
+    return false
+  }
+  try {
+    const { error } = await resend.emails.send({ from: delivery.from, to, subject, html })
+    if (error) {
+      reportServerError('email.lifecycle.send_failed')
+      return false
+    }
+    reportServerInfo('email.lifecycle.sent')
+    return true
+  } catch {
+    reportServerError('email.lifecycle.send_failed')
+    return false
+  }
+}
+
+export const sendOrderCanceled = (to: string, orderId: string, reason?: string) =>
+  sendLifecycle(to, `Your order has been canceled - ${orderId}`, renderOrderCanceledHtml(orderId, reason))
+export const sendOrderRefunded = (to: string, orderId: string, amountLabel?: string) =>
+  sendLifecycle(to, `Your order has been refunded - ${orderId}`, renderOrderRefundedHtml(orderId, amountLabel))
+export const sendPaymentFailed = (to: string, orderId: string, retryUrl?: string) =>
+  sendLifecycle(to, `Your payment did not go through - ${orderId}`, renderPaymentFailedHtml(orderId, retryUrl))

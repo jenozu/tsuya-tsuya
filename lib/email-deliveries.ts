@@ -3,11 +3,15 @@
 import { getDb } from './db.ts'
 
 export type EmailKind = 'customer' | 'owner'
+// Lifecycle emails reuse the table. Staged migration 008 widens the 003 recipient_kind CHECK to these kinds; until it is
+// applied claim() hits 23514 and callers get 'unavailable'.
+export type LifecycleKind = 'shipped' | 'canceled' | 'refunded' | 'payment_failed'
+export type DeliveryKind = EmailKind | LifecycleKind
 
 export interface EmailDeliveryStore {
   /** Atomic: claims a missing, pending, failed or lease-expired row. False when sent or being sent. */
-  claim(orderId: string, kind: EmailKind): Promise<boolean>
-  finish(orderId: string, kind: EmailKind, ok: boolean): Promise<void>
+  claim(orderId: string, kind: DeliveryKind): Promise<boolean>
+  finish(orderId: string, kind: DeliveryKind, ok: boolean): Promise<void>
 }
 
 type Row = Record<string, unknown>
@@ -63,4 +67,31 @@ export async function sendOrderEmailsOnce(
     if (!ok) allSent = false
   }
   return allSent
+}
+
+export type LifecycleResult = 'sent' | 'duplicate' | 'failed' | 'unavailable'
+
+/** One lifecycle email per (order, kind): duplicates suppressed, failures stay retryable. Sender errors never throw. */
+export async function sendLifecycleEmailOnce(
+  orderId: string,
+  kind: LifecycleKind,
+  send: () => Promise<boolean>,
+  store: EmailDeliveryStore = emailDeliveryStore,
+): Promise<LifecycleResult> {
+  try {
+    if (!(await store.claim(orderId, kind))) return 'duplicate'
+  } catch (e) {
+    const code = (e as { code?: string })?.code
+    if (code === '42P01' || code === '23514') return 'unavailable'
+    throw e
+  }
+  let ok = false
+  try {
+    ok = await send()
+  } catch {
+    ok = false
+  } finally {
+    await store.finish(orderId, kind, ok).catch(() => {})
+  }
+  return ok ? 'sent' : 'failed'
 }
