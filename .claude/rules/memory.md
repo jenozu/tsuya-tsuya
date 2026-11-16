@@ -19,11 +19,11 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- 2026-11-16 phase 2 run: tasks 10 (10.1-10.3), 11, 12, 13, 14, 57 done on branch harness-1.5.0 (pushed, no PR: owner rule). Task 15 (human) queued.
-- Migrations 003 and 006 NOT applied anywhere; code works with and without them. Real-SQL proof needs owner's disposable Neon DB.
-- Manual checks waiting: 12 (Stripe test-mode), 10, 11 (disposable DB), 14 (read doc); earlier: 5.2, 6, 8, 55, 53.
-- Waiting on owner: task 15 sandbox run; placeholder pages (43); destinations (41); Printify (17); tax (42).
-- Next: /run-phase 3 (task 56 from phase 1 still held)
+- 2026-11-16 phase 3 run: tasks 20, 21, 58 done on harness-1.5.0. Only human tasks 17, 22 remain (queued on checklist).
+- Migrations 005, 007 (Printify webhook tables) NOT applied to prod; restore-point branch first.
+- Manual checks waiting: 20 (webhook+admin tracking), 21 (availability sync); Printify field shapes unverified live.
+- Waiting on owner: Printify token/shop id/webhook secret + availability decision (17); tax (42); destinations (41).
+- Next: /run-phase 4
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
@@ -40,6 +40,8 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
+- lib/data.ts updateProduct swallows DB errors and returns null; callers must check the result.
+- Builders skip "admin display" style secondary requirements; name them explicitly in the prompt.
 - Integration tests run with `node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test <file>`; loader mocks the ledgers (legacy path).
 - Builders mix CRLF/LF; run `sed -i 's/$//'` on touched files before verify or `git diff --check` fails.
 - Integration tests need `--experimental-loader ./tests/fixtures/admin-route-loader.mjs`.
