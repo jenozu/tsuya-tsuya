@@ -4,13 +4,14 @@ import { headers } from 'next/headers'
 import Stripe from 'stripe'
 import { reportServerError, reportServerInfo } from '@/lib/safe-server-log'
 import { verifyWebhookSignature, stripe } from '@/lib/stripe'
-import { getOrder, createOrder, markUnpaidOrderPaymentState, markExistingOrderPaidForIntent } from '@/lib/data'
-import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
+import { getOrder, createOrder, markUnpaidOrderPaymentState, markExistingOrderPaidForIntent, applyRefundToOrder } from '@/lib/data'
+import { sendOrderConfirmation, sendOrderNotification, sendOrderRefunded } from '@/lib/email'
 import type { Order } from '@/lib/types'
 import { isPrintifyOrdersEnabled } from '@/lib/printify-config'
 import { submitPaidOrderToPrintify } from '@/lib/printify-fulfillment'
 import { printifyStore } from '@/lib/printify-store'
-import { sendOrderEmailsOnce } from '@/lib/email-deliveries'
+import { syncChargeRefunded } from '@/lib/refund-service'
+import { sendOrderEmailsOnce, sendLifecycleEmailOnce } from '@/lib/email-deliveries'
 import { claimPaymentEvent, finishPaymentEvent } from '@/lib/payment-events'
 import { orderLineItemsFromStripe, type StripeSessionLineItem } from '@/lib/order-line-items'
 
@@ -330,12 +331,20 @@ export async function POST(request: Request) {
         break
       }
 
-      // Expired Checkout Sessions and refunds are acknowledged but never touch an order: an expired session
-      // has no paid order to change, and refund recording awaits the owner's refund policy (see DAILY_ORDER_RECOVERY.md).
       case 'checkout.session.expired':
-      case 'charge.refunded':
+        // An expired session has no paid order to change.
         reportServerInfo('stripe.webhook.event_acknowledged_no_order_change')
         break
+
+      case 'charge.refunded': {
+        const outcome = await syncChargeRefunded(event.data.object as Stripe.Charge, {
+          applyRefund: applyRefundToOrder,
+          sendOnce: (id, kind, send) => sendLifecycleEmailOnce(id, kind, send),
+          sendRefundEmail: sendOrderRefunded,
+        })
+        reportServerInfo(`stripe.webhook.refund_${outcome}`)
+        break
+      }
 
       default:
         reportServerInfo('stripe.webhook.event_ignored')

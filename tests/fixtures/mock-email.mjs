@@ -11,3 +11,7 @@ export async function sendOrderNotification(orderId) {
   emailSends.push({ kind: 'owner', orderId })
   return !shouldFail
 }
+export async function sendOrderRefunded(_email, orderId) {
+  emailSends.push({ kind: 'refunded', orderId })
+  return !shouldFail
+}

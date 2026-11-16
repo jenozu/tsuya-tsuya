@@ -129,10 +129,10 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **25. Accessible contact form with spam controls** _(after 5)_\
   A server-validated contact form routed to the support inbox.\
   _Test:_ Route tests for valid, invalid, spam and over-limit requests; an e2e smoke test added.
-- [ ] **26. Cancellation and refund procedure (guarded, test-only)** _(after 24, 23)_\
+- [>] **26. Cancellation and refund procedure (guarded, test-only)** _(after 24, 23)_\
   Safe cancel/refund mechanics and docs without any live refund.\
   _Test:_ Mock tests: full and partial refunds update the order and send one email; no code path issues a refund without admin confirmation.
-  - [ ] 26.1 Refund service and state sync with mocks
+  - [x] 26.1 Refund service and state sync with mocks
   - [ ] 26.2 Admin confirm step and route checks
   - [ ] 26.3 Runbook and evidence-collection doc
 - [x] **27. Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005** _(after 2)_\

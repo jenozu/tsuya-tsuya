@@ -77,3 +77,15 @@ export async function markExistingOrderPaidForIntent(id, intentId) {
     payment_intent_id: order.payment_intent_id || intentId })
   return true
 }
+export async function applyRefundToOrder(intentId, state) {
+  for (const [id, order] of orders) {
+    if (order.payment_intent_id !== intentId) continue
+    if (!['paid', 'partially_refunded', 'refunded'].includes(order.payment_status)) return null
+    // Mirrors the monotonic SQL in lib/data.ts: 'refunded' is never downgraded.
+    const next = order.payment_status === 'refunded' ? 'refunded' : state
+    orderMutations.push({ kind: 'refund', id, state: next })
+    orders.set(id, { ...order, payment_status: next })
+    return { order_id: id, email: order.email ?? '' }
+  }
+  return null
+}

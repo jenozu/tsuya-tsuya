@@ -356,6 +356,28 @@ export async function markExistingOrderPaidForIntent(orderId: string, paymentInt
   }
 }
 
+/**
+ * Records a Stripe refund on the order owning this intent. Monotonic: 'refunded' is never downgraded, so a stale
+ * partial-refund event delivered after the full one is a no-op. Redelivery rewrites the same value.
+ */
+export async function applyRefundToOrder(
+  paymentIntentId: string,
+  state: 'refunded' | 'partially_refunded',
+): Promise<Pick<Order, 'order_id' | 'email'> | null> {
+  try {
+    const rows = (await getDb()`
+      UPDATE orders
+      SET payment_status = CASE WHEN payment_status = 'refunded' THEN 'refunded' ELSE ${state} END, updated_at = NOW()
+      WHERE payment_intent_id = ${paymentIntentId} AND payment_status IN ('paid', 'partially_refunded', 'refunded')
+      RETURNING order_id, email
+    `) as unknown as Row[]
+    return rows[0] ? { order_id: String(rows[0].order_id), email: String(rows[0].email ?? '') } : null
+  } catch {
+    reportServerError('db.updating_order_status')
+    throw new Error('Failed to record refund')
+  }
+}
+
 export async function updateOrderPaymentIntent(orderId: string, paymentIntentId: string): Promise<boolean> {
   try {
     const sql = getDb()
