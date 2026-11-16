@@ -134,7 +134,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   _Test:_ Mock tests: full and partial refunds update the order and send one email; no code path issues a refund without admin confirmation.
   - [x] 26.1 Refund service and state sync with mocks
   - [x] 26.2 Admin confirm step and route checks
-  - [ ] 26.3 Runbook and evidence-collection doc
+  - [x] 26.3 Runbook and evidence-collection doc
 - [x] **27. Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005** _(after 2)_\
   Decide with evidence which inventory and pick/pack items still apply under Printify.\
   _Test:_ A recommendation per item is logged and listed under the open questions in memory.md.
