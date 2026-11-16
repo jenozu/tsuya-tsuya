@@ -264,12 +264,12 @@
       {
         "title": "Stripe-to-Neon reconciliation procedure",
         "description": "A documented read-only procedure (and optional read-only script) to compare paid/refunded amounts.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           11
         ],
-        "details": "Roadmap: TSU-M11-005. Docs in docs/ (merge into DAILY_ORDER_RECOVERY.md or add one file). Any script must be read-only, take credentials from env and print no customer data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M11-005. Docs in docs/ (merge into DAILY_ORDER_RECOVERY.md or add one file). Any script must be read-only, take credentials from env and print no customer data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:57:24-05:00] docs-only: added reconciliation section to docs/DAILY_ORDER_RECOVERY.md; no script\n\n[2026-11-16T07:57:36-05:00] done by sonnet; verified",
         "testStrategy": "Doc reviewed; a script (if any) defaults to dry-run and has a unit test with fixtures.",
         "complexity": 4,
         "phase": 2,
@@ -1343,7 +1343,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:56:52-05:00",
+      "updated": "2026-11-16T07:57:36-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

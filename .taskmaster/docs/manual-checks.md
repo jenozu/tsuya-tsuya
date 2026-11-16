@@ -53,3 +53,6 @@ with numbered steps and the expected result.
 
 ### Task 11 - Order line items (2026-11-16)
 (Section: Agent-checkable once owner supplies disposable Neon DB) 1. Apply migration 006 to a disposable branch only. 2. `npm run test:disposable-db`: expect order-line-items integration passes. 3. One test-mode paid checkout: order_line_items has a row per product plus shipping and tax. Before production: restore-point branch first. Leave TSU-M10-005 unticked until then.
+
+### Task 14 - Reconciliation procedure (2026-11-16)
+(Section: Eyes-on) 1. Read the "Stripe-to-Neon reconciliation" section of docs/DAILY_ORDER_RECOVERY.md; expect a runnable read-only procedure. 2. Decide schedule, reviewer and refund recording (listed as pending in the doc).

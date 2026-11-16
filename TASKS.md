@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 26/62 tasks done.**
+**Progress: 27/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -73,7 +73,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **13. Stripe webhook and tamper test suite** _(after 10)_\
   Cover tampered prices, invalid destinations, retries, duplicates, refunds and out-of-order events with mocks.\
   _Test:_ `npm test --silent` and the integration suite pass with the new cases.
-- [ ] **14. Stripe-to-Neon reconciliation procedure** _(after 11)_\
+- [x] **14. Stripe-to-Neon reconciliation procedure** _(after 11)_\
   A documented read-only procedure (and optional read-only script) to compare paid/refunded amounts.\
   _Test:_ Doc reviewed; a script (if any) defaults to dry-run and has a unit test with fixtures.
 - [ ] **15. Owner: run Stripe test-mode sandbox cases and the webhook round-trip** **[HUMAN]** _(after 10, 11)_\
