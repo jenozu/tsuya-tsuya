@@ -1,0 +1,6 @@
+# master-harness: LF line endings for harness files
+.claude/** text=auto eol=lf
+.taskmaster/** text=auto eol=lf
+TASKS.md text eol=lf
+CLAUDE.md text eol=lf
+AGENTS.md text eol=lf
