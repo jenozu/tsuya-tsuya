@@ -11,3 +11,4 @@ Tick a box when it's done (`- [x]`). Each item: task id, exact steps, where to r
 
 ## Done
 - [ ] **Task 15: Stripe test-mode sandbox cases and webhook round-trip**: On a Vercel PREVIEW with Stripe TEST keys only: apply migrations 003 and 006 to the TEST/disposable Neon DB only (restore-point branch first for anything production); run paid, failed, canceled, duplicate submit, changed price, invalid destination; confirm each orders row, order_line_items rows, payment-event and email-delivery rows, and the Resend email to a safe test recipient; run `npm run test:disposable-db`. Send back sanitized evidence lines (dates, redacted IDs) for docs/PENDING_LIVE_VERIFICATION.md.
+- [ ] Merge PR #61 (https://github.com/jenozu/tsuya-tsuya/pull/61): owner merges per project rules; carries harness 2.2.1 and phase 4 (tasks 23-27).
