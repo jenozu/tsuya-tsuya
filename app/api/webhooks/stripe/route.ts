@@ -344,6 +344,13 @@ export async function POST(request: Request) {
         break
       }
 
+      // Expired Checkout Sessions and refunds are acknowledged but never touch an order: an expired session
+      // has no paid order to change, and refund recording awaits the owner's refund policy (see DAILY_ORDER_RECOVERY.md).
+      case 'checkout.session.expired':
+      case 'charge.refunded':
+        reportServerInfo('stripe.webhook.event_acknowledged_no_order_change')
+        break
+
       default:
         reportServerInfo('stripe.webhook.event_ignored')
     }

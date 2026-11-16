@@ -63,7 +63,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   _Test:_ tests/stripe-webhook-safety.integration.mjs and the new concurrency/duplicate/out-of-order tests pass; `npm run test:disposable-db` passes on the owner's isolated database once the test-resources task is done.
   - [x] 10.1 Event claim and lease logic with tests
   - [x] 10.2 Retry-safe order creation and email send state
-  - [ ] 10.3 Delayed and out-of-order event handling plus recovery path
+  - [x] 10.3 Delayed and out-of-order event handling plus recovery path
 - [ ] **11. Persist authoritative order line items** _(after 10)_\
   Store product, size, unit price, currency and shipping/tax breakdown per order.\
   _Test:_ New unit and integration tests assert line items match server-derived pricing (lib/checkout-pricing.ts); migrations:check passes.
