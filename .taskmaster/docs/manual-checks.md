@@ -56,3 +56,8 @@ with numbered steps and the expected result.
 
 ### Task 14 - Reconciliation procedure (2026-11-16)
 (Section: Eyes-on) 1. Read the "Stripe-to-Neon reconciliation" section of docs/DAILY_ORDER_RECOVERY.md; expect a runnable read-only procedure. 2. Decide schedule, reviewer and refund recording (listed as pending in the doc).
+
+### Task 20 - Printify status/tracking webhook and admin display (2026-11-16)
+1. On a non-production DB with migration 007 applied (restore-point branch first for prod) and PRINTIFY_ORDERS_ENABLED on, POST a signed order:shipment:created fixture to /api/webhooks/printify. Expected: 200, one shipped email to a safe recipient.
+2. Open /admin > Orders. Expected: "Printify: shipped · carrier · number · track" with a working link.
+3. Confirm the real Printify payload fields (carrier, tracking_number, tracking_url) against a simulated event.

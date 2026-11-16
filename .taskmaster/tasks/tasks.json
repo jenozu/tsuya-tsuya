@@ -317,13 +317,14 @@
         "dependencies": [
           16
         ],
-        "details": "Owner steps: (1) decide owner decision 6: automatic Printify availability sync or manual toggle; (2) create a Printify API token and note the shop id; (3) add them to Vercel PREVIEW and local private env only as server variables (agree names with the agent, e.g. PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET); never paste values in chat; (4) confirm which products exist in Printify and that each size has a Printify variant.",
+        "details": "Owner steps: (1) decide owner decision 6: automatic Printify availability sync or manual toggle; (2) create a Printify API token and note the shop id; (3) add them to Vercel PREVIEW and local private env only as server variables (agree names with the agent, e.g. PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET); never paste values in chat; (4) confirm which products exist in Printify and that each size has a Printify variant.\n\n[2026-11-16T07:59:20-05:00] queued on human checklist; task 21 builds both manual flag list and read-only mock-tested sync until decision recorded\n\n[2026-11-16T07:59:21-05:00] human step queued: see human-checklist.md (agents may build around it; stays open until the human confirms)",
         "testStrategy": "Owner confirms the decision and that the variables exist by NAME in Vercel preview; the agent records the decision in the PRD log.",
         "complexity": 1,
         "human": true,
         "phase": 3,
         "id": 17,
-        "subtasks": []
+        "subtasks": [],
+        "queued": true
       },
       {
         "title": "Printify config, schema and client (mock-tested)",
@@ -466,12 +467,12 @@
       {
         "title": "Printify status and tracking sync to the order and customer email",
         "description": "Receive Printify status/tracking and reflect it on the order and in a shipped email.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           19
         ],
-        "details": "New route app/api/webhooks/printify/route.ts (signature verified as the design doc specifies), order state/tracking update, shipped email template in lib/email-templates (escape HTML; Resend), admin display. Roadmap overlap: TSU-M14-003 (tracking) and TSU-M15-005 (shipping template): reference them, don't duplicate. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "New route app/api/webhooks/printify/route.ts (signature verified as the design doc specifies), order state/tracking update, shipped email template in lib/email-templates (escape HTML; Resend), admin display. Roadmap overlap: TSU-M14-003 (tracking) and TSU-M15-005 (shipping template): reference them, don't duplicate. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T08:01:47-05:00] (sonnet) built app/api/webhooks/printify/route.ts, lib/printify-webhook.ts (HMAC verify, event dedupe, forward-only state, once-only shipped email), store in lib/printify-store.ts, sendOrderShipped in lib/email.ts, migration 007 (staged, NOT applied), tests/printify-status-webhook.test.mjs. npm test/tsc/lint pass. Admin tracking display not built.\n\n[2026-11-16T08:03:06-05:00] escalate sonnet→opus: verifier FAIL, admin tracking/state display (listed in task details) not built; webhook, email, migration 007 and tests pass\n\n[2026-11-16T08:04:02-05:00] plan (opus): lib/printify-store.ts (getPrintifyAdminTracking + pure toAdminTracking, http(s)-only url), app/admin/page.tsx (fetch with flag on, catch->{}), app/admin/admin-client.tsx (state + tracking under order status, React-escaped, rel=noopener), tests/printify-status-webhook.test.mjs (mapper test)\n\n[2026-11-16T08:06:47-05:00] (opus) Admin display added (TSU-M14-003): lib/printify-store.ts getPrintifyAdminTracking() + pure toAdminTracking() (state, carrier, number; url kept only if http(s)); app/admin/page.tsx loads it only with PRINTIFY_ORDERS_ENABLED on, .catch -> {} until migration 007 is applied; app/admin/admin-client.tsx shows \"Printify: <state> Â· carrier Â· number Â· track\" under order status (React-escaped text, rel=noopener noreferrer). /admin is admin-session gated by middleware; server component page, no new API. New test in tests/printify-status-webhook.test.mjs (mapper + javascript: url dropped). npm test 208/208, tsc, lint, build pass; CRLF normalised; git diff --check clean. Migration 007 still NOT applied.\n\n[2026-11-16T08:08:24-05:00] done by sonnet, escalated from sonnet; verified",
         "testStrategy": "A signed-event fixture test updates the order and sends exactly one email; an unsigned or tampered event is rejected; tests green.",
         "complexity": 6,
         "review": true,
@@ -505,13 +506,14 @@
           20,
           21
         ],
-        "details": "Owner steps (the agent does NOT do this): use a Stripe TEST-mode checkout on preview with a Printify test or draft product where possible; confirm the order appears in Printify, then cancel it there. Confirm tracking sync with a real or simulated webhook. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. If Printify can only be tested with a paid order, the owner decides whether to proceed.",
+        "details": "Owner steps (the agent does NOT do this): use a Stripe TEST-mode checkout on preview with a Printify test or draft product where possible; confirm the order appears in Printify, then cancel it there. Confirm tracking sync with a real or simulated webhook. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. If Printify can only be tested with a paid order, the owner decides whether to proceed.\n\n[2026-11-16T07:59:21-05:00] human step queued: see human-checklist.md (agents may build around it; stays open until the human confirms)",
         "testStrategy": "Sanitized evidence recorded; the owner confirms in chat.",
         "complexity": 3,
         "human": true,
         "phase": 3,
         "id": 22,
-        "subtasks": []
+        "subtasks": [],
+        "queued": true
       },
       {
         "title": "Admin order details and explicit fulfilment states",
@@ -1344,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:58:18-05:00",
+      "updated": "2026-11-16T08:08:24-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

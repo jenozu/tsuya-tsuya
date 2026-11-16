@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { Order } from './types'
 import { renderOrderConfirmationHtml } from './email-templates/order-confirmation'
+import { renderOrderShippedHtml } from './email-templates/order-shipped'
 import { renderOwnerNotificationHtml } from './email-templates/order-notification'
 import { getConfiguredEmailDelivery } from './email-config'
 import { reportServerError, reportServerInfo, reportServerWarn } from './safe-server-log'
@@ -70,6 +71,35 @@ export async function sendOrderNotification(
     return true
   } catch {
     reportServerError('email.owner_notification.send_failed')
+    return false
+  }
+}
+
+export async function sendOrderShipped(
+  customerEmail: string,
+  orderId: string,
+  tracking: { carrier?: string; number?: string; url?: string }
+): Promise<boolean> {
+  const delivery = getConfiguredEmailDelivery()
+  if (!resend || !delivery) {
+    reportServerWarn('email.order_shipped.configuration_incomplete')
+    return false
+  }
+  try {
+    const { error } = await resend.emails.send({
+      from: delivery.from,
+      to: customerEmail,
+      subject: `Your order has shipped - ${orderId}`,
+      html: renderOrderShippedHtml(orderId, tracking),
+    })
+    if (error) {
+      reportServerError('email.order_shipped.send_failed')
+      return false
+    }
+    reportServerInfo('email.order_shipped.sent')
+    return true
+  } catch {
+    reportServerError('email.order_shipped.send_failed')
     return false
   }
 }

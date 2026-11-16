@@ -5,6 +5,8 @@ Tick a box when it's done (`- [x]`). Each item: task id, exact steps, where to r
 
 ## To do
 
+- [ ] **Task 17: Printify account, credentials and availability decision**: (1) Decide: automatic Printify availability sync or manual toggle (owner decision 6). (2) Create a Printify API token, note the shop id. (3) Add PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET to Vercel PREVIEW and local private env as server-only variables; never paste values in chat. (4) Confirm each product/size has a Printify variant. Send back: the decision and that the variable NAMES exist.
+- [ ] **Task 22: One controlled real Printify order and cancellation**: After 20 and 21 are merged: Stripe TEST checkout on preview with a Printify test/draft product; confirm the order appears in Printify, cancel it there; confirm tracking sync with a real or simulated webhook. Send back sanitized evidence for docs/PENDING_LIVE_VERIFICATION.md.
 - [ ] Turn on branch protection for the default branch (require a PR, require checks if there is CI, no force pushes)
 
 ## Done

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Product, Order, ProductSize } from '@/lib/types'
-import type { PrintifyAdminFlag } from '@/lib/printify-store'
+import type { PrintifyAdminFlag, PrintifyAdminTracking } from '@/lib/printify-store'
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { internalAvailabilityCount, productIsPurchasable, purchasableSizes } from '@/lib/product-availability';
 import { generateProductDescription } from '@/services/gemini';
@@ -29,9 +29,10 @@ interface AdminDashboardProps {
   initialProducts: Product[];
   initialOrders: Order[];
   printifyFlags?: Record<string, PrintifyAdminFlag>;
+  printifyTracking?: Record<string, PrintifyAdminTracking>;
 }
 
-export function AdminDashboard({ initialProducts, initialOrders, printifyFlags = {} }: AdminDashboardProps) {
+export function AdminDashboard({ initialProducts, initialOrders, printifyFlags = {}, printifyTracking = {} }: AdminDashboardProps) {
   const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
   const [orders, setOrders] = useState(initialOrders);
@@ -1334,6 +1335,16 @@ export function AdminDashboard({ initialProducts, initialOrders, printifyFlags =
                             <span className="block mt-1 text-xs text-red-600">
                               Printify: {printifyFlags[order.order_id].state === 'needs_attention' ? 'needs attention' : 'retry pending'}
                               {printifyFlags[order.order_id].lastErrorCode ? ` (${printifyFlags[order.order_id].lastErrorCode})` : ''}
+                            </span>
+                          )}
+                          {printifyTracking[order.order_id] && (
+                            <span className="block mt-1 text-xs text-[#786B59]">
+                              Printify: {printifyTracking[order.order_id].state.replace('_', ' ')}
+                              {printifyTracking[order.order_id].carrier && ` · ${printifyTracking[order.order_id].carrier}`}
+                              {printifyTracking[order.order_id].number && ` · ${printifyTracking[order.order_id].number}`}
+                              {printifyTracking[order.order_id].url && (
+                                <> · <a href={printifyTracking[order.order_id].url!} target="_blank" rel="noopener noreferrer" className="underline">track</a></>
+                              )}
                             </span>
                           )}
                         </td>

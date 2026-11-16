@@ -1,0 +1,7 @@
+{
+  "id": "007_printify_status_sync",
+  "statements": [
+    "CREATE TABLE IF NOT EXISTS public.printify_webhook_events (event_id TEXT PRIMARY KEY CHECK (char_length(event_id) BETWEEN 1 AND 255), received_at TIMESTAMPTZ NOT NULL DEFAULT NOW())",
+    "ALTER TABLE public.printify_orders ADD COLUMN IF NOT EXISTS tracking_carrier TEXT, ADD COLUMN IF NOT EXISTS tracking_number TEXT, ADD COLUMN IF NOT EXISTS tracking_url TEXT, ADD COLUMN IF NOT EXISTS shipped_at TIMESTAMPTZ, ADD COLUMN IF NOT EXISTS shipped_email_sent_at TIMESTAMPTZ"
+  ]
+}
