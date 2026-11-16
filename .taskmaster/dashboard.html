@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness dashboard</title>
+<!--
+  master-harness live dashboard. One static file: never rebuilt, never edited by agents.
+  It polls .taskmaster/tasks/tasks.json (written atomically by tasks.py) and redraws what changed.
+
+  Run from the repo root:   python -m http.server 8765
+  Open:                     http://localhost:8765/.taskmaster/dashboard.html
+
+  Options (query string):   ?src=path/to/tasks.json   ?checklist=path/to/human-checklist.md   ?every=3   (seconds)
+-->
+<style>
+  :root {
+    --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a; --text:#e6e8ee; --dim:#8b93a3;
+    --agent:#5aa9ff; --you:#ffb454; --queued:#c792ea; --done:#5fd38d; --prog:#4fd1c5; --bad:#ff6b6b; --free:#9aa5b1;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  header { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); padding:14px 22px 12px; }
+  .top { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; }
+  h1 { margin:0; font-size:20px; }
+  .meta { color:var(--dim); font-size:13px; }
+  .live { margin-left:auto; font-size:12px; color:var(--dim); display:flex; align-items:center; gap:6px; }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--done); }
+  .dot.off { background:var(--bad); }
+  .bar { height:8px; background:var(--panel2); border-radius:4px; margin:10px 0 8px; overflow:hidden; display:flex; }
+  .bar span { display:block; height:100%; transition:width .4s; }
+  .stats { display:flex; gap:8px; flex-wrap:wrap; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:5px 11px; font-size:13px; }
+  .stat b { font-size:16px; margin-right:5px; }
+  main { padding:18px 22px 60px; max-width:1100px; }
+  .banner { border:1px solid var(--line); border-left-width:4px; background:var(--panel); border-radius:8px; padding:12px 14px; margin-bottom:14px; }
+  .banner h2 { margin:0 0 8px; font-size:15px; }
+  .banner.you { border-left-color:var(--you); }
+  .banner.queued { border-left-color:var(--queued); }
+  .banner.pr { border-left-color:var(--bad); }
+  .banner.ok { border-left-color:var(--done); color:var(--dim); }
+  .banner pre { white-space:pre-wrap; margin:8px 0 0; font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace; color:var(--dim); background:var(--panel2); padding:8px 10px; border-radius:6px; max-height:260px; overflow:auto; }
+  .now { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px; margin-bottom:18px; }
+  .now h2 { margin:0 0 6px; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--dim); }
+  .phase { margin-top:18px; }
+  .phase > summary { cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; padding:8px 0; font-weight:600; font-size:16px; }
+  .phase > summary::-webkit-details-marker { display:none; }
+  .phase > summary::before { content:"▸"; color:var(--dim); width:12px; }
+  .phase[open] > summary::before { content:"▾"; }
+  .pcount { color:var(--dim); font-weight:400; font-size:13px; }
+  .task { background:var(--panel); border:1px solid var(--line); border-radius:8px; margin:6px 0; }
+  .task > summary { cursor:pointer; list-style:none; display:grid; grid-template-columns:34px 1fr auto; gap:10px; align-items:start; padding:9px 12px; }
+  .task > summary::-webkit-details-marker { display:none; }
+  .tid { color:var(--dim); font:12px ui-monospace,Menlo,Consolas,monospace; padding-top:3px; }
+  .title { font-weight:500; }
+  .last { color:var(--dim); font-size:13px; margin-top:2px; }
+  .last i { font-style:normal; color:var(--free); margin-right:6px; font:11.5px ui-monospace,Menlo,Consolas,monospace; }
+  .badges { display:flex; gap:5px; flex-wrap:wrap; justify-content:flex-end; }
+  .b { font-size:11.5px; padding:2px 8px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; color:var(--dim); }
+  .b.agent { color:var(--agent); border-color:#2d4d73; }
+  .b.you { color:var(--you); border-color:#7a5a2b; }
+  .b.queued { color:var(--queued); border-color:#5d4672; }
+  .b.done { color:var(--done); border-color:#2a5a40; }
+  .b.prog { color:var(--prog); border-color:#27575a; }
+  .b.bad { color:var(--bad); border-color:#733; }
+  .b.next { background:var(--agent); color:#06121f; border-color:var(--agent); font-weight:600; }
+  .task.done { opacity:.62; }
+  .task.dim { opacity:.4; }
+  .task.cur { border-color:var(--prog); box-shadow:0 0 0 1px var(--prog) inset; }
+  .task.flash { animation:flash 1.6s ease-out; }
+  @keyframes flash { from { background:#27414a; } to { background:var(--panel); } }
+  .body { padding:2px 14px 12px 56px; color:var(--dim); font-size:13.5px; }
+  .body h4 { margin:10px 0 3px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--dim); }
+  .body pre { white-space:pre-wrap; margin:0; font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace; color:#c4c9d4; }
+  .subs { margin:4px 0 0; padding:0; list-style:none; }
+  .subs li { padding:2px 0; }
+  .empty { color:var(--dim); padding:40px 0; text-align:center; }
+  .err { color:var(--bad); }
+  code { background:var(--panel2); padding:1px 5px; border-radius:4px; font-size:12.5px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1 id="project">Harness dashboard</h1>
+    <span class="meta" id="desc"></span>
+    <span class="live"><span class="dot" id="dot"></span><span id="liveText">connecting…</span></span>
+  </div>
+  <div class="bar" id="bar"></div>
+  <div class="stats" id="stats"></div>
+</header>
+<main id="main"><div class="empty">Loading <code>tasks.json</code>…</div></main>
+
+<script>
+(function () {
+  "use strict";
+  var qs = new URLSearchParams(location.search);
+  var SRC = qs.get("src") || "tasks/tasks.json";
+  var CHECKLIST = qs.get("checklist") || "docs/human-checklist.md";
+  var EVERY = Math.max(1, parseFloat(qs.get("every")) || 3) * 1000;
+
+  var lastRaw = null, lastChecklist = null, prevSig = {}, firstRender = true;
+  var openState = {};           // remembers which <details> the user opened, across redraws
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  // ---------- data helpers ----------
+  function getTasks(root) {
+    var tag = root.master || root[Object.keys(root)[0]] || {};
+    return { tasks: tag.tasks || [], meta: tag.metadata || {} };
+  }
+  function fullId(t, parent) { return parent ? parent.id + "." + t.id : String(t.id); }
+  function isDone(s) { return s === "done" || s === "cancelled" || s === "deferred"; }
+  function lastLog(details) {
+    if (!details) return null;
+    var lines = details.split("\n"), out = null, m;
+    for (var i = 0; i < lines.length; i++) {
+      m = /^\[([^\]]+)\]\s*(.*)$/.exec(lines[i]);
+      if (m) out = { when: m[1], text: m[2] };
+    }
+    return out;
+  }
+  function shortWhen(s) {
+    var d = new Date(s);
+    if (isNaN(d)) return s.slice(0, 16);
+    return d.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+  function depsMet(t, byId, parent) {
+    var deps = t.dependencies || [];
+    for (var i = 0; i < deps.length; i++) {
+      var d = deps[i], key = String(d);
+      var dep = byId[key] || (parent && byId[parent.id + "." + key]);
+      if (dep && !isDone(dep.status) && dep.status !== "done") return false;
+    }
+    return true;
+  }
+  function owner(t) {
+    if (t.human) return t.queued ? "queued" : "you";
+    return "agent";
+  }
+
+  // ---------- rendering ----------
+  function badge(cls, text) { return el("span", "b " + cls, text); }
+
+  function taskNode(t, ctx) {
+    var id = fullId(t, ctx.parent);
+    var own = owner(t);
+    var blocked = !isDone(t.status) && !depsMet(t, ctx.byId, ctx.parent);
+    var d = el("details", "task");
+    d.dataset.id = id;
+    if (t.status === "done") d.classList.add("done");
+    if (t.status === "cancelled" || t.status === "deferred") d.classList.add("dim");
+    if (t.status === "in-progress" || t.status === "review") d.classList.add("cur");
+    if (openState[id]) d.open = true;
+    d.addEventListener("toggle", function () { openState[id] = d.open; });
+
+    var sum = el("summary");
+    sum.appendChild(el("div", "tid", id));
+    var mid = el("div");
+    mid.appendChild(el("div", "title", t.title || "(untitled)"));
+    var ll = lastLog(t.details);
+    if (ll && t.status !== "pending") {
+      var last = el("div", "last");
+      last.appendChild(el("i", null, shortWhen(ll.when)));
+      last.appendChild(document.createTextNode(ll.text));
+      mid.appendChild(last);
+    } else if (t.description) {
+      mid.appendChild(el("div", "last", t.description));
+    }
+    sum.appendChild(mid);
+
+    var bs = el("div", "badges");
+    if (id === ctx.nextId) bs.appendChild(badge("next", "NEXT"));
+    if (own === "agent") bs.appendChild(badge("agent", "🤖 Claude"));
+    if (own === "you") bs.appendChild(badge("you", "🧑 You"));
+    if (own === "queued") bs.appendChild(badge("queued", "🧑 Queued"));
+    if (t.runner === "script") bs.appendChild(badge("", "⚙ free check"));
+    if (t.review) bs.appendChild(badge("", "review"));
+    if (blocked) bs.appendChild(badge("", "blocked"));
+    var st = t.status || "pending";
+    bs.appendChild(badge(st === "done" ? "done" : (st === "in-progress" || st === "review") ? "prog" : "", st));
+    sum.appendChild(bs);
+    d.appendChild(sum);
+
+    var body = el("div", "body");
+    if (t.description) { body.appendChild(el("h4", null, "What")); body.appendChild(el("pre", null, t.description)); }
+    if (t.testStrategy) { body.appendChild(el("h4", null, "How it's verified")); body.appendChild(el("pre", null, t.testStrategy)); }
+    if (t.check && t.check.length) {
+      body.appendChild(el("h4", null, "Free checks (no model)"));
+      body.appendChild(el("pre", null, t.check.map(function (c) {
+        return (c && c.cmd ? c.cmd : c).join(" ");
+      }).join("\n")));
+    }
+    if (t.dependencies && t.dependencies.length) {
+      body.appendChild(el("h4", null, "Depends on"));
+      body.appendChild(el("pre", null, t.dependencies.join(", ")));
+    }
+    if (t.details) { body.appendChild(el("h4", null, "Details and work log")); body.appendChild(el("pre", null, t.details)); }
+    if (t.subtasks && t.subtasks.length) {
+      body.appendChild(el("h4", null, "Subtasks"));
+      var ul = el("ul", "subs");
+      t.subtasks.forEach(function (s) {
+        var li = el("li");
+        var mark = s.status === "done" ? "✔" : (s.status === "in-progress" ? "▶" : "○");
+        li.textContent = mark + "  " + id + "." + s.id + "  " + (s.title || "") + "  (" + (s.status || "pending") + ")";
+        ul.appendChild(li);
+      });
+      body.appendChild(ul);
+    }
+    d.appendChild(body);
+
+    // flash when a task changed since the last poll
+    var sig = (t.status || "") + "|" + (t.queued ? 1 : 0) + "|" + (t.details || "").length;
+    if (!firstRender && prevSig[id] !== undefined && prevSig[id] !== sig) d.classList.add("flash");
+    ctx.newSig[id] = sig;
+    return d;
+  }
+
+  function bannerList(cls, title, items) {
+    var b = el("div", "banner " + cls);
+    b.appendChild(el("h2", null, title));
+    items.forEach(function (t) {
+      var row = el("div");
+      row.textContent = "• #" + t.id + "  " + t.title + (t.status === "in-progress" ? "  (in progress)" : "");
+      b.appendChild(row);
+    });
+    return b;
+  }
+
+  function checklistTodo(md) {
+    if (!md) return "";
+    var m = /##[ \t]*To do[^\n]*\n([\s\S]*?)(?=\n##[ \t]|$)/i.exec(md);
+    var body = m ? m[1].trim() : "";
+    return /^##/.test(body) ? "" : body;
+  }
+
+  function render(root, checklistMd) {
+    var parsed = getTasks(root), tasks = parsed.tasks, meta = parsed.meta;
+    var byId = {};
+    tasks.forEach(function (t) {
+      byId[String(t.id)] = t;
+      (t.subtasks || []).forEach(function (s) { byId[t.id + "." + s.id] = s; });
+    });
+
+    // counts
+    var c = { total: 0, done: 0, prog: 0, you: 0, queued: 0, agentLeft: 0, free: 0 };
+    tasks.forEach(function (t) {
+      if (t.status === "cancelled" || t.status === "deferred") return;
+      c.total++;
+      if (t.status === "done") c.done++;
+      else {
+        if (t.status === "in-progress" || t.status === "review") c.prog++;
+        if (t.human) { if (t.queued) c.queued++; else c.you++; }
+        else { c.agentLeft++; if (t.runner === "script") c.free++; }
+      }
+    });
+    var pct = c.total ? Math.round(100 * c.done / c.total) : 0;
+
+    $("project").textContent = meta.project || "Harness dashboard";
+    $("desc").textContent = meta.description ? meta.description.slice(0, 140) : "";
+    var bar = $("bar"); bar.textContent = "";
+    var seg1 = el("span"); seg1.style.width = pct + "%"; seg1.style.background = "var(--done)";
+    var inprog = c.total ? Math.round(100 * c.prog / c.total) : 0;
+    var seg2 = el("span"); seg2.style.width = inprog + "%"; seg2.style.background = "var(--prog)";
+    bar.appendChild(seg1); bar.appendChild(seg2);
+
+    var stats = $("stats"); stats.textContent = "";
+    [["" + pct + "%", "done (" + c.done + "/" + c.total + ")"],
+     [c.agentLeft, "🤖 Claude left"],
+     [c.you, "🧑 need you now"],
+     [c.queued, "🧑 queued"],
+     [c.free, "⚙ free checks"]].forEach(function (p) {
+      var s = el("div", "stat"); s.appendChild(el("b", null, String(p[0]))); s.appendChild(document.createTextNode(p[1]));
+      stats.appendChild(s);
+    });
+
+    // next-up: first open agent task, in order, whose dependencies are met and which isn't in progress
+    var nextId = null;
+    for (var i = 0; i < tasks.length; i++) {
+      var t = tasks[i];
+      if (!t.human && t.status === "pending" && depsMet(t, byId, null)) { nextId = String(t.id); break; }
+    }
+
+    var main = $("main"); main.textContent = "";
+
+    // "needs you" panels
+    var you = tasks.filter(function (t) { return t.human && !t.queued && !isDone(t.status); });
+    var queued = tasks.filter(function (t) { return t.human && t.queued && !isDone(t.status); });
+    var todo = checklistTodo(checklistMd);
+    if (you.length) main.appendChild(bannerList("you", "🧑 Needs you now: Claude can't continue past these", you));
+    if (queued.length) {
+      var qb = bannerList("queued", "🧑 Queued for you: Claude built around them, you still owe them", queued);
+      if (todo) qb.appendChild(el("pre", null, todo));
+      main.appendChild(qb);
+    }
+    if (queued.length) {
+      var held = el("div", "banner queued");
+      held.appendChild(el("h2", null, "If merging puts your code live, the PR waits until these are confirmed"));
+      held.appendChild(el("div", "meta", "Applies when merge_deploys is true in .claude/harness.json (the merge gate holds the PR while queued steps are open)."));
+      main.appendChild(held);
+    }
+    if (!you.length && !queued.length) {
+      main.appendChild(el("div", "banner ok", "✓ Nothing is waiting on you."));
+    }
+
+    // now / working on
+    var cur = tasks.filter(function (t) { return t.status === "in-progress" || t.status === "review"; });
+    var nowBox = el("div", "now");
+    nowBox.appendChild(el("h2", null, "Working on now"));
+    if (cur.length) {
+      cur.forEach(function (t) {
+        var r = el("div");
+        r.appendChild(el("b", null, "#" + t.id + "  " + t.title));
+        var ll = lastLog(t.details);
+        if (ll) r.appendChild(el("div", "last", shortWhen(ll.when) + "  " + ll.text));
+        nowBox.appendChild(r);
+      });
+    } else if (nextId) {
+      nowBox.appendChild(el("div", "last", "Idle. Next up: #" + nextId + "  " + byId[nextId].title));
+    } else {
+      nowBox.appendChild(el("div", "last", c.done === c.total && c.total ? "Everything is done." : "Nothing runnable (waiting on you or on dependencies)."));
+    }
+    main.appendChild(nowBox);
+
+    // phases
+    var phases = (meta.phases && meta.phases.length) ? meta.phases : [{ id: null, name: "Tasks" }];
+    var newSig = {};
+    phases.forEach(function (ph) {
+      var list = tasks.filter(function (t) { return ph.id === null || t.phase === ph.id; });
+      if (!list.length) return;
+      var done = list.filter(function (t) { return t.status === "done"; }).length;
+      var open = list.some(function (t) { return !isDone(t.status); });
+      var det = el("details", "phase");
+      var key = "phase-" + ph.id;
+      det.open = (key in openState) ? openState[key] : (open && ph.id === firstOpenPhase(tasks, phases));
+      det.addEventListener("toggle", function () { openState[key] = det.open; });
+      var sum = el("summary");
+      sum.appendChild(document.createTextNode((ph.id !== null ? "Phase " + ph.id + ": " : "") + ph.name + " "));
+      sum.appendChild(el("span", "pcount", done + "/" + list.length + " done"));
+      det.appendChild(sum);
+      var ctx = { byId: byId, nextId: nextId, newSig: newSig, parent: null };
+      list.forEach(function (t) { det.appendChild(taskNode(t, ctx)); });
+      main.appendChild(det);
+    });
+
+    if (!tasks.length) main.appendChild(el("div", "empty", "No tasks yet. Run /harness or /plan-from-prd first."));
+    prevSig = newSig; firstRender = false;
+    document.title = (c.you + c.queued ? "(" + (c.you + c.queued) + " for you) " : "") + (meta.project || "Harness") + " " + pct + "%";
+  }
+
+  function firstOpenPhase(tasks, phases) {
+    for (var i = 0; i < phases.length; i++) {
+      var id = phases[i].id;
+      if (tasks.some(function (t) { return t.phase === id && !isDone(t.status); })) return id;
+    }
+    return phases.length ? phases[phases.length - 1].id : null;
+  }
+
+  // ---------- polling ----------
+  function fetchText(url) {
+    return fetch(url + (url.indexOf("?") < 0 ? "?" : "&") + "_=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status + " " + r.statusText); return r.text(); });
+  }
+  function setLive(ok, text) { $("dot").className = "dot" + (ok ? "" : " off"); $("liveText").textContent = text; }
+
+  function poll() {
+    var tasksP = fetchText(SRC);
+    var checkP = fetchText(CHECKLIST).catch(function () { return null; });
+    Promise.all([tasksP, checkP]).then(function (res) {
+      var raw = res[0], chk = res[1];
+      if (raw !== lastRaw || chk !== lastChecklist) {
+        var root;
+        try { root = JSON.parse(raw); }
+        catch (e) { setLive(false, "tasks.json mid-write, retrying"); return; }   // never happens with atomic writes, but be safe
+        lastRaw = raw; lastChecklist = chk;
+        render(root, chk);
+      }
+      setLive(true, "live · checked " + new Date().toLocaleTimeString());
+    }).catch(function (e) {
+      setLive(false, "can't read " + SRC + " (" + e.message + ")");
+      if (lastRaw === null) {
+        var m = $("main"); m.textContent = "";
+        var d = el("div", "empty");
+        d.appendChild(el("div", "err", "Couldn't load " + SRC));
+        d.appendChild(el("p", null, "Serve the repo from its root and open this page through that server:"));
+        d.appendChild(el("code", null, "python -m http.server 8765"));
+        d.appendChild(el("p", null, "then http://localhost:8765/.taskmaster/dashboard.html (opening the file directly won't work: browsers block it)."));
+        m.appendChild(d);
+      }
+    });
+  }
+  poll();
+  setInterval(poll, EVERY);
+})();
+</script>
+</body>
+</html>

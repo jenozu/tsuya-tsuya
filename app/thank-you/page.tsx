@@ -8,6 +8,7 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
+import { clearCheckoutAttempt } from '@/lib/checkout-attempt-client';
 import { verifiedSupportAddress } from '@/lib/public-business-details';
 
 const support = verifiedSupportAddress(process.env.NEXT_PUBLIC_SUPPORT_EMAIL);
@@ -18,7 +19,10 @@ function ThankYouContent() {
   const { clearCart } = useCart();
 
   useEffect(() => {
-    if (orderId) clearCart();
+    if (orderId) {
+      clearCart();
+      clearCheckoutAttempt(window.localStorage);
+    }
   }, [orderId, clearCart]);
 
   return (

@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 22/62 tasks done.**
+**Progress: 23/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -67,7 +67,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **11. Persist authoritative order line items** _(after 10)_\
   Store product, size, unit price, currency and shipping/tax breakdown per order.\
   _Test:_ New unit and integration tests assert line items match server-derived pricing (lib/checkout-pricing.ts); migrations:check passes.
-- [ ] **12. Duplicate checkout submission, expiry and returning shoppers** _(after 1)_\
+- [x] **12. Duplicate checkout submission, expiry and returning shoppers** _(after 1)_\
   Prevent double sessions and handle cancel/expiry cleanly.\
   _Test:_ tests/checkout-attempt.test.mjs extended and green; `npm run test:e2e` cart-checkout spec still passes.
 - [ ] **13. Stripe webhook and tamper test suite** _(after 10)_\

@@ -44,3 +44,6 @@ with numbered steps and the expected result.
 ### Task 53 - Playwright 1.65.1, browser-e2e on ubuntu-latest (2026-11-13)
 1. On the PR, confirm infra-guard browser-e2e installs Chromium and passes on ubuntu-latest. Expected: green.
 2. Confirm storefront-admin.spec.ts:46 and :91 pass in CI (both fail locally on Windows after admin synthetic login; if :91 fails in CI it is a real regression, possibly Playwright 1.65 behaviour).
+
+### Task 12 - Duplicate checkout, expiry, returning shoppers (2026-11-16)
+(Section: Eyes-on) 1. In Stripe test mode, double-click Pay: expect one session. 2. Cancel and retry: expect attempt reused. 3. Let a session expire, retry: expect a fresh session. 4. Complete an order, buy same cart again: expect no CHECKOUT_ALREADY_COMPLETED. Tick TSU-M9-006 only after this.

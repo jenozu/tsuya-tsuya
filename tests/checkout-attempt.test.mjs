@@ -36,3 +36,20 @@ test('stale, malformed or unavailable browser storage never reuses an unsafe att
   const unavailable={getItem(){throw new Error('blocked')},setItem(){throw new Error('blocked')}}
   assert.equal(checkoutAttemptForPayload(unavailable,digest,start,()=>nextId),nextId)
 })
+import { checkoutAttemptIdentity, checkoutSessionAvailability } from '../lib/checkout-attempt.ts'
+test('server identity is stable, secret-bound and rejects bad ids',()=>{
+  const a=checkoutAttemptIdentity(firstId,'secret-a')
+  assert.deepEqual(a,checkoutAttemptIdentity(firstId.toUpperCase(),'secret-a'))
+  assert.notEqual(a.idempotencyKey,checkoutAttemptIdentity(nextId,'secret-a').idempotencyKey)
+  assert.notEqual(a.orderId,checkoutAttemptIdentity(firstId,'secret-b').orderId)
+  assert.throws(()=>checkoutAttemptIdentity('nope','secret-a'))
+  assert.throws(()=>checkoutAttemptIdentity(firstId,''))
+})
+test('session availability maps open, expired, completed and other states',()=>{
+  const now=1000
+  assert.equal(checkoutSessionAvailability({status:'open',url:'u',expires_at:now+5},now),'open')
+  assert.equal(checkoutSessionAvailability({status:'open',url:'u',expires_at:now},now),'expired')
+  assert.equal(checkoutSessionAvailability({status:'expired'},now),'expired')
+  assert.equal(checkoutSessionAvailability({status:'complete'},now),'completed')
+  assert.equal(checkoutSessionAvailability({status:'open'},now),'unavailable')
+})

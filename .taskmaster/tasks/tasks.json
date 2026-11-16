@@ -234,12 +234,12 @@
       {
         "title": "Duplicate checkout submission, expiry and returning shoppers",
         "description": "Prevent double sessions and handle cancel/expiry cleanly.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M9-006. Read docs/TASK_9_CHECKOUT_RECOVERY.md, lib/checkout-attempt*.ts, app/checkout/page.tsx. Extend, don't rewrite. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M9-006. Read docs/TASK_9_CHECKOUT_RECOVERY.md, lib/checkout-attempt*.ts, app/checkout/page.tsx. Extend, don't rewrite. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:24:57-05:00] sonnet: existing M9-006 code already covered guards/expiry; added clearCheckoutAttempt on thank-you (returning shopper not stuck on COMPLETED) + server identity/availability unit tests. unit 190 pass, tsc ok, e2e 13 pass, 1 known Windows admin fail (:91). M9-006 stays unchecked (needs Stripe test-mode evidence).\n\n[2026-11-16T07:28:13-05:00] done pending manual check (Stripe test-mode replay/cancel/expiry)\n\n[2026-11-16T07:28:13-05:00] done by sonnet; verified",
         "testStrategy": "tests/checkout-attempt.test.mjs extended and green; `npm run test:e2e` cart-checkout spec still passes.",
         "complexity": 5,
         "phase": 2,
@@ -1343,7 +1343,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:19:45-05:00",
+      "updated": "2026-11-16T07:28:13-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
