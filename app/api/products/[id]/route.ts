@@ -5,7 +5,7 @@ import { getProduct, updateProduct, deleteProduct } from '@/lib/data'
 import { hasAdminSession } from '@/lib/admin-session'
 import { revalidatePath } from 'next/cache'
 import type { Product } from '@/lib/types'
-import { createProductSchema, updateProductSchema, normalizedProductFields } from '@/lib/product-validation'
+import { updateProductSchema, normalizedProductFields } from '@/lib/product-validation'
 
 
 // GET /api/products/[id] - Get single product

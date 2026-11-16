@@ -1,4 +1,4 @@
-import { CSV_CONFIG, STANDARD_PRINT_SIZES, SIZE_MULTIPLIERS } from './print-sizes.ts';
+import { CSV_CONFIG } from './print-sizes.ts';
 import type { ProductSize } from './types'
 
 /**

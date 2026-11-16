@@ -3,7 +3,10 @@ import { PUBLIC_API_FAILURE } from '@/lib/public-api-failure'
 import { reportServerError } from '@/lib/safe-server-log'
 import { isSameOriginMutation } from '@/lib/same-origin'
 import { NextResponse } from 'next/server'
-import { ADMIN_SESSION_MAX_AGE, createAdminSessionToken } from '@/lib/admin-session'
+import { ADMIN_SESSION_MAX_AGE, createAdminSessionToken, revokeAdminSession } from '@/lib/admin-session'
+import {
+  adminLoginBucket, clearAdminLoginAttempts, consumeAdminLoginAttempt, defaultAdminThrottleStore,
+} from '@/lib/admin-throttle'
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
@@ -20,9 +23,21 @@ export async function POST(request: Request) {
       })
     }
 
+    const throttle = await defaultAdminThrottleStore()
+    const bucket = throttle ? await adminLoginBucket(request) : ''
+    if (throttle) {
+      const attempt = await consumeAdminLoginAttempt(bucket, throttle, Math.floor(Date.now() / 1000))
+      if (!attempt.allowed) {
+        return NextResponse.json({ error: 'Too many attempts. Try again later.' }, {
+          status: 429, headers: { 'Cache-Control': 'no-store', 'Retry-After': String(attempt.retryAfterSeconds) },
+        })
+      }
+    }
+
     if (typeof password !== 'string' || password !== adminPassword) {
       return NextResponse.json({ error: 'Invalid password' }, { status: 401 })
     }
+    if (throttle) await clearAdminLoginAttempts(bucket, throttle)
 
     const response = NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } })
     response.cookies.set('admin_session', await createAdminSessionToken(), {
@@ -46,6 +61,11 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   if (!isSameOriginMutation(request)) return NextResponse.json({ error: 'Forbidden request origin' }, { status: 403 })
+  try {
+    await revokeAdminSession(request)
+  } catch {
+    reportServerError('api.admin_auth.failure')
+  }
   const response = NextResponse.json({ success: true }, { headers: { 'Cache-Control': 'no-store' } })
   response.cookies.set('admin_session', '', {
     httpOnly: true,

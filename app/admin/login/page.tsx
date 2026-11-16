@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
         const data = await response.json();
         setError(data.error || 'Invalid password');
       }
-    } catch (err) {
+    } catch {
       setError('Authentication failed');
     } finally {
       setIsLoading(false);

@@ -53,3 +53,11 @@ test('global headers reject framing and sniffing, with HSTS only on production',
   assert.equal(production['Referrer-Policy'],'strict-origin-when-cross-origin')
   assert.ok(!production['Strict-Transport-Security'].includes('includeSubDomains'))
 })
+test('report-only CSP is present and allows R2 and unsplash images', () => {
+  const h=Object.fromEntries(siteSecurityHeaders(true,'https://img.example.com/x').map(h=>[h.key,h.value]))
+  const csp=h['Content-Security-Policy-Report-Only']
+  assert.ok(csp.includes("default-src 'self'"))
+  assert.ok(csp.includes('https://img.example.com') && csp.includes('https://images.unsplash.com'))
+  assert.ok(!csp.includes('unsafe-eval'))
+  assert.equal(h['Content-Security-Policy'],undefined)
+})

@@ -19,11 +19,11 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- HANDOFF 2026-11-13. PR #58 merged (a1876f0: next 16.4.6, TASKS.md renderer/LF fix, browser-e2e pinned to ubuntu-24.04); prod deployment READY. PR #57 (PRD approval, restore-point rule, doc alignment, task 4 close) rebased on main.
-- Phase 0 closed (tasks 1-4). Task 52 done. Phase 1 next: 5, 6, 7, 8, 9, 53 (Playwright >=1.61.0 + unpin runner; 46 and 52 done).
-- Waiting on owner: hide or keep live noindexed placeholder pages /returns /terms /privacy + their text (task 43); destinations (task 41); Printify decisions (task 17: account/ids, availability sync vs manual, approval mode); tax (task 42).
-- Deferred: zod major upgrade (high advisory, later task). Local-only e2e failure (admin synthetic login on Windows; passes in CI).
-- Next command (fresh session): /run-phase 1
+- 2026-11-13 phase 1 run: tasks 5-9, 46, 52-55 done on branch chore/plan-approval-and-rules (unpushed). Only task 56 left (zod high advisory + resend major) - held for go-ahead.
+- Manual checks waiting (eyes-on): 5.2 cutover, 6, 8 branch protection, 55 CSP console, 53 CI browser-e2e on ubuntu-latest. Migration 005 NOT applied to prod.
+- Waiting on owner: placeholder pages (task 43); destinations (41); Printify decisions (17); tax (42).
+- Local-only e2e fails on Windows after admin synthetic login (specs :46, :91); confirm in CI.
+- Next: decide task 56, then /run-phase 2
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
@@ -40,6 +40,8 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
+- Builders mix CRLF/LF; run `sed -i 's/$//'` on touched files before verify or `git diff --check` fails.
+- Integration tests need `--experimental-loader ./tests/fixtures/admin-route-loader.mjs`.
 - `next dev` (e2e webServer) appends a Next.js agent-rules block to AGENTS.md; revert it, never commit it.
 - Infra Guard runs on PRs only; candidate-build = critical npm audit, then git diff --check + format:check on changed files.
 - Repo has CRLF checkouts (autocrlf): tests using 
@@ -50,7 +52,7 @@ Never update it per task.
 | Tier | Done first try | Escalated up | Notes |
 |---|---|---|---|
 | haiku | 3 | 0 | |
-| sonnet | 3 | 0 | |
+| sonnet | 11 | 0 | tasks 5-9,53-55 etc |
 | opus | 1 | 0 | task 19 |
 <!-- If one tier escalates on 3 tasks in a row, the phase-runner escalates to the lead, who may raise that tier's
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->

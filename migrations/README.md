@@ -45,3 +45,7 @@ The operator-only `scripts/test-disposable-neon.mjs` now bootstraps the canonica
 ## Task 18.5: staged Printify order table
 
 `forward/004_printify_orders.json` is **additive and NOT applied by a GitHub merge, build or deployment**. It creates `printify_orders`: one row per order (`order_id` references `orders`), `stripe_checkout_session_id` NOT NULL UNIQUE as the submission idempotency key, nullable unique `printify_order_id`, bounded `state` (the eight states in `docs/PRINTIFY_FULFILLMENT.md` section 5), attempts, claim lease, `last_error_code` (code only, never provider text) and a partial index for the retry sweep. Nothing reads it until the R15 fulfilment code ships; applying it anywhere other than a disposable test database is a human step.
+
+## Task 5.1: staged admin session ledger and login throttle
+
+`forward/005_admin_auth_hardening.json` is **additive and NOT applied by a GitHub merge, build or deployment**. It creates `admin_sessions` (opaque 128-bit hex `session_id`, `last_seen_at` for the inactivity timeout, `expires_at`, `revoked_at` for server-side logout) and `admin_login_attempts` (an HMAC'd 64-hex client bucket, never a raw IP, with an attempt count and fixed window start). Nothing reads either table until task 5.2/5.3 code ships behind a switch that stays off until the owner applies the migration; applying it anywhere other than a disposable test database is a human step (restore-point branch first).
