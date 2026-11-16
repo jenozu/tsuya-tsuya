@@ -249,12 +249,12 @@
       {
         "title": "Stripe webhook and tamper test suite",
         "description": "Cover tampered prices, invalid destinations, retries, duplicates, refunds and out-of-order events with mocks.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           10
         ],
-        "details": "Roadmap: TSU-M18-004. Use tests/fixtures/mock-stripe.mjs; no network, no live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M18-004. Use tests/fixtures/mock-stripe.mjs; no network, no live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:55:42-05:00] Added 3 gap tests to tests/checkout-session.integration.mjs (tampered shipping/tax/forged price, invalid destinations + corrected retry, server-derived Stripe amounts); integration file passes 10/10, npm test passes.\n\n[2026-11-16T07:56:52-05:00] done by sonnet; verified",
         "testStrategy": "`npm test --silent` and the integration suite pass with the new cases.",
         "complexity": 5,
         "phase": 2,
@@ -1343,7 +1343,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:55:02-05:00",
+      "updated": "2026-11-16T07:56:52-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

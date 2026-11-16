@@ -112,3 +112,30 @@ test('expired or already completed sessions never return an actionable checkout 
   assert.equal(completed.status,409)
   assert.deepEqual((await completed.json()).code,'CHECKOUT_ALREADY_COMPLETED')
 })
+test('tampered shipping, tax or forged item price is refused with 409 and never reaches Stripe',async()=>{
+  resetStripe()
+  for (const body of [
+    {...payload,shipping:payload.shipping+5},
+    {...payload,tax:0},
+    {...payload,tax:payload.tax+1},
+    {...payload,subtotal:0.01,items:[{...payload.items[0],price:0.01,unitPrice:0.01}]},
+  ]) assert.equal((await POST(request(a,body))).status,409)
+  assert.equal(calls.length,0)
+})
+test('invalid or unsupported destinations are refused before Stripe; a corrected retry then succeeds',async()=>{
+  resetStripe()
+  for (const country of ['ZZ','KP','USA','../..']) {
+    const res=await POST(request(a,{...payload,shipping_address:{...payload.shipping_address,country}}))
+    assert.equal(res.status,400,country)
+  }
+  assert.equal(calls.length,0)
+  const retry=await POST(request(a))
+  assert.equal(retry.status,200)
+  assert.equal(calls.length,1)
+})
+test('Stripe line items use server-derived amounts regardless of client values',async()=>{
+  resetStripe()
+  assert.equal((await POST(request(a,{...payload,items:[{...payload.items[0],price:0.01}]}))).status,200)
+  const total=calls[0].params.line_items.reduce((n,l)=>n+l.price_data.unit_amount*l.quantity,0)
+  assert.equal(total,Math.round((payload.subtotal+payload.shipping+payload.tax)*100))
+})

@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 25/62 tasks done.**
+**Progress: 26/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -70,7 +70,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [x] **12. Duplicate checkout submission, expiry and returning shoppers** _(after 1)_\
   Prevent double sessions and handle cancel/expiry cleanly.\
   _Test:_ tests/checkout-attempt.test.mjs extended and green; `npm run test:e2e` cart-checkout spec still passes.
-- [ ] **13. Stripe webhook and tamper test suite** _(after 10)_\
+- [x] **13. Stripe webhook and tamper test suite** _(after 10)_\
   Cover tampered prices, invalid destinations, retries, duplicates, refunds and out-of-order events with mocks.\
   _Test:_ `npm test --silent` and the integration suite pass with the new cases.
 - [ ] **14. Stripe-to-Neon reconciliation procedure** _(after 11)_\
