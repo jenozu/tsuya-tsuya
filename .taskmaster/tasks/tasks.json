@@ -613,12 +613,12 @@
       {
         "title": "Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005",
         "description": "Decide with evidence which inventory and pick/pack items still apply under Printify.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           2
         ],
-        "details": "Roadmap: TSU-M3-005, TSU-M6-006, TSU-M14-004, TSU-M14-005. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md and the notes in master_plan.md. Output a short recommendation (apply / adapt / not applicable) in the task log and docs. Do NOT cancel roadmap items yourself: the owner decides.",
+        "details": "Roadmap: TSU-M3-005, TSU-M6-006, TSU-M14-004, TSU-M14-005. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md and the notes in master_plan.md. Output a short recommendation (apply / adapt / not applicable) in the task log and docs. Do NOT cancel roadmap items yourself: the owner decides.\n\n[2026-11-16T11:23:37-05:00] plan (haiku): new .taskmaster/docs/m2-fit-assessment.md - read PHASE_2 decisions doc + master_plan entries M3-005, M6-006, M14-004, M14-005; write apply/adapt/not-applicable per item with evidence; log via tasks.py log 27; no master_plan or memory edits\n\n[2026-11-16T11:24:03-05:00] assessment (haiku): wrote .taskmaster/docs/m2-fit-assessment.md, read PHASE_2 decisions, CATALOG_PRICE_INVENTORY, PRINTIFY_FULFILLMENT, master_plan entries, migrations 004/006.\n- TSU-M3-005: ADAPT. Validated JSONB sizes (per-size available flag, M6-004 Zod) is enough; no normalized inventory tables. Verify each size stores Printify variant_id.\n- TSU-M6-006: NOT APPLICABLE as written. Made-to-order, no finite stock (owner note 2026-09-30). Residual need = Printify out_of_stock/discontinued handling (PRINTIFY s5).\n- TSU-M14-004: ADAPT. Drop pick/pack (Printify prints/packs); keep artwork print-size check and exception checklist (DAILY_ORDER_RECOVERY, M14-006 done).\n- TSU-M14-005: ADAPT. Keep order/shipment reconciliation vs Printify statuses (partially-fulfilled, canceled, invoice s2); drop physical stock reconciliation.\nNo roadmap items cancelled or edited; master_plan.md untouched; memory.md untouched. Owner to decide wording of each item.\n\n[2026-11-16T11:24:17-05:00] done by haiku; verified",
         "testStrategy": "A recommendation per item is logged and listed under the open questions in memory.md.",
         "complexity": 3,
         "phase": 4,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T11:23:21-05:00",
+      "updated": "2026-11-16T11:24:17-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
