@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 27/62 tasks done.**
+**Progress: 28/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -79,7 +79,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **15. Owner: run Stripe test-mode sandbox cases and the webhook round-trip** **[HUMAN]** _(after 10, 11)_\
   Provider-connected evidence the agents cannot produce.\
   _Test:_ Evidence lines with dates and sanitized IDs added to docs/PENDING_LIVE_VERIFICATION.md.
-- [ ] **57. Phase 2 gate: lint, types and tests pass** _(after 10, 11, 12, 13, 14, 15)_\
+- [x] **57. Phase 2 gate: lint, types and tests pass** _(after 10, 11, 12, 13, 14, 15)_\
   _Test:_ python .taskmaster/run_checks.py run --only 57
 
 ## Phase 3 - Printify fulfilment (R15)
