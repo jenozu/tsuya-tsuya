@@ -72,7 +72,7 @@ def pid_file(name):
 
 def read_pid(name):
     try:
-        return int(pid_file(name).read_text().strip())
+        return int(pid_file(name).read_text(encoding="utf-8").strip())
     except (OSError, ValueError):
         return None
 
@@ -81,7 +81,8 @@ def alive(pid):
     if pid is None:
         return False
     if WINDOWS:
-        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True)
+        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH"], capture_output=True, text=True,
+                             encoding="utf-8", errors="replace")
         return str(pid) in out.stdout
     try:
         os.kill(pid, 0)
@@ -106,14 +107,14 @@ def start(s, wait):
     if not cmd:
         die(f"{name}: no cmd in config")
     cwd = ROOT / s.get("cwd", ".")
-    log = open(log_path, "w", encoding="utf-8", errors="replace")
+    log = open(log_path, "w", encoding="utf-8", errors="replace", newline="\n")
     kwargs = dict(cwd=str(cwd), stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, shell=True)
     if WINDOWS:
         kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | 0x00000008  # DETACHED_PROCESS
     else:
         kwargs["start_new_session"] = True
     proc = subprocess.Popen(cmd, **kwargs)
-    pid_file(name).write_text(str(proc.pid))
+    pid_file(name).write_text(str(proc.pid), encoding="utf-8", newline="\n")
     if not s.get("health"):
         print(f"{name}: started (pid {proc.pid}, no health URL to wait on), log {log_path.relative_to(ROOT)}")
         return 0
@@ -182,6 +183,9 @@ def tail(path, n):
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252: never crash on "→" or "·"
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
     sp = sub.add_parser("start")

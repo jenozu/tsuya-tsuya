@@ -44,3 +44,23 @@ with numbered steps and the expected result.
 ### Task 53 - Playwright 1.65.1, browser-e2e on ubuntu-latest (2026-11-13)
 1. On the PR, confirm infra-guard browser-e2e installs Chromium and passes on ubuntu-latest. Expected: green.
 2. Confirm storefront-admin.spec.ts:46 and :91 pass in CI (both fail locally on Windows after admin synthetic login; if :91 fails in CI it is a real regression, possibly Playwright 1.65 behaviour).
+
+### Task 12 - Duplicate checkout, expiry, returning shoppers (2026-11-16)
+(Section: Eyes-on) 1. In Stripe test mode, double-click Pay: expect one session. 2. Cancel and retry: expect attempt reused. 3. Let a session expire, retry: expect a fresh session. 4. Complete an order, buy same cart again: expect no CHECKOUT_ALREADY_COMPLETED. Tick TSU-M9-006 only after this.
+
+### Task 10 - Payment-event and email ledger (2026-11-16)
+(Section: Agent-checkable once owner supplies disposable Neon DB) 1. Apply migration 003 to the disposable DB only. 2. `npm run test:disposable-db`: expect pass. 3. Before applying 003 to production, create the Neon restore-point branch and seed sent rows for existing orders (see parking-lot 2026-11-16). Roadmap boxes M3-006/M11-002..004 stay unticked until then.
+
+### Task 11 - Order line items (2026-11-16)
+(Section: Agent-checkable once owner supplies disposable Neon DB) 1. Apply migration 006 to a disposable branch only. 2. `npm run test:disposable-db`: expect order-line-items integration passes. 3. One test-mode paid checkout: order_line_items has a row per product plus shipping and tax. Before production: restore-point branch first. Leave TSU-M10-005 unticked until then.
+
+### Task 14 - Reconciliation procedure (2026-11-16)
+(Section: Eyes-on) 1. Read the "Stripe-to-Neon reconciliation" section of docs/DAILY_ORDER_RECOVERY.md; expect a runnable read-only procedure. 2. Decide schedule, reviewer and refund recording (listed as pending in the doc).
+
+### Task 20 - Printify status/tracking webhook and admin display (2026-11-16)
+1. On a non-production DB with migration 007 applied (restore-point branch first for prod) and PRINTIFY_ORDERS_ENABLED on, POST a signed order:shipment:created fixture to /api/webhooks/printify. Expected: 200, one shipped email to a safe recipient.
+2. Open /admin > Orders. Expected: "Printify: shipped · carrier · number · track" with a working link.
+3. Confirm the real Printify payload fields (carrier, tracking_number, tracking_url) against a simulated event.
+
+### Task 21 - Printify availability sync (2026-11-16)
+1. With admin login and Printify sandbox credentials, open the Unavailable modal and click "Sync availability from Printify". Expected: warning list fills; a turned-off size shows unavailable on /shop/<id>; no counts visible to customers.

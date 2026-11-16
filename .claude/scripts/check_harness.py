@@ -24,11 +24,13 @@ SKILL_FIELDS = {"name", "description", "when_to_use", "argument-hint", "argument
 RULE_FIELDS = {"paths", "description"}
 EFFORTS = {"low", "medium", "high", "xhigh", "max"}
 CORE_AGENTS = ["phase-runner", "builder-haiku", "builder-sonnet", "builder-opus", "verifier", "reviewer"]
-CORE_SKILLS = ["run-phase", "next-task", "plan-from-prd", "adapt", "status", "manual-checks", "dev-servers"]
+CORE_SKILLS = ["run-phase", "next-task", "plan-from-prd", "adapt", "status", "manual-checks", "dev-servers", "deliver"]
 CORE_FILES = [".claude/scripts/check_harness.py", "CLAUDE.md", "AGENTS.md", ".claude/settings.json", ".claude/rules/rules.md", ".claude/rules/memory.md",
-              ".claude/dev-servers.json", ".claude/scripts/devserver.py", ".claude/HARNESS_VERSION",
+              ".claude/dev-servers.json", ".claude/scripts/devserver.py", ".claude/scripts/context_check.py", ".claude/HARNESS_VERSION",
               ".taskmaster/tasks.py", ".taskmaster/render_tasks_md.py", ".taskmaster/tasks/tasks.json",
-              ".taskmaster/docs/prd.md", ".taskmaster/docs/parking-lot.md", ".taskmaster/docs/manual-checks.md"]
+              ".taskmaster/docs/prd.md", ".taskmaster/docs/parking-lot.md", ".taskmaster/docs/manual-checks.md",
+              ".taskmaster/docs/human-checklist.md", ".taskmaster/run_checks.py", ".taskmaster/checks.json",
+              ".claude/scripts/merge_gate.py", ".claude/harness.json", ".claude/rules/project.md"]
 LINE_CAPS = {"CLAUDE.md": 60, "AGENTS.md": 80, ".claude/rules/memory.md": 80}
 PLACEHOLDER = re.compile(r"\{\{[A-Z0-9_]+\}\}")
 SECRET = re.compile(r"(sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}"
@@ -36,6 +38,13 @@ SECRET = re.compile(r"(sk-[A-Za-z0-9_-]{20,}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-
 FOREIGN_PATH = re.compile(r"([A-Za-z]:\\Users\\[^\\\s]+|/home/[a-z_][a-z0-9_-]*/|/Users/[A-Za-z][^/\s]*/)")
 
 errors, warns = [], []
+# Lines from the CLAUDE.md roles text before v2.1.2: it told the lead to stop after each phase / for human steps.
+OLD_CLAUDE_MD = ("One phase per launch", "or a human-only step comes up")
+
+
+def sh(args, cwd):
+    """Run a command and read its output as UTF-8 (Windows would otherwise decode it as cp1252 and crash)."""
+    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
 
 
 def err(msg):
@@ -175,7 +184,7 @@ def check_skills(root):
 
 
 def tracked_files(root):
-    r = subprocess.run(["git", "ls-files"], cwd=root, capture_output=True, text=True)
+    r = sh(["git", "ls-files"], root)
     return r.stdout.splitlines() if r.returncode == 0 else None
 
 
@@ -248,13 +257,38 @@ def check_json(root):
     if p.exists():
         try:
             s = json.loads(p.read_text(encoding="utf-8"))
+            deny_rules = s.get("permissions", {}).get("deny", [])
+            if not any(":main" in r for r in deny_rules):
+                warn("settings.json: no deny rule for pushing straight to the default branch (git push origin "
+                     "HEAD:main): run the harness upgrade")
             if s.get("env", {}).get("CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH") != "2":
                 err('settings.json: env CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH must be "2" (lead -> phase-runner -> builders)')
             deny = " ".join(s.get("permissions", {}).get("deny", []))
             if ".env" not in deny:
                 warn("settings.json: .env files are not in permissions.deny")
+            allow = s.get("permissions", {}).get("allow", [])
+            ask = " ".join(s.get("permissions", {}).get("ask", []))
+            if "/merge" not in ask and ("Bash" in allow or any("gh api" in r for r in allow)):
+                warn("settings.json: no ask rule for merging outside the merge gate (gh api .../merge)")
         except json.JSONDecodeError as e:
             err(f"settings.json is not valid JSON: {e}")
+    p = root / ".claude/harness.json"
+    if p.exists():
+        try:
+            h = json.loads(p.read_text(encoding="utf-8"))
+            if h.get("merge") not in ("auto", "safe-only", "owner"):
+                err("harness.json: merge must be auto, safe-only or owner")
+            if not isinstance(h.get("merge_deploys"), bool):
+                err("harness.json: merge_deploys must be true or false (does merging to the default branch go live?)")
+            if h.get("merge_deploys") and h.get("merge") == "auto":
+                warn("harness.json: merging deploys and merge is auto: every green PR goes live without review "
+                     "(safe-only is the usual choice for a live project)")
+            if "require_ci" in h and not isinstance(h["require_ci"], bool):
+                err("harness.json: require_ci must be true or false (wait for the owner when a PR has no CI)")
+            if not isinstance(h.get("max_phases_per_launch", 0), int) or h.get("max_phases_per_launch", 0) < 0:
+                err("harness.json: max_phases_per_launch must be a whole number (0 = no limit)")
+        except json.JSONDecodeError as e:
+            err(f"harness.json is not valid JSON: {e}")
     p = root / ".claude/dev-servers.json"
     if p.exists():
         try:
@@ -274,16 +308,24 @@ def check_json(root):
 def check_imports(root):
     p = root / "CLAUDE.md"
     if p.exists():
-        for m in re.finditer(r"(?m)^@(\S+)", p.read_text(encoding="utf-8", errors="replace")):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        for m in re.finditer(r"(?m)^@(\S+)", text):
             if not (root / m.group(1)).exists():
                 err(f"CLAUDE.md imports @{m.group(1)}, which doesn't exist")
+        if any(old in text for old in OLD_CLAUDE_MD):
+            warn("CLAUDE.md still has the old roles text that tells the lead to stop after each phase: apply the "
+                 "2.1.2 project action (replace the Roles and Keeping cost down sections from the template)")
 
 
 def check_plan(root, allow_empty):
     tp = root / ".taskmaster/tasks.py"
     if not tp.exists():
         return
-    r = subprocess.run([sys.executable, str(tp), "validate"], cwd=root, capture_output=True, text=True)
+    r = sh([sys.executable, str(tp), "validate"], root)
+    if r.returncode == 2:  # the file itself can't be read: tasks.py says why in one line
+        msg = (r.stderr or r.stdout).strip()
+        err(f"tasks.json: {msg[7:] if msg.startswith('error: ') else msg}"[:320])
+        return
     for line in (r.stdout + r.stderr).splitlines():
         if line.startswith("ERROR"):
             err(f"tasks.json: {line[7:]}")
@@ -295,9 +337,18 @@ def check_plan(root, allow_empty):
         return
     if not data.get("metadata", {}).get("phases"):
         err("tasks.json: metadata.phases is empty; /run-phase needs phases")
-    r = subprocess.run([sys.executable, str(tp), "next"], cwd=root, capture_output=True, text=True)
+    r = sh([sys.executable, str(tp), "next"], root)
     if r.returncode != 0 and any(t.get("status") == "pending" for t in data["tasks"]):
         err("tasks.py next finds nothing workable although tasks are pending (dependency problem)")
+    rc = root / ".taskmaster/run_checks.py"
+    if rc.exists():
+        r = sh([sys.executable, str(rc), "plan"], root)
+        if r.returncode != 0:
+            for line in r.stdout.splitlines():
+                if "REFUSED:" in line:
+                    err(f"script task check refused: {line.split('REFUSED:', 1)[1].strip()}")
+            if "REFUSED:" not in r.stdout:
+                err(f"run_checks.py plan failed: {(r.stderr or r.stdout).strip()[-200:]}")
     for t in data["tasks"]:
         ts = t.get("testStrategy", "").strip().lower()
         if t.get("status") == "pending" and ts in ("", "n/a", "none", "manual"):
@@ -305,20 +356,29 @@ def check_plan(root, allow_empty):
 
 
 def check_git(root):
-    if subprocess.run(["git", "rev-parse"], cwd=root, capture_output=True).returncode != 0:
+    if sh(["git", "rev-parse"], root).returncode != 0:
         warn("not a git repository: can't check that the harness is committed")
         return
-    r = subprocess.run(["git", "status", "--porcelain", "--", "CLAUDE.md", "AGENTS.md", "TASKS.md", ".claude",
-                        ".taskmaster", ".gitignore"], cwd=root, capture_output=True, text=True)
+    r = sh(["git", "status", "--porcelain", "--", "CLAUDE.md", "AGENTS.md", "TASKS.md", ".claude",
+            ".taskmaster", ".gitignore"], root)
     if r.stdout.strip():
         err("harness files not committed:\n    " + "\n    ".join(r.stdout.strip().splitlines()[:15]))
     for rel in CORE_FILES:
         p = root / rel
         if p.exists() and p.stat().st_size == 0:
             err(f"{rel} is empty")
+    r = sh(["git", "ls-files", "--eol", "--", "CLAUDE.md", "AGENTS.md", "TASKS.md", ".claude", ".taskmaster"], root)
+    crlf = [ln.split("\t", 1)[-1] for ln in r.stdout.splitlines() if ln.startswith("i/crlf") or " i/crlf" in ln[:12]]
+    if crlf:
+        err("harness files committed with Windows line endings (CRLF), which fails whitespace checks in CI: "
+            + ", ".join(crlf[:8]) + ". Fix: git add --renormalize CLAUDE.md AGENTS.md TASKS.md .claude .taskmaster "
+            "&& git commit -m 'normalize line endings'")
 
 
 def main():
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252: never crash on "→" or "·"
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--target", default=".")
     ap.add_argument("--allow-empty-plan", action="store_true", help="don't fail when tasks.json has no tasks")

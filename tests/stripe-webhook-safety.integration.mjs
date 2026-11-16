@@ -155,3 +155,20 @@ test('unavailable order persistence returns retryable 500 rather than acknowledg
   assert.equal((await POST(event('payment_intent.canceled',intent()))).status,500)
   assert.equal((await getOrder('ORD-SYNTHETIC')).payment_status,'pending')
 })
+
+test('expired session, refund and late failed events never alter or re-email a paid order, in any order', async () => {
+  clear()
+  setMockOrder(saved('ORD-SYNTHETIC','processing','paid'))
+  const seq = [
+    ['checkout.session.expired', { id: 'cs_synthetic_1', metadata: { orderId: 'ORD-SYNTHETIC' } }],
+    ['charge.refunded', { id: 'ch_synthetic_1', payment_intent: 'pi_synthetic_1' }],
+    ['payment_intent.payment_failed', intent()],
+    ['payment_intent.canceled', intent()],
+  ]
+  for (const [i, [type, obj]] of seq.entries()) {
+    assert.equal((await POST(event(type, obj, `evt_seq_${i}`))).status, 200)
+  }
+  assert.equal((await getOrder('ORD-SYNTHETIC')).payment_status, 'paid')
+  assert.equal(orderMutations.length, 0)
+  assert.equal(emailSends.length, 0)
+})

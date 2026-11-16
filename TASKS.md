@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 22/56 tasks done.**
+**Progress: 31/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -58,27 +58,29 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 2 - Order integrity
 
-- [ ] **10. Persistent payment-event and email ledger with safe retries** _(after 5, 4)_\
+- [x] **10. Persistent payment-event and email ledger with safe retries** _(after 5, 4)_\
   Activate the staged ledger so webhook and email processing is idempotent and recoverable.\
   _Test:_ tests/stripe-webhook-safety.integration.mjs and the new concurrency/duplicate/out-of-order tests pass; `npm run test:disposable-db` passes on the owner's isolated database once the test-resources task is done.
-  - [ ] 10.1 Event claim and lease logic with tests
-  - [ ] 10.2 Retry-safe order creation and email send state
-  - [ ] 10.3 Delayed and out-of-order event handling plus recovery path
-- [ ] **11. Persist authoritative order line items** _(after 10)_\
+  - [x] 10.1 Event claim and lease logic with tests
+  - [x] 10.2 Retry-safe order creation and email send state
+  - [x] 10.3 Delayed and out-of-order event handling plus recovery path
+- [x] **11. Persist authoritative order line items** _(after 10)_\
   Store product, size, unit price, currency and shipping/tax breakdown per order.\
   _Test:_ New unit and integration tests assert line items match server-derived pricing (lib/checkout-pricing.ts); migrations:check passes.
-- [ ] **12. Duplicate checkout submission, expiry and returning shoppers** _(after 1)_\
+- [x] **12. Duplicate checkout submission, expiry and returning shoppers** _(after 1)_\
   Prevent double sessions and handle cancel/expiry cleanly.\
   _Test:_ tests/checkout-attempt.test.mjs extended and green; `npm run test:e2e` cart-checkout spec still passes.
-- [ ] **13. Stripe webhook and tamper test suite** _(after 10)_\
+- [x] **13. Stripe webhook and tamper test suite** _(after 10)_\
   Cover tampered prices, invalid destinations, retries, duplicates, refunds and out-of-order events with mocks.\
   _Test:_ `npm test --silent` and the integration suite pass with the new cases.
-- [ ] **14. Stripe-to-Neon reconciliation procedure** _(after 11)_\
+- [x] **14. Stripe-to-Neon reconciliation procedure** _(after 11)_\
   A documented read-only procedure (and optional read-only script) to compare paid/refunded amounts.\
   _Test:_ Doc reviewed; a script (if any) defaults to dry-run and has a unit test with fixtures.
 - [ ] **15. Owner: run Stripe test-mode sandbox cases and the webhook round-trip** **[HUMAN]** _(after 10, 11)_\
   Provider-connected evidence the agents cannot produce.\
   _Test:_ Evidence lines with dates and sanitized IDs added to docs/PENDING_LIVE_VERIFICATION.md.
+- [x] **57. Phase 2 gate: lint, types and tests pass** _(after 10, 11, 12, 13, 14, 15)_\
+  _Test:_ python .taskmaster/run_checks.py run --only 57
 
 ## Phase 3 - Printify fulfilment (R15)
 
@@ -104,15 +106,17 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
   - [x] 19.1 Wire submission into the webhook path
   - [x] 19.2 Retry and failure handling with admin visibility
   - [x] 19.3 Idempotency and redaction tests
-- [ ] **20. Printify status and tracking sync to the order and customer email** _(after 19)_\
+- [x] **20. Printify status and tracking sync to the order and customer email** _(after 19)_\
   Receive Printify status/tracking and reflect it on the order and in a shipped email.\
   _Test:_ A signed-event fixture test updates the order and sends exactly one email; an unsigned or tampered event is rejected; tests green.
-- [ ] **21. Printify availability sync or admin flag** _(after 17, 18)_\
+- [x] **21. Printify availability sync or admin flag** _(after 17, 18)_\
   Replace the manual size toggle according to the owner's decision.\
   _Test:_ Tests with the mock Printify: an unavailable variant disables the size or raises an admin flag per the decision; customer pages unchanged (no counts).
 - [ ] **22. Owner: one controlled real Printify order and cancellation** **[HUMAN]** _(after 20, 21)_\
   Prove the integration end to end; the owner handles any real cost.\
   _Test:_ Sanitized evidence recorded; the owner confirms in chat.
+- [x] **58. Phase 3 gate: lint, types and tests pass** _(after 16, 17, 18, 19, 20, 21, 22)_\
+  _Test:_ python .taskmaster/run_checks.py run --only 58
 
 ## Phase 4 - Fulfilment ops and comms
 
@@ -134,6 +138,8 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **27. Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005** _(after 2)_\
   Decide with evidence which inventory and pick/pack items still apply under Printify.\
   _Test:_ A recommendation per item is logged and listed under the open questions in memory.md.
+- [ ] **59. Phase 4 gate: lint, types and tests pass** _(after 23, 24, 25, 26, 27)_\
+  _Test:_ python .taskmaster/run_checks.py run --only 59
 
 ## Phase 5 - Experience quality
 
@@ -158,6 +164,8 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **34. Owner: real browser and device pass** **[HUMAN]** _(after 29, 28)_\
   Chrome, Edge, Firefox, Safari, iOS and Android.\
   _Test:_ The checklist in manual-checks.md is ticked with dates and issues exist as tasks.
+- [ ] **60. Phase 5 gate: lint, types and tests pass** _(after 28, 29, 30, 31, 32, 33, 34)_\
+  _Test:_ python .taskmaster/run_checks.py run --only 60
 
 ## Phase 6 - Operations
 
@@ -176,6 +184,8 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **39. Owner: audit variable scopes and rotate secrets** **[HUMAN]**\
   A name-only audit and rotation in the provider dashboards.\
   _Test:_ The owner confirms rotation and that preview uses separate test credentials.
+- [ ] **61. Phase 6 gate: lint, types and tests pass** _(after 35, 36, 37, 38, 39)_\
+  _Test:_ python .taskmaster/run_checks.py run --only 61
 
 ## Phase 7 - Launch gates (owner)
 
@@ -197,6 +207,8 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **45. Launch verification and signed checklist** **[HUMAN]** _(after 44, 34, 38, 36, 39)_\
   Domain, smoke test, UX and rollback readiness.\
   _Test:_ A signed checklist with evidence links is committed under docs/ and the owner approval is recorded.
+- [ ] **62. Phase 7 gate: lint, types and tests pass** _(after 40, 41, 42, 43, 44, 45)_\
+  _Test:_ python .taskmaster/run_checks.py run --only 62
 
 ## Phase 8 - Black Friday lean launch
 

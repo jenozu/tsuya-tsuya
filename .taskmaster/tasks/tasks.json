@@ -65,7 +65,7 @@
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M7-004, TSU-M17-004 (remaining parts). Read docs/ADMIN_ACCESS_RECOVERY.md, lib/admin-session.ts, app/api/admin/auth/route.ts, middleware.ts. Use a persistent store: an additive migrations/forward JSON table (db-migration skill), not in-memory. Do not change the shared-login model or password policy wording without owner input. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:31:03-05:00] all subtasks done; npm test, tsc, lint, build, migrations:check pass; integration route-authorization suite needs disposable DB (not run locally)",
+        "details": "Roadmap: TSU-M7-004, TSU-M17-004 (remaining parts). Read docs/ADMIN_ACCESS_RECOVERY.md, lib/admin-session.ts, app/api/admin/auth/route.ts, middleware.ts. Use a persistent store: an additive migrations/forward JSON table (db-migration skill), not in-memory. Do not change the shared-login model or password policy wording without owner input. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-13T16:31:03-05:00] all subtasks done; npm test, tsc, lint, build, migrations:check pass; integration route-authorization suite needs disposable DB (not run locally)\n\n[2026-11-15T19:55:15-05:00] restore point restore-20261115-1304-005 created; 005 NOT applied: prod ledger uninitialized (migrate --status), needs owner decision on --adopt-baseline and 003/004 (orig logged 2026-11-15T13:04:45)",
         "testStrategy": "`npm test --silent` passes with new tests for lockout, revocation and timeout; tests/route-authorization.integration.mjs still passes; `npm run migrations:check` passes.",
         "complexity": 8,
         "review": true,
@@ -170,13 +170,13 @@
       {
         "title": "Persistent payment-event and email ledger with safe retries",
         "description": "Activate the staged ledger so webhook and email processing is idempotent and recoverable.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           5,
           4
         ],
-        "details": "Roadmap: TSU-M3-006, TSU-M11-002, TSU-M11-003, TSU-M11-004, TSU-M3-004 (blank + upgrade proof). Starting point: migrations/forward/003_payment_delivery_foundation.json (staged, NOT applied) and docs/TASK_11_WEBHOOK_LEDGER_FOUNDATION.md. Code: app/api/webhooks/stripe/route.ts, lib/email*.ts. Keep the code working with and without the tables until the owner applies the migration. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M3-006, TSU-M11-002, TSU-M11-003, TSU-M11-004, TSU-M3-004 (blank + upgrade proof). Starting point: migrations/forward/003_payment_delivery_foundation.json (staged, NOT applied) and docs/TASK_11_WEBHOOK_LEDGER_FOUNDATION.md. Code: app/api/webhooks/stripe/route.ts, lib/email*.ts. Keep the code working with and without the tables until the owner applies the migration. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:43:55-05:00] done pending manual check: unit + loader-mocked integration pass; real-SQL proof needs disposable DB with 003\n\n[2026-11-16T07:43:55-05:00] done by sonnet; verified",
         "testStrategy": "tests/stripe-webhook-safety.integration.mjs and the new concurrency/duplicate/out-of-order tests pass; `npm run test:disposable-db` passes on the owner's isolated database once the test-resources task is done.",
         "complexity": 9,
         "review": true,
@@ -186,9 +186,9 @@
           {
             "title": "Event claim and lease logic with tests",
             "description": "Transactional claim per Stripe event id.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: webhook route, a new lib helper, tests. Failing tests first.",
+            "details": "Files: webhook route, a new lib helper, tests. Failing tests first.\n\n[2026-11-16T07:30:27-05:00] built lib/payment-events.ts (atomic upsert claim, 2min lease, 42P01 -> unavailable), wired into stripe webhook, tests/payment-events.test.mjs; tests+tsc pass\n\n[2026-11-16T07:36:50-05:00] done by sonnet; verified",
             "testStrategy": "Duplicate and concurrent-event tests pass.",
             "complexity": 6,
             "id": 1
@@ -196,9 +196,9 @@
           {
             "title": "Retry-safe order creation and email send state",
             "description": "An order that exists without its email must be recoverable.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: webhook route, lib/email.ts, order_email_deliveries usage.",
+            "details": "Files: webhook route, lib/email.ts, order_email_deliveries usage.\n\n[2026-11-16T07:38:44-05:00] built (sonnet): lib/email-deliveries.ts per-recipient claim, webhook retries unsent emails on redelivery, maxDuration=60 < 2min lease; tests pass\n\n[2026-11-16T07:40:03-05:00] done by sonnet; verified",
             "testStrategy": "Test: order present and no email -> retry sends exactly once.",
             "complexity": 6,
             "id": 2
@@ -206,9 +206,9 @@
           {
             "title": "Delayed and out-of-order event handling plus recovery path",
             "description": "Handle Stripe retries and late events.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: webhook route, docs/DAILY_ORDER_RECOVERY.md (merge).",
+            "details": "Files: webhook route, docs/DAILY_ORDER_RECOVERY.md (merge).\n\n[2026-11-16T07:40:22-05:00] plan (sonnet): webhook route + payment-events test + DAILY_ORDER_RECOVERY.md\n\n[2026-11-16T07:42:05-05:00] built (sonnet): webhook acknowledges checkout.session.expired/charge.refunded with no order change; 2 integration tests; loader mocks ledgers so integration runs without DB; runbook section; npm test+tsc+integration pass\n\n[2026-11-16T07:43:45-05:00] done by sonnet; verified",
             "testStrategy": "Tests for expired, delayed and refunded sequences pass.",
             "complexity": 6,
             "id": 3
@@ -218,12 +218,12 @@
       {
         "title": "Persist authoritative order line items",
         "description": "Store product, size, unit price, currency and shipping/tax breakdown per order.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           10
         ],
-        "details": "Roadmap: TSU-M10-005. Additive migration plus code in the order-creation path and app/api/orders/route.ts. Never expose internals to customers. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M10-005. Additive migration plus code in the order-creation path and app/api/orders/route.ts. Never expose internals to customers. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:46:24-05:00] plan (opus): migrations/forward/006_order_line_items.json (new table, product/shipping/tax rows, cents+currency); lib/order-line-items.ts (new: shared Stripe line-item builder used by create-session + parser of paid session line items); lib/data.ts createOrder(order, lineItems?) writes order+lines in one neon transaction, falls back to order-only on 42P01; webhook passes parsed lines; admin /api/orders passes none (body cannot inject). Tests: unit (pricing->stripe->ledger round trip, migration) + integration (webhook persists lines).\n\n[2026-11-16T07:53:02-05:00] outcome (opus): built. Migration migrations/forward/006_order_line_items.json (NOT applied anywhere): order_line_items(order_id FK orders, line_index, kind product|shipping|tax, product_id, size_label=variant, name, quantity, unit_amount_cents, currency, PK(order_id,line_index)). lib/order-line-items.ts: orderLineItemsFromStripe (what the paid session charged; always adds explicit shipping/tax rows, never throws) + persistOrderWithLineItems (42P01 fallback to order-only, so code works before 006 is applied). lib/data.ts createOrder(order, lineItems=[]) writes order+lines in one neon transaction; lines ON CONFLICT DO NOTHING (first capture wins). Webhook builds order.items from the same ledger and passes it. Admin /api/orders unchanged: passes no lines, body cannot inject (test added). create-session untouched (an extraction broke the payment-path source scan; reverted). CI workflow lists the new integration file (ci-guard test requires it); migration-cli expected list gains 006.\nTests: npm test 203/203, tsc ok, lint 0 errors, migrations:check lists 006, admin-route integration suite 62/62, npm run build ok, git diff --check ok.\nNot done: no backfill of pre-006 orders; admin/customer UI does not read order_line_items yet; disposable-Neon run of the real SQL (jsonb_to_recordset + transaction) not executed (needs owner DB). Roadmap box TSU-M10-005 not ticked.\n\n[2026-11-16T07:54:57-05:00] done pending manual check: real SQL needs disposable DB with 006\n\n[2026-11-16T07:55:02-05:00] done by opus; verified",
         "testStrategy": "New unit and integration tests assert line items match server-derived pricing (lib/checkout-pricing.ts); migrations:check passes.",
         "complexity": 6,
         "review": true,
@@ -234,12 +234,12 @@
       {
         "title": "Duplicate checkout submission, expiry and returning shoppers",
         "description": "Prevent double sessions and handle cancel/expiry cleanly.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           1
         ],
-        "details": "Roadmap: TSU-M9-006. Read docs/TASK_9_CHECKOUT_RECOVERY.md, lib/checkout-attempt*.ts, app/checkout/page.tsx. Extend, don't rewrite. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M9-006. Read docs/TASK_9_CHECKOUT_RECOVERY.md, lib/checkout-attempt*.ts, app/checkout/page.tsx. Extend, don't rewrite. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:24:57-05:00] sonnet: existing M9-006 code already covered guards/expiry; added clearCheckoutAttempt on thank-you (returning shopper not stuck on COMPLETED) + server identity/availability unit tests. unit 190 pass, tsc ok, e2e 13 pass, 1 known Windows admin fail (:91). M9-006 stays unchecked (needs Stripe test-mode evidence).\n\n[2026-11-16T07:28:13-05:00] done pending manual check (Stripe test-mode replay/cancel/expiry)\n\n[2026-11-16T07:28:13-05:00] done by sonnet; verified",
         "testStrategy": "tests/checkout-attempt.test.mjs extended and green; `npm run test:e2e` cart-checkout spec still passes.",
         "complexity": 5,
         "phase": 2,
@@ -249,12 +249,12 @@
       {
         "title": "Stripe webhook and tamper test suite",
         "description": "Cover tampered prices, invalid destinations, retries, duplicates, refunds and out-of-order events with mocks.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           10
         ],
-        "details": "Roadmap: TSU-M18-004. Use tests/fixtures/mock-stripe.mjs; no network, no live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M18-004. Use tests/fixtures/mock-stripe.mjs; no network, no live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:55:42-05:00] Added 3 gap tests to tests/checkout-session.integration.mjs (tampered shipping/tax/forged price, invalid destinations + corrected retry, server-derived Stripe amounts); integration file passes 10/10, npm test passes.\n\n[2026-11-16T07:56:52-05:00] done by sonnet; verified",
         "testStrategy": "`npm test --silent` and the integration suite pass with the new cases.",
         "complexity": 5,
         "phase": 2,
@@ -264,12 +264,12 @@
       {
         "title": "Stripe-to-Neon reconciliation procedure",
         "description": "A documented read-only procedure (and optional read-only script) to compare paid/refunded amounts.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           11
         ],
-        "details": "Roadmap: TSU-M11-005. Docs in docs/ (merge into DAILY_ORDER_RECOVERY.md or add one file). Any script must be read-only, take credentials from env and print no customer data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M11-005. Docs in docs/ (merge into DAILY_ORDER_RECOVERY.md or add one file). Any script must be read-only, take credentials from env and print no customer data. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:57:24-05:00] docs-only: added reconciliation section to docs/DAILY_ORDER_RECOVERY.md; no script\n\n[2026-11-16T07:57:36-05:00] done by sonnet; verified",
         "testStrategy": "Doc reviewed; a script (if any) defaults to dry-run and has a unit test with fixtures.",
         "complexity": 4,
         "phase": 2,
@@ -285,13 +285,14 @@
           10,
           11
         ],
-        "details": "Roadmap: TSU-M10-006, TSU-M10-007, TSU-M2-004 (test-mode part). Owner steps on a Vercel PREVIEW with Stripe TEST keys: paid, failed, canceled, duplicate submit, changed price, invalid destination; confirm each order row and the Resend email (safe test recipient). Apply the new migrations to the TEST database only. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. Never use live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M10-006, TSU-M10-007, TSU-M2-004 (test-mode part). Owner steps on a Vercel PREVIEW with Stripe TEST keys: paid, failed, canceled, duplicate submit, changed price, invalid destination; confirm each order row and the Resend email (safe test recipient). Apply the new migrations to the TEST database only. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. Never use live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:57:49-05:00] human step queued: see human-checklist.md (agents may build around it; stays open until the human confirms)",
         "testStrategy": "Evidence lines with dates and sanitized IDs added to docs/PENDING_LIVE_VERIFICATION.md.",
         "complexity": 3,
         "human": true,
         "phase": 2,
         "id": 15,
-        "subtasks": []
+        "subtasks": [],
+        "queued": true
       },
       {
         "title": "R15 design: Printify order submission and status sync",
@@ -316,13 +317,14 @@
         "dependencies": [
           16
         ],
-        "details": "Owner steps: (1) decide owner decision 6: automatic Printify availability sync or manual toggle; (2) create a Printify API token and note the shop id; (3) add them to Vercel PREVIEW and local private env only as server variables (agree names with the agent, e.g. PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET); never paste values in chat; (4) confirm which products exist in Printify and that each size has a Printify variant.",
+        "details": "Owner steps: (1) decide owner decision 6: automatic Printify availability sync or manual toggle; (2) create a Printify API token and note the shop id; (3) add them to Vercel PREVIEW and local private env only as server variables (agree names with the agent, e.g. PRINTIFY_API_TOKEN, PRINTIFY_SHOP_ID, PRINTIFY_WEBHOOK_SECRET); never paste values in chat; (4) confirm which products exist in Printify and that each size has a Printify variant.\n\n[2026-11-16T07:59:20-05:00] queued on human checklist; task 21 builds both manual flag list and read-only mock-tested sync until decision recorded\n\n[2026-11-16T07:59:21-05:00] human step queued: see human-checklist.md (agents may build around it; stays open until the human confirms)",
         "testStrategy": "Owner confirms the decision and that the variables exist by NAME in Vercel preview; the agent records the decision in the PRD log.",
         "complexity": 1,
         "human": true,
         "phase": 3,
         "id": 17,
-        "subtasks": []
+        "subtasks": [],
+        "queued": true
       },
       {
         "title": "Printify config, schema and client (mock-tested)",
@@ -465,12 +467,12 @@
       {
         "title": "Printify status and tracking sync to the order and customer email",
         "description": "Receive Printify status/tracking and reflect it on the order and in a shipped email.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           19
         ],
-        "details": "New route app/api/webhooks/printify/route.ts (signature verified as the design doc specifies), order state/tracking update, shipped email template in lib/email-templates (escape HTML; Resend), admin display. Roadmap overlap: TSU-M14-003 (tracking) and TSU-M15-005 (shipping template): reference them, don't duplicate. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "New route app/api/webhooks/printify/route.ts (signature verified as the design doc specifies), order state/tracking update, shipped email template in lib/email-templates (escape HTML; Resend), admin display. Roadmap overlap: TSU-M14-003 (tracking) and TSU-M15-005 (shipping template): reference them, don't duplicate. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T08:01:47-05:00] (sonnet) built app/api/webhooks/printify/route.ts, lib/printify-webhook.ts (HMAC verify, event dedupe, forward-only state, once-only shipped email), store in lib/printify-store.ts, sendOrderShipped in lib/email.ts, migration 007 (staged, NOT applied), tests/printify-status-webhook.test.mjs. npm test/tsc/lint pass. Admin tracking display not built.\n\n[2026-11-16T08:03:06-05:00] escalate sonnet→opus: verifier FAIL, admin tracking/state display (listed in task details) not built; webhook, email, migration 007 and tests pass\n\n[2026-11-16T08:04:02-05:00] plan (opus): lib/printify-store.ts (getPrintifyAdminTracking + pure toAdminTracking, http(s)-only url), app/admin/page.tsx (fetch with flag on, catch->{}), app/admin/admin-client.tsx (state + tracking under order status, React-escaped, rel=noopener), tests/printify-status-webhook.test.mjs (mapper test)\n\n[2026-11-16T08:06:47-05:00] (opus) Admin display added (TSU-M14-003): lib/printify-store.ts getPrintifyAdminTracking() + pure toAdminTracking() (state, carrier, number; url kept only if http(s)); app/admin/page.tsx loads it only with PRINTIFY_ORDERS_ENABLED on, .catch -> {} until migration 007 is applied; app/admin/admin-client.tsx shows \"Printify: <state> Â· carrier Â· number Â· track\" under order status (React-escaped text, rel=noopener noreferrer). /admin is admin-session gated by middleware; server component page, no new API. New test in tests/printify-status-webhook.test.mjs (mapper + javascript: url dropped). npm test 208/208, tsc, lint, build pass; CRLF normalised; git diff --check clean. Migration 007 still NOT applied.\n\n[2026-11-16T08:08:24-05:00] done by sonnet, escalated from sonnet; verified",
         "testStrategy": "A signed-event fixture test updates the order and sends exactly one email; an unsigned or tampered event is rejected; tests green.",
         "complexity": 6,
         "review": true,
@@ -481,13 +483,13 @@
       {
         "title": "Printify availability sync or admin flag",
         "description": "Replace the manual size toggle according to the owner's decision.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           17,
           18
         ],
-        "details": "Depends on the owner decision recorded in the PRD. Automatic: a scheduled or admin-triggered read-only sync that flips private per-size availability and flags mismatches. Manual: an admin warning list only. Never show counts to customers (R1). Files: lib/product-availability.ts, admin client, tests.",
+        "details": "Depends on the owner decision recorded in the PRD. Automatic: a scheduled or admin-triggered read-only sync that flips private per-size availability and flags mismatches. Manual: an admin warning list only. Never show counts to customers (R1). Files: lib/product-availability.ts, admin client, tests.\n\n[2026-11-16T08:11:00-05:00] built (sonnet): lib/printify-availability-sync.ts (GET-only sync, never re-enables), admin POST route, admin warning list in Unavailable modal, tests/printify-availability-sync.test.mjs. Task 17 decision not recorded; works for either. Variant fetch endpoint/fields need verification against live Printify docs.\n\n[2026-11-16T08:12:19-05:00] escalate sonnet→opus: reviewer CHANGES NEEDED (apply result ignored, no revalidatePath, stale-snapshot overwrite, unverified Printify fields)\n\n[2026-11-16T08:15:03-05:00] opus fix: (1) runAvailabilitySync takes {getProduct, updateProduct}; null from updateProduct (or product gone) is not counted and raises an update_failed flag; returns updatedIds + disabled. (2) route revalidates '/', '/shop', '/shop/<id>' per updated id. (3) Printify fetches run in parallel; each product is re-read just before the write and only planned labels flip to available=false, so concurrent admin edits survive (updateProduct's own read-merge-write window remains; noted ponytail comment). (4) Verified on developers.printify.com: GET /v1/shops/{shop_id}/products/{product_id}.json variants[{id,is_enabled(optional, publish selection),is_available(read-only stock)}]. is_enabled false => unavailable; missing is_available => variant_state_unknown flag, no change. `sizes as never` cast removed. Tests: 6 in tests/printify-availability-sync.test.mjs (update fail, deleted product, concurrent edit, unknown state). npm test 214 pass, tsc 0, lint 0 errors.\n\n[2026-11-16T08:16:21-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "Tests with the mock Printify: an unavailable variant disables the size or raises an admin flag per the decision; customer pages unchanged (no counts).",
         "complexity": 6,
         "review": true,
@@ -504,13 +506,14 @@
           20,
           21
         ],
-        "details": "Owner steps (the agent does NOT do this): use a Stripe TEST-mode checkout on preview with a Printify test or draft product where possible; confirm the order appears in Printify, then cancel it there. Confirm tracking sync with a real or simulated webhook. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. If Printify can only be tested with a paid order, the owner decides whether to proceed.",
+        "details": "Owner steps (the agent does NOT do this): use a Stripe TEST-mode checkout on preview with a Printify test or draft product where possible; confirm the order appears in Printify, then cancel it there. Confirm tracking sync with a real or simulated webhook. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. If Printify can only be tested with a paid order, the owner decides whether to proceed.\n\n[2026-11-16T07:59:21-05:00] human step queued: see human-checklist.md (agents may build around it; stays open until the human confirms)",
         "testStrategy": "Sanitized evidence recorded; the owner confirms in chat.",
         "complexity": 3,
         "human": true,
         "phase": 3,
         "id": 22,
-        "subtasks": []
+        "subtasks": [],
+        "queued": true
       },
       {
         "title": "Admin order details and explicit fulfilment states",
@@ -1065,6 +1068,240 @@
         "phase": 1,
         "id": 56,
         "subtasks": []
+      },
+      {
+        "title": "Phase 2 gate: lint, types and tests pass",
+        "description": "",
+        "status": "done",
+        "priority": "medium",
+        "dependencies": [
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "details": "[2026-11-16T07:58:18-05:00] script check passed: 3 command(s), 23.2s, no model used",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 57",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 2,
+        "id": 57,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 3 gate: lint, types and tests pass",
+        "description": "",
+        "status": "done",
+        "priority": "medium",
+        "dependencies": [
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22
+        ],
+        "details": "[2026-11-16T08:16:50-05:00] script check passed: 3 command(s), 24.7s, no model used",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 58",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 3,
+        "id": 58,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 4 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          23,
+          24,
+          25,
+          26,
+          27
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 59",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 4,
+        "id": 59,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 5 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 60",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 5,
+        "id": 60,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 6 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          35,
+          36,
+          37,
+          38,
+          39
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 61",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 6,
+        "id": 61,
+        "subtasks": []
+      },
+      {
+        "title": "Phase 7 gate: lint, types and tests pass",
+        "description": "",
+        "status": "pending",
+        "priority": "medium",
+        "dependencies": [
+          40,
+          41,
+          42,
+          43,
+          44,
+          45
+        ],
+        "details": "",
+        "testStrategy": "python .taskmaster/run_checks.py run --only 62",
+        "complexity": 3,
+        "runner": "script",
+        "check": [
+          [
+            "npm",
+            "run",
+            "lint",
+            "--silent"
+          ],
+          [
+            "npm",
+            "test",
+            "--silent"
+          ],
+          [
+            "npx",
+            "tsc",
+            "--noEmit"
+          ]
+        ],
+        "phase": 7,
+        "id": 62,
+        "subtasks": []
       }
     ],
     "metadata": {
@@ -1109,7 +1346,13 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-13T17:25:42-05:00"
+      "updated": "2026-11-16T08:16:50-05:00",
+      "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
+      "non_goals": [
+        "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
+        "No physical inventory model; products are made to order.",
+        "No live charges, refunds or production object deletions during validation; production DB migrations only after a logged Neon restore-point branch."
+      ]
     }
   }
 }

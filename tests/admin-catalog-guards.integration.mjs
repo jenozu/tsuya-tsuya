@@ -75,6 +75,11 @@ test('orders route requires same-origin and an admin session before persisting',
   assert.equal(orderMutations.length, 0)
   assert.equal((await createOrder(req('/api/orders', 'POST', order, token))).status, 201)
   assert.equal(orderMutations.length, 1)
+  // Admin-entered orders are not Stripe-priced: a body cannot inject authoritative line items.
+  resetMockOrders()
+  const forged = { ...order, lineItems: [{ kind: 'product', unitAmountCents: 1 }], line_items: [{ unit_amount_cents: 1 }] }
+  assert.equal((await createOrder(req('/api/orders', 'POST', forged, token))).status, 201)
+  assert.deepEqual(orderMutations[0].lineItems, [])
 })
 
 test('injected ledger store: unknown, revoked and live sessions are distinguished (no network)', async () => {

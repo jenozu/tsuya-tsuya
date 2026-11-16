@@ -6,7 +6,7 @@ effort: medium
 maxTurns: 300
 autoCompactWindow: 150000
 tools: Agent, Read, Edit, Write, Glob, Grep, Bash
-skills: next-task
+skills: next-task, deliver
 color: cyan
 ---
 
@@ -29,16 +29,26 @@ is complete or you hit a real escalation (below).
    already has changes for it, send it to the verifier first; don't dispatch another builder on it.
 
 ## Loop
-Repeat until every task in the phase is `done`, `cancelled` or `deferred`:
-1. `python .taskmaster/tasks.py next --phase <n>`. If it says nothing is workable but phase tasks remain, find out
+Repeat until every task in the phase is `done`, `cancelled` or `deferred`, or the only ones left are queued human
+steps (`tasks.py phase <n>` says "agent work done"):
+1. `python .taskmaster/tasks.py next --phase <n> --details`. If it says nothing is workable but phase tasks remain, find out
    why (usually a human-only task or a failed dependency) and handle it under "Escalate".
-2. A task flagged **human** (`tasks.py show` prints `flags: human`): don't send it to a builder. Prepare anything
-   the agents can (scripts, exact commands), then escalate as HUMAN NEEDED with precise steps. If other tasks in
-   the phase don't depend on it, finish those first and escalate at the end.
-3. Otherwise run the task with the **next-task procedure** (preloaded): route to builder-haiku/sonnet/opus,
-   verify, review if risky, escalate between builders, close out, commit.
-4. Keep your own context small: don't open source files yourself. Use the builders' reports and `tasks.py show`.
-5. **Wait for every subagent you start.** Agent calls run in the background: after each one, wait for its
+2. A task flagged **human** (`tasks.py show` prints `flags: human`): don't send it to a builder, and don't stop
+   for it. Prepare anything the agents can (scripts, exact commands), append the steps to
+   `.taskmaster/docs/human-checklist.md` (format in that file), then:
+   - Its result is only needed at run time (credentials, DNS, an account, a deploy approval, a migration the
+     owner applies) → `python .taskmaster/tasks.py queue <id>`. It stays open on the checklist and tasks that
+     depend on it become workable against placeholders, mocks or env vars; say so in their logs. **Never mark a
+     human task `done` yourself.** If merging deploys, the merge gate holds the PR until the owner confirms it.
+   - Later tasks can't be built or tested without it (a decision that changes what to build) → leave it pending,
+     work on everything else, and only if nothing workable is left finish with HUMAN NEEDED.
+3. A **script task** (`tasks.py next` prints `SCRIPT TASK`): no builder, no verifier, no tokens. Run
+   `python .taskmaster/run_checks.py run --only <id>` and act on the exit code as next-task section 1b says.
+4. Otherwise run the task with the **next-task procedure** (preloaded): route to builder-haiku/sonnet/opus,
+   verify (free with `run_checks.py verify` when no app code changed), review if risky, escalate between builders,
+   close out with `tasks.py close`.
+5. Keep your own context small: don't open source files yourself. Use the builders' reports and `tasks.py show`.
+6. **Wait for every subagent you start.** Agent calls run in the background: after each one, wait for its
    completion notification before the next step. Never return (PARTIAL or anything else) while a subagent you
    started is still running, and never start a second builder on a task whose builder hasn't reported.
 
@@ -51,31 +61,42 @@ When the verifier says MANUAL CHECK NEEDED but everything automatic passed, add 
 `.taskmaster/docs/manual-checks.md` (procedure in next-task), log "done pending manual check", mark the task
 `done` and continue. The human runs the list at the end of the phase.
 
+## Delivery doesn't stop you either
+At the end of the phase (after the memory commit, see "At the end") run the preloaded `deliver` skill: PR, then the merge gate decides (merge, fix CI, or wait
+for the owner). A phase whose PR waits for the owner is still COMPLETE; say so on the PR line.
+Red CI is a failed task: fix it through the builder ladder. A merge only a human can do goes on the checklist and
+you keep going.
+
 ## Escalate to the lead (stop and return) only when
 - builder-opus failed on a task, or one task needed 2 escalations and still fails;
 - a fix would change the PRD (scope, a non-goal, a new library or service, a fixed schema or API);
-- a step needs the human: credentials, accounts, DNS, money, a decision only they can make, or server access
-  beyond what the `vps` skill allows (if it's installed, creating, deploying and checking apps is agent work);
+- a step needs the human **and nothing else is workable without it** (credentials, accounts, DNS, money, a decision
+  only they can make, or server access beyond what the `vps` skill allows; with `vps` installed, creating,
+  deploying and checking apps is agent work). If other work can continue, queue it on the checklist instead;
 - something destructive would be needed (dropping data, force-push, deleting user files);
 - the same builder tier escalated on 3 tasks in a row (the routing may be wrong);
 - the git check at the start found missing or empty files.
-Before stopping: commit the work tree or stash it cleanly, and log the problem on the task.
+Before stopping: commit the work tree or stash it cleanly, log the problem on the task, then do "At the end"
+(memory, then `deliver`) so finished work is in a PR.
 
 ## Hitting your turn limit
-Close to maxTurns: wait for any running subagent, finish the current task's close-out, commit, update memory.md "Now", and return
-`PHASE STATUS: PARTIAL`. The lead starts a fresh phase-runner that picks up from the files.
+Close to maxTurns: wait for any running subagent, finish the current task's close-out, commit, then do "At the
+end" (memory, then `deliver`) and return `PHASE STATUS: PARTIAL`. The lead starts a fresh phase-runner that picks up from the files.
 
-## At the end (complete, partial or escalation)
+## At the end (complete, partial or escalation), in this order
 1. **Git check again**: `git status --short` must be empty. Anything left over is either committed with the task
    it belongs to or reported under ISSUE.
 2. Update `.claude/rules/memory.md` once: overwrite "Now", add at most 3 "Learned" lines, update the routing
-   counts, prune to its size caps. Commit: `memory: phase <n> <status>`.
-3. Reply with exactly this block and nothing else. **15 lines maximum**: the human may read it on a phone.
+   counts, prune to its size caps. Commit it on the phase branch: `memory: phase <n> <status>`.
+3. Only then run `deliver`, so the memory commit is part of the PR (never commit after the merge: that would
+   land on the default branch or an unpushed branch).
+4. Reply with exactly this block and nothing else. **16 lines maximum**: the human may read it on a phone.
 ```
 PHASE STATUS: COMPLETE | PARTIAL | ESCALATE | HUMAN NEEDED
 PHASE: <n>   DONE THIS RUN: <ids>   REMAINING: <ids or none>
-ROUTING: haiku <first-try>/<escalated>, sonnet <n>/<n>, opus <n>/<n>
-MANUAL CHECKS WAITING: <agent-checkable n, eyes-on n>
+ROUTING: script <passed>/<failed>, haiku <first-try>/<escalated>, sonnet <n>/<n>, opus <n>/<n>
+MANUAL CHECKS WAITING: <agent-checkable n, eyes-on n>   HUMAN CHECKLIST: <open items n>
+PR: <#number merged | #number waiting for owner: <reasons> | none>
 ISSUE (if not COMPLETE): task <id> - <what's wrong, 2-4 lines>
 TRIED: <tier: approach -> result, one line each>
 OPTIONS: <1-3 concrete options, recommendation first>

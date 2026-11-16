@@ -21,8 +21,6 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git stash *)",
-      "Bash(curl -s *)",
-      "Bash(curl -fsS *)",
       "Bash(npm run *)",
       "Bash(npm test *)",
       "Bash(npm test)",
@@ -36,12 +34,20 @@
       "Edit",
       "Write",
       "WebFetch",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python .taskmaster/run_checks.py *)",
+      "Bash(python3 .taskmaster/run_checks.py *)",
+      "Bash(python .claude/scripts/context_check.py*)",
+      "Bash(python3 .claude/scripts/context_check.py*)",
+      "Bash(python .claude/scripts/merge_gate.py *)",
+      "Bash(python3 .claude/scripts/merge_gate.py *)"
     ],
     "ask": [
       "Bash(dropdb *)",
       "Bash(stripe *)",
-      "Bash(gh pr merge*)"
+      "Bash(gh pr merge*)",
+      "Bash(gh api *pulls/*/merge*)",
+      "Bash(gh api *merge_method*)"
     ],
     "deny": [
       "Bash(git push --force *)",
@@ -61,7 +67,21 @@
       "Bash(vercel deploy --prod*)",
       "Bash(vercel promote*)",
       "Bash(vercel rollback*)",
-      "Bash(vercel env *)"
+      "Bash(vercel env *)",
+      "Bash(git push *--force*)",
+      "Bash(git push * -f)",
+      "Bash(git push * -f *)",
+      "Bash(git push * +*)",
+      "Bash(git push *:main)",
+      "Bash(git push *:main *)",
+      "Bash(git push *:master)",
+      "Bash(git push *:master *)",
+      "Bash(git push origin main)",
+      "Bash(git push origin main *)",
+      "Bash(git push origin master)",
+      "Bash(git push origin master *)",
+      "Bash(git push -u origin main*)",
+      "Bash(git push -u origin master*)"
     ]
   }
 }

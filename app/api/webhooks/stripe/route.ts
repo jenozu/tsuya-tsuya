@@ -10,8 +10,13 @@ import type { Order } from '@/lib/types'
 import { isPrintifyOrdersEnabled } from '@/lib/printify-config'
 import { submitPaidOrderToPrintify } from '@/lib/printify-fulfillment'
 import { printifyStore } from '@/lib/printify-store'
+import { sendOrderEmailsOnce } from '@/lib/email-deliveries'
+import { claimPaymentEvent, finishPaymentEvent } from '@/lib/payment-events'
+import { orderLineItemsFromStripe, type StripeSessionLineItem } from '@/lib/order-line-items'
 
 export const runtime = 'nodejs'
+// Must stay below the 2-minute claim lease in lib/payment-events.ts so a live run is never taken over.
+export const maxDuration = 60
 
 // R15: off unless PRINTIFY_ORDERS_ENABLED=true. Runs after the paid order and emails, so it never blocks them.
 // A retryable failure answers non-2xx so Stripe redelivers; the redelivery skips order/email work (already
@@ -20,6 +25,24 @@ async function submitToPrintify(order: Order, sessionId: string) {
   if (!isPrintifyOrdersEnabled()) return
   const outcome = await submitPaidOrderToPrintify(order, sessionId, printifyStore)
   if (outcome === 'retry_pending' || outcome === 'error') throw new Error('Printify submission will be retried')
+}
+
+// Sends the order emails once each. With delivery tracking, a failed send throws (after Printify has been tried)
+// so Stripe redelivers and only the unsent email is retried. Without the table: legacy single attempt, no throw.
+async function sendEmailsAndSubmit(order: Order, email: string, orderId: string, sessionId: string, legacySend: boolean) {
+  const tracked = await sendOrderEmailsOnce(orderId, {
+    customer: () => sendOrderConfirmation(email, orderId, order),
+    owner: () => sendOrderNotification(orderId, order),
+  })
+  if (tracked === null && legacySend) {
+    const a = await sendOrderConfirmation(email, orderId, order)
+    const b = await sendOrderNotification(orderId, order)
+    reportServerInfo(a && b ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
+  } else if (tracked === false) {
+    reportServerInfo('stripe.checkout.processing_complete_email_incomplete')
+  }
+  await submitToPrintify(order, sessionId)
+  if (tracked === false) throw new Error('Order emails will be retried')
 }
 
 async function processCompletedCheckoutSession(sessionId: string) {
@@ -45,18 +68,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
       } | null
     } | null
     payment_status?: string
-    line_items?: {
-      data: Array<{
-        quantity: number | null
-        amount_total?: number | null
-        price?: {
-          unit_amount?: number | null
-          product?: { name?: string; metadata?: Record<string, string> }
-          recurring?: unknown
-        } | null
-        description?: string | null
-      }>
-    }
+    line_items?: { data: StripeSessionLineItem[] }
     amount_total?: number | null
     total_details?: {
       amount_tax?: number | null
@@ -91,7 +103,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
       existing?.payment_status === 'refunded' ||
       existing?.payment_status === 'partially_refunded') {
     reportServerInfo('stripe.checkout.already_processed')
-    await submitToPrintify(existing, session.id)
+    await sendEmailsAndSubmit(existing, existing.email || email, orderId, session.id, false)
     return 'already_processed' as const
   }
 
@@ -128,18 +140,14 @@ async function processCompletedCheckoutSession(sessionId: string) {
       })()
 
   const lineItems = session.line_items?.data || []
-  const productLineItems = lineItems.filter((li) => {
-    if (!li.price || li.price.recurring) return false
-    const name = li.price.product?.name ?? li.description ?? ''
-    return name !== 'Shipping' && name !== 'Tax'
-  })
-
-  const items = productLineItems.map((li) => ({
-    productId: li.price?.product?.metadata?.productId ?? '',
-    productName: li.price?.product?.name ?? li.description ?? 'Item',
-    quantity: li.quantity ?? 1,
-    price: (li.price?.unit_amount ?? 0) / 100,
-    selectedSize: li.price?.product?.metadata?.sizeLabel || undefined,
+  // What Stripe actually charged (built from server-derived pricing at checkout) is the order's line ledger.
+  const ledger = orderLineItemsFromStripe(lineItems)
+  const items = ledger.filter(line => line.kind === 'product').map(line => ({
+    productId: line.productId ?? '',
+    productName: line.name,
+    quantity: line.quantity,
+    price: line.unitAmountCents / 100,
+    selectedSize: line.sizeLabel ?? undefined,
     imageUrl: undefined,
   }))
 
@@ -171,17 +179,13 @@ async function processCompletedCheckoutSession(sessionId: string) {
     payment_intent_id: session.payment_intent ?? undefined,
     payment_status: 'paid',
     payment_method: 'stripe_checkout',
-  })
+  }, ledger)
 
   if (!created) {
     throw new Error('Could not persist paid checkout order')
   }
 
-  const confirmationSent = await sendOrderConfirmation(email, orderId, created)
-  const notificationSent = await sendOrderNotification(orderId, created)
-
-  reportServerInfo(confirmationSent && notificationSent ? 'stripe.checkout.processing_complete' : 'stripe.checkout.processing_complete_email_incomplete')
-  await submitToPrintify(created, session.id)
+  await sendEmailsAndSubmit(created, email, orderId, session.id, true)
   return 'processed' as const
 }
 
@@ -214,6 +218,26 @@ export async function POST(request: Request) {
       })
     }
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+  }
+
+  let claim: Awaited<ReturnType<typeof claimPaymentEvent>>
+  try {
+    claim = await claimPaymentEvent(event.id, event.type)
+  } catch {
+    reportServerError('stripe.webhook.claim_failure')
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
+      status: 500, headers: { 'Cache-Control': 'no-store' },
+    })
+  }
+  if (claim === 'duplicate') {
+    reportServerInfo('stripe.webhook.duplicate_event')
+    return NextResponse.json({ received: true })
+  }
+  if (claim === 'in_flight') {
+    // Non-2xx so Stripe redelivers after the other run finishes or its lease expires.
+    return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
+      status: 409, headers: { 'Cache-Control': 'no-store' },
+    })
   }
 
   try {
@@ -306,13 +330,22 @@ export async function POST(request: Request) {
         break
       }
 
+      // Expired Checkout Sessions and refunds are acknowledged but never touch an order: an expired session
+      // has no paid order to change, and refund recording awaits the owner's refund policy (see DAILY_ORDER_RECOVERY.md).
+      case 'checkout.session.expired':
+      case 'charge.refunded':
+        reportServerInfo('stripe.webhook.event_acknowledged_no_order_change')
+        break
+
       default:
         reportServerInfo('stripe.webhook.event_ignored')
     }
 
+    if (claim === 'claimed') await finishPaymentEvent(event.id, true)
     return NextResponse.json({ received: true })
   } catch {
     reportServerError('stripe.webhook.processing_failure')
+    if (claim === 'claimed') await finishPaymentEvent(event.id, false).catch(() => {})
     return NextResponse.json({ error: PUBLIC_API_FAILURE.webhook }, {
       status: 500, headers: { 'Cache-Control': 'no-store' },
     })

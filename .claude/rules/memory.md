@@ -19,11 +19,11 @@ Never update it per task.
 ---
 
 ## Now (overwrite each time, max 6 lines)
-- 2026-11-13 phase 1 run: tasks 5-9, 46, 52-55 done on branch chore/plan-approval-and-rules (unpushed). Only task 56 left (zod high advisory + resend major) - held for go-ahead.
-- Manual checks waiting (eyes-on): 5.2 cutover, 6, 8 branch protection, 55 CSP console, 53 CI browser-e2e on ubuntu-latest. Migration 005 NOT applied to prod.
-- Waiting on owner: placeholder pages (task 43); destinations (41); Printify decisions (17); tax (42).
-- Local-only e2e fails on Windows after admin synthetic login (specs :46, :91); confirm in CI.
-- Next: decide task 56, then /run-phase 2
+- 2026-11-16 phase 3 run: tasks 20, 21, 58 done on harness-1.5.0. Only human tasks 17, 22 remain (queued on checklist).
+- Migrations 005, 007 (Printify webhook tables) NOT applied to prod; restore-point branch first.
+- Manual checks waiting: 20 (webhook+admin tracking), 21 (availability sync); Printify field shapes unverified live.
+- Waiting on owner: Printify token/shop id/webhook secret + availability decision (17); tax (42); destinations (41).
+- Next: /run-phase 4
 
 ## Facts (stable, max 15 lines)
 - Dev machine: Windows 11 + Git Bash, Node 22, npm 11, Python 3.12.
@@ -40,6 +40,9 @@ Never update it per task.
   haiku → sonnet → opus. Manual checks batched per phase.
 
 ## Learned / gotchas (max 15 lines, newest first)
+- lib/data.ts updateProduct swallows DB errors and returns null; callers must check the result.
+- Builders skip "admin display" style secondary requirements; name them explicitly in the prompt.
+- Integration tests run with `node --experimental-strip-types --experimental-loader ./tests/fixtures/admin-route-loader.mjs --test <file>`; loader mocks the ledgers (legacy path).
 - Builders mix CRLF/LF; run `sed -i 's/$//'` on touched files before verify or `git diff --check` fails.
 - Integration tests need `--experimental-loader ./tests/fixtures/admin-route-loader.mjs`.
 - `next dev` (e2e webServer) appends a Next.js agent-rules block to AGENTS.md; revert it, never commit it.
@@ -52,8 +55,8 @@ Never update it per task.
 | Tier | Done first try | Escalated up | Notes |
 |---|---|---|---|
 | haiku | 3 | 0 | |
-| sonnet | 11 | 0 | tasks 5-9,53-55 etc |
-| opus | 1 | 0 | task 19 |
+| sonnet | 19 | 0 | tasks 5-9,53-55,10.1-10.3,12-14 |
+| opus | 2 | 0 | tasks 19, 11 |
 <!-- If one tier escalates on 3 tasks in a row, the phase-runner escalates to the lead, who may raise that tier's
      starting complexity in .claude/skills/next-task/SKILL.md. If haiku passes everything, give it complexity 4 too. -->
 
