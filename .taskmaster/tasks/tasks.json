@@ -218,12 +218,12 @@
       {
         "title": "Persist authoritative order line items",
         "description": "Store product, size, unit price, currency and shipping/tax breakdown per order.",
-        "status": "pending",
+        "status": "done",
         "priority": "high",
         "dependencies": [
           10
         ],
-        "details": "Roadmap: TSU-M10-005. Additive migration plus code in the order-creation path and app/api/orders/route.ts. Never expose internals to customers. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M10-005. Additive migration plus code in the order-creation path and app/api/orders/route.ts. Never expose internals to customers. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:46:24-05:00] plan (opus): migrations/forward/006_order_line_items.json (new table, product/shipping/tax rows, cents+currency); lib/order-line-items.ts (new: shared Stripe line-item builder used by create-session + parser of paid session line items); lib/data.ts createOrder(order, lineItems?) writes order+lines in one neon transaction, falls back to order-only on 42P01; webhook passes parsed lines; admin /api/orders passes none (body cannot inject). Tests: unit (pricing->stripe->ledger round trip, migration) + integration (webhook persists lines).\n\n[2026-11-16T07:53:02-05:00] outcome (opus): built. Migration migrations/forward/006_order_line_items.json (NOT applied anywhere): order_line_items(order_id FK orders, line_index, kind product|shipping|tax, product_id, size_label=variant, name, quantity, unit_amount_cents, currency, PK(order_id,line_index)). lib/order-line-items.ts: orderLineItemsFromStripe (what the paid session charged; always adds explicit shipping/tax rows, never throws) + persistOrderWithLineItems (42P01 fallback to order-only, so code works before 006 is applied). lib/data.ts createOrder(order, lineItems=[]) writes order+lines in one neon transaction; lines ON CONFLICT DO NOTHING (first capture wins). Webhook builds order.items from the same ledger and passes it. Admin /api/orders unchanged: passes no lines, body cannot inject (test added). create-session untouched (an extraction broke the payment-path source scan; reverted). CI workflow lists the new integration file (ci-guard test requires it); migration-cli expected list gains 006.\nTests: npm test 203/203, tsc ok, lint 0 errors, migrations:check lists 006, admin-route integration suite 62/62, npm run build ok, git diff --check ok.\nNot done: no backfill of pre-006 orders; admin/customer UI does not read order_line_items yet; disposable-Neon run of the real SQL (jsonb_to_recordset + transaction) not executed (needs owner DB). Roadmap box TSU-M10-005 not ticked.\n\n[2026-11-16T07:54:57-05:00] done pending manual check: real SQL needs disposable DB with 006\n\n[2026-11-16T07:55:02-05:00] done by opus; verified",
         "testStrategy": "New unit and integration tests assert line items match server-derived pricing (lib/checkout-pricing.ts); migrations:check passes.",
         "complexity": 6,
         "review": true,
@@ -1343,7 +1343,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:43:55-05:00",
+      "updated": "2026-11-16T07:55:02-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

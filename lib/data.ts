@@ -8,6 +8,7 @@ import type {
   ShippingAddress,
   ShippingRate,
 } from './types'
+import { persistOrderWithLineItems, type OrderLineItem } from './order-line-items'
 
 export type {
   Product,
@@ -229,12 +230,20 @@ export async function getOrder(orderId: string): Promise<Order | null> {
   }
 }
 
-export async function createOrder(orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'>): Promise<Order | null> {
+/**
+ * Upserts the order. Authoritative line items (from a verified paid Stripe session) are written in the same
+ * transaction and never overwritten once captured. Until migration 006 is applied (no order_line_items table)
+ * the order is saved alone, as before.
+ */
+export async function createOrder(
+  orderData: Omit<Order, 'id' | 'created_at' | 'updated_at'>,
+  lineItems: OrderLineItem[] = [],
+): Promise<Order | null> {
   try {
     const sql = getDb()
     const items = JSON.stringify(orderData.items ?? [])
     const address = JSON.stringify(orderData.shipping_address ?? {})
-    const rows = (await sql`
+    const upsertOrder = () => sql`
       INSERT INTO orders (
         order_id, email, items, subtotal, taxes, shipping, total, status,
         shipping_address, payment_intent_id, payment_status, payment_method
@@ -257,7 +266,23 @@ export async function createOrder(orderData: Omit<Order, 'id' | 'created_at' | '
         payment_method = COALESCE(EXCLUDED.payment_method, orders.payment_method),
         updated_at = NOW()
       RETURNING *
-    `) as unknown as Row[]
+    `
+    const lines = JSON.stringify(lineItems.map((line, index) => ({
+      line_index: index, kind: line.kind, product_id: line.productId, size_label: line.sizeLabel,
+      name: line.name, quantity: line.quantity, unit_amount_cents: line.unitAmountCents, currency: line.currency,
+    })))
+    const rows = await persistOrderWithLineItems(lineItems, async () => {
+      const [orderRows] = await sql.transaction([upsertOrder(), sql`
+        INSERT INTO order_line_items (order_id, line_index, kind, product_id, size_label, name, quantity,
+          unit_amount_cents, currency)
+        SELECT ${orderData.order_id}, l.line_index, l.kind, l.product_id, l.size_label, l.name, l.quantity,
+          l.unit_amount_cents, l.currency
+        FROM jsonb_to_recordset(${lines}::jsonb) AS l(line_index INTEGER, kind TEXT, product_id TEXT,
+          size_label TEXT, name TEXT, quantity INTEGER, unit_amount_cents INTEGER, currency TEXT)
+        ON CONFLICT (order_id, line_index) DO NOTHING
+      `])
+      return orderRows as unknown as Row[]
+    }, async () => (await upsertOrder()) as unknown as Row[])
     return rows[0] ? mapOrder(rows[0]) : null
   } catch {
     reportServerError('db.creating_order')

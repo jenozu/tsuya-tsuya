@@ -1,0 +1,6 @@
+{
+  "id": "006_order_line_items",
+  "statements": [
+    "CREATE TABLE IF NOT EXISTS public.order_line_items (order_id TEXT NOT NULL REFERENCES public.orders (order_id) ON DELETE RESTRICT, line_index INTEGER NOT NULL CHECK (line_index >= 0), kind TEXT NOT NULL CHECK (kind IN ('product','shipping','tax')), product_id TEXT, size_label TEXT, name TEXT NOT NULL, quantity INTEGER NOT NULL CHECK (quantity >= 1), unit_amount_cents INTEGER NOT NULL CHECK (unit_amount_cents >= 0), currency TEXT NOT NULL CHECK (currency ~ '^[a-z]{3}$'), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), PRIMARY KEY (order_id, line_index))"
+  ]
+}

@@ -41,9 +41,9 @@ export function resetMockOrders() { orders.clear(); orderMutations.length = 0; f
 export function setMockOrder(order) { orders.set(order.order_id, { ...order }) }
 export function failMockOrderWrite(value) { failOrderWrite = value }
 export async function getOrder(id) { return orders.get(id) ?? null }
-export async function createOrder(data) {
+export async function createOrder(data, lineItems = []) {
   if (failOrderWrite) return null
-  orderMutations.push({ kind: 'create', id: data.order_id })
+  orderMutations.push({ kind: 'create', id: data.order_id, lineItems })
   const order = { id: 'synthetic-order', ...data }
   orders.set(data.order_id, order)
   return order

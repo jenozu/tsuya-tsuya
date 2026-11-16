@@ -12,6 +12,7 @@ import { submitPaidOrderToPrintify } from '@/lib/printify-fulfillment'
 import { printifyStore } from '@/lib/printify-store'
 import { sendOrderEmailsOnce } from '@/lib/email-deliveries'
 import { claimPaymentEvent, finishPaymentEvent } from '@/lib/payment-events'
+import { orderLineItemsFromStripe, type StripeSessionLineItem } from '@/lib/order-line-items'
 
 export const runtime = 'nodejs'
 // Must stay below the 2-minute claim lease in lib/payment-events.ts so a live run is never taken over.
@@ -67,18 +68,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
       } | null
     } | null
     payment_status?: string
-    line_items?: {
-      data: Array<{
-        quantity: number | null
-        amount_total?: number | null
-        price?: {
-          unit_amount?: number | null
-          product?: { name?: string; metadata?: Record<string, string> }
-          recurring?: unknown
-        } | null
-        description?: string | null
-      }>
-    }
+    line_items?: { data: StripeSessionLineItem[] }
     amount_total?: number | null
     total_details?: {
       amount_tax?: number | null
@@ -150,18 +140,14 @@ async function processCompletedCheckoutSession(sessionId: string) {
       })()
 
   const lineItems = session.line_items?.data || []
-  const productLineItems = lineItems.filter((li) => {
-    if (!li.price || li.price.recurring) return false
-    const name = li.price.product?.name ?? li.description ?? ''
-    return name !== 'Shipping' && name !== 'Tax'
-  })
-
-  const items = productLineItems.map((li) => ({
-    productId: li.price?.product?.metadata?.productId ?? '',
-    productName: li.price?.product?.name ?? li.description ?? 'Item',
-    quantity: li.quantity ?? 1,
-    price: (li.price?.unit_amount ?? 0) / 100,
-    selectedSize: li.price?.product?.metadata?.sizeLabel || undefined,
+  // What Stripe actually charged (built from server-derived pricing at checkout) is the order's line ledger.
+  const ledger = orderLineItemsFromStripe(lineItems)
+  const items = ledger.filter(line => line.kind === 'product').map(line => ({
+    productId: line.productId ?? '',
+    productName: line.name,
+    quantity: line.quantity,
+    price: line.unitAmountCents / 100,
+    selectedSize: line.sizeLabel ?? undefined,
     imageUrl: undefined,
   }))
 
@@ -193,7 +179,7 @@ async function processCompletedCheckoutSession(sessionId: string) {
     payment_intent_id: session.payment_intent ?? undefined,
     payment_status: 'paid',
     payment_method: 'stripe_checkout',
-  })
+  }, ledger)
 
   if (!created) {
     throw new Error('Could not persist paid checkout order')
