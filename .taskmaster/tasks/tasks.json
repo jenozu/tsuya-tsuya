@@ -285,13 +285,14 @@
           10,
           11
         ],
-        "details": "Roadmap: TSU-M10-006, TSU-M10-007, TSU-M2-004 (test-mode part). Owner steps on a Vercel PREVIEW with Stripe TEST keys: paid, failed, canceled, duplicate submit, changed price, invalid destination; confirm each order row and the Resend email (safe test recipient). Apply the new migrations to the TEST database only. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. Never use live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M10-006, TSU-M10-007, TSU-M2-004 (test-mode part). Owner steps on a Vercel PREVIEW with Stripe TEST keys: paid, failed, canceled, duplicate submit, changed price, invalid destination; confirm each order row and the Resend email (safe test recipient). Apply the new migrations to the TEST database only. Record sanitized evidence in docs/PENDING_LIVE_VERIFICATION.md. Never use live keys. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T07:57:49-05:00] human step queued: see human-checklist.md (agents may build around it; stays open until the human confirms)",
         "testStrategy": "Evidence lines with dates and sanitized IDs added to docs/PENDING_LIVE_VERIFICATION.md.",
         "complexity": 3,
         "human": true,
         "phase": 2,
         "id": 15,
-        "subtasks": []
+        "subtasks": [],
+        "queued": true
       },
       {
         "title": "R15 design: Printify order submission and status sync",
@@ -1343,7 +1344,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T07:57:36-05:00",
+      "updated": "2026-11-16T07:57:49-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",
