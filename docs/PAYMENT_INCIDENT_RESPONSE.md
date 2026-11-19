@@ -43,3 +43,49 @@ Record the last deployment SHA shown to have a compatible schema and successful 
 Close an incident only when an authorized owner confirms Stripe and Neon totals reconcile for the affected interval, no duplicate fulfillment/notifications remain, missed events have an approved recovery disposition, provider delivery errors are resolved, post-rollback deployment SHA is documented, and private follow-up/monitoring ownership is assigned. Routine cadence and specific response SLAs are *owner decisions*; do not invent them here.
 
 Supporting tasks still unchecked until implementation/prod verification: M11-002/003/004/005/006, M15-003 and M21-002/003.
+
+## Admin refund runbook (added 2026-11-16, task 26.3)
+
+Status: procedure for the existing `/admin` refund control. **TBD: owner policy for every item in this section** (refund window, who approves, partial-refund rules, customer wording). Until the owner fills these in, do not issue refunds beyond a single, owner-approved case.
+
+### Procedure
+
+1. **Test mode first.** Reproduce any new refund path in Stripe test mode against the disposable database before using it live. TBD: confirm the owner's sign-off that test-mode rehearsal is required for each refund type.
+2. **Approval.** TBD: who approves a refund and where that approval is recorded (ticket reference only, no customer PII).
+3. In `/admin`, open the order under **Orders** and click **Refund...** (shown only for orders whose payment status is `paid` or `partially_refunded`).
+4. In the dialog, leave the amount blank for a full refund of the remaining balance, or enter a partial amount in major units (USD). TBD: partial-refund rules and maximum amounts.
+5. Type the **order id** exactly into the confirmation field. The **Confirm refund** button stays disabled until it matches.
+6. Click **Confirm refund** once and wait for the result message.
+
+### Token and retry behaviour
+
+- The dialog generates one idempotency token (`rf_...`) when it opens. Every retry from the same open dialog reuses that token, so a retry after a lost response replays the same Stripe refund while a refundable balance remains. Once the first attempt has used up the balance, the retry is rejected with `409` before reaching Stripe.
+- Closing the dialog and reopening it creates a **new** token. A new token is a new refund intent: do not reopen the dialog to retry a refund whose outcome is unknown.
+- Responses map as follows:
+  - `400` (not confirmed, invalid amount, missing token): nothing was sent to Stripe; correct the input and retry.
+  - `401`/`403` (no admin session or wrong origin) and `404` (order not found): nothing was sent to Stripe.
+  - `409` (`not_refundable`, `exceeds_remaining`): on a first attempt nothing was refunded (the order is not paid or the amount exceeds what is left). On a **retry** it may mean the first attempt succeeded. Check Stripe on any `409` or `502` before acting.
+  - `502` (`stripe_error`) or any `500`: the outcome is **unknown**. **Check Stripe before retrying** (Payments and Refunds for the order's payment intent, in the matching mode), and confirm the refund's status there first.
+- Payment status in Neon updates only after Stripe confirms through the signed `charge.refunded` webhook. The admin success message ("Refund issued. Payment status updates when Stripe confirms.") is not proof that Neon is up to date. Reconcile per the section above if the status has not changed after a reasonable wait. TBD: how long to wait.
+- Never re-send the webhook or edit the order's payment status by hand to force a match.
+
+### Damaged or lost item handling
+
+Physical fulfilment is made to order through Printify. Shipping carrier or Printify decisions are owner decisions. TBD: the reship, replacement, and refund policy for damaged items; the lost-in-transit window before a refund or reship; and whether Printify's reprint is preferred over a refund.
+
+Before deciding, collect the following evidence and store it in the private ticket only:
+
+- Order id (the internal reference, not the Stripe session or payment intent id in the public message).
+- Photos of the damaged item and packaging from the customer, shared through the support channel. TBD: retention period and who may view them.
+- Printify order state and the tracking status, copied as status words and dates only (for example, "shipped, delivered-not-scanned"). Do not paste carrier or address details.
+- Refund or reship intent, the approver, and the decision date.
+
+Do **not** include customer PII (names, email addresses, street addresses, phone numbers, card details, payment metadata, or unredacted provider error objects) in tickets, logs, screenshots or chat. Refer to the customer by order id only.
+
+### Refund email behaviour
+
+- The customer receives **one** refund email per order, sent when Stripe's `charge.refunded` webhook is processed. A partial refund sends that one email; later refunds on the same order send none.
+- A failed email makes the webhook fail so Stripe redelivers, and the send is claimed so it is not sent twice.
+- The email is generic and does not state a refund amount. It does not change fulfilment status. TBD: owner decision on whether to add amount or bank-timing wording.
+- TBD: the approved wording of the refund email and any owner-approved follow-up message for damaged or lost items.
+- A refund email that was not received is checked against the email delivery record for the order before anything is re-sent. Do not manually re-send a refund email without owner approval.

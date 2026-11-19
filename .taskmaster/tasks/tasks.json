@@ -518,12 +518,12 @@
       {
         "title": "Admin order details and explicit fulfilment states",
         "description": "Make order state transitions explicit and authorized.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           20
         ],
-        "details": "Roadmap: TSU-M14-002, TSU-M14-003. Build on the Printify status sync. Files: app/admin/admin-client.tsx, app/api/orders/route.ts, lib/types.ts. Transitions validated on the server. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M14-002, TSU-M14-003. Build on the Printify status sync. Files: app/admin/admin-client.tsx, app/api/orders/route.ts, lib/types.ts. Transitions validated on the server. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T11:06:21-05:00] sonnet: lib/order-status.ts transitions, PATCH /api/orders (guarded, compare-and-set), admin order detail + Mark buttons, tests/order-status.test.mjs; npm test + tsc pass\n\n[2026-11-16T11:07:45-05:00] escalate sonnet→opus: reviewer CHANGES NEEDED (cancel reverted by webhook, processing->cancelled w/o refund, fulfilled status stuck, behavioural auth tests missing)\n\n[2026-11-16T11:10:11-05:00] opus: fixed 4 review findings. (1)+(2) removed admin cancel entirely (pending->cancelled would be reopened by the paid webhook; processing->cancelled needs refund+Printify cancel = owner decision, TBD comment in lib/order-status.ts + admin UI note); webhook SQL untouched. (3) 'fulfilled' is set by no code path (only preserved by the paid webhook CASE); mapped fulfilled->delivered like shipped. ALLOWED lookup uses Object.hasOwn (no prototype keys). (4) tests/order-status.test.mjs now registers tests/fixtures/admin-route-loader.mjs via node:module register() and imports the route dynamically, so behavioural PATCH tests run under plain npm test: no session 401, forged cookie 401, foreign Origin 403 (with valid session), each asserting getOrder/transition not called; plus 200 allowed, 409 disallowed, 404/400. mock-catalog.mjs gained transitionOrderStatus + orderReads spy. npm test 222 pass, tsc ok, eslint ok, integration 65 pass, git diff --check clean, CRLF normalised.\n\n[2026-11-16T11:11:23-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "Tests for allowed and rejected transitions and for unauthorized access; `npm test --silent` green.",
         "complexity": 6,
         "review": true,
@@ -534,12 +534,12 @@
       {
         "title": "Durable email status and lifecycle templates",
         "description": "Delivery state, retry, duplicate suppression and the missing templates.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           10
         ],
-        "details": "Roadmap: TSU-M15-003, TSU-M15-005. Reuse order_email_deliveries from the ledger task. Templates for shipped, canceled, refunded and failed payment in lib/email-templates/ with HTML escaping; wording is a draft marked TBD: for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M15-003, TSU-M15-005. Reuse order_email_deliveries from the ledger task. Templates for shipped, canceled, refunded and failed payment in lib/email-templates/ with HTML escaping; wording is a draft marked TBD: for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T11:13:49-05:00] built: order-lifecycle templates, sendLifecycleEmailOnce, sendOrderCanceled/Refunded/PaymentFailed; tests pass. Needs migration widening CHECK for new recipient_kind values (not applied).\n\n[2026-11-16T11:13:59-05:00] sonnet done; needs forward migration widening order_email_deliveries.recipient_kind CHECK (003 staged, unapplied). Dispatching opus to add the migration file only (not applied).\n\n[2026-11-16T11:14:40-05:00] plan (opus): migrations/forward/008_lifecycle_email_kinds.json + tests/lifecycle-email-migration.test.mjs + migration-cli.test.mjs + README + email-deliveries comment - widen recipient_kind CHECK via ALTER TABLE IF EXISTS / DROP CONSTRAINT IF EXISTS\n\n[2026-11-16T11:15:09-05:00] opus: added staged migration 008_lifecycle_email_kinds (ALTER TABLE IF EXISTS order_email_deliveries DROP CONSTRAINT IF EXISTS order_email_deliveries_recipient_kind_check, ADD CONSTRAINT ... IN customer/owner/shipped/canceled/refunded/payment_failed). Not applied anywhere. Test tests/lifecycle-email-migration.test.mjs checks structure, kinds match lib/email-deliveries.ts types, plan order after 003; migration-cli.test lists 008; README section added. migrations:check, npm test (227 pass), tsc pass.\n\n[2026-11-16T11:16:17-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "tests/email-*.test.mjs extended and green; each template renders with escaped input.",
         "complexity": 6,
         "review": true,
@@ -550,12 +550,12 @@
       {
         "title": "Accessible contact form with spam controls",
         "description": "A server-validated contact form routed to the support inbox.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           5
         ],
-        "details": "Roadmap: TSU-M15-006. New route and page; Zod validation, honeypot and rate limit via the persistent store, same-origin check, email to the configured SUPPORT_EMAIL only. The inbox process doc is left TBD for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M15-006. New route and page; Zod validation, honeypot and rate limit via the persistent store, same-origin check, email to the configured SUPPORT_EMAIL only. The inbox process doc is left TBD for the owner. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T11:18:41-05:00] built contact route/page/form, tests pass (sonnet)\n\n[2026-11-16T11:23:21-05:00] done by sonnet; verified",
         "testStrategy": "Route tests for valid, invalid, spam and over-limit requests; an e2e smoke test added.",
         "complexity": 5,
         "phase": 4,
@@ -565,13 +565,13 @@
       {
         "title": "Cancellation and refund procedure (guarded, test-only)",
         "description": "Safe cancel/refund mechanics and docs without any live refund.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           24,
           23
         ],
-        "details": "Roadmap: TSU-M16-002, TSU-M16-003, TSU-M16-004 (docs), TSU-M16-005 (mock scenarios). An admin-initiated Stripe refund path behind explicit confirmation, tested with mock-stripe only; it syncs order state and email. Policy windows and wording are owner decisions: leave TBD:. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.",
+        "details": "Roadmap: TSU-M16-002, TSU-M16-003, TSU-M16-004 (docs), TSU-M16-005 (mock scenarios). An admin-initiated Stripe refund path behind explicit confirmation, tested with mock-stripe only; it syncs order state and email. Policy windows and wording are owner decisions: leave TBD:. Acceptance criteria live in master_plan.md under the cited ids: don't copy them here; tick a roadmap box only with evidence for every criterion.\n\n[2026-11-16T13:01:52-05:00] done by opus, escalated from sonnet; verified",
         "testStrategy": "Mock tests: full and partial refunds update the order and send one email; no code path issues a refund without admin confirmation.",
         "complexity": 7,
         "review": true,
@@ -581,9 +581,9 @@
           {
             "title": "Refund service and state sync with mocks",
             "description": "Mechanics only.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: lib/stripe.ts helper, webhook refund events, tests.",
+            "details": "Files: lib/stripe.ts helper, webhook refund events, tests.\n\n[2026-11-16T11:26:41-05:00] built lib/refund-service.ts (issueRefund, syncChargeRefunded), applyRefundToOrder in lib/data.ts, charge.refunded webhook wiring, mock-stripe refund model, tests/refund-service.test.mjs; tests pass\n\n[2026-11-16T11:27:19-05:00] reviewer CHANGES NEEDED: monotonic refunded state (stale partial after full downgrades). Note for 26.2: idempotency key includes amount_refunded; require caller-supplied idempotency token / reject changed amount_refunded.\n\n[2026-11-16T11:27:42-05:00] escalate sonnet→opus: review CHANGES NEEDED + verifier FAIL (non-monotonic refund state)\n\n[2026-11-16T11:28:49-05:00] plan (opus): lib/data.ts, lib/refund-service.ts, route.ts, mock-catalog/mock-stripe, tests - monotonic CASE in applyRefundToOrder (refunded never downgraded), required caller idempotencyToken in issueRefund key, no_order left acked with comment\n\n[2026-11-16T12:48:53-05:00] plan (opus, resume): finish cut-off run - remove misplaced replay block in mock-stripe checkout create, token tests, stale-partial test, no_order comment\n\n[2026-11-16T12:50:34-05:00] opus resume: done. Fixes: (1) applyRefundToOrder SQL monotonic via CASE (refunded never downgraded; no stored refunded-amount column exists, so status is the only state); test full-then-stale-partial via mock-catalog + SQL source assertion. (2) issueRefund requires caller idempotencyToken (8-128 [A-Za-z0-9_-]); key = refund-<order>-<token>; mock-stripe refunds.create replays by key and errors on param mismatch; tests cover retry replay + changed-amount reject. Removed a misplaced replay block the cut-off run had pasted into mock checkout.sessions.create. (3) no_order stays acked, comment explains why. npm test 241 pass, tsc ok, webhook-safety integration 11 pass, lint 0 errors.\n\n[2026-11-16T12:51:59-05:00] done by opus, escalated from sonnet; verified",
             "testStrategy": "Mock refund tests pass.",
             "complexity": 6,
             "id": 1
@@ -591,9 +591,9 @@
           {
             "title": "Admin confirm step and route checks",
             "description": "An explicit confirmation step.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: admin client, a route with session and same-origin checks.",
+            "details": "Files: admin client, a route with session and same-origin checks.\n\n[2026-11-16T12:52:03-05:00] note from 26.1: issueRefund requires idempotencyToken (8-128 [A-Za-z0-9_-]); create once per confirmation dialog and reuse on retry; remainingCents under-reports on replay, re-read charge if shown.\n\n[2026-11-16T12:53:18-05:00] built refund route + admin dialog + tests/refund-route.integration.mjs (3 pass, tsc clean)\n\n[2026-11-16T12:54:10-05:00] escalate sonnet→opus: reviewer CHANGES NEEDED (log event allowlist, ci-guard policy lists, stale UI text, misleading retry message / replay test)\n\n[2026-11-16T12:54:39-05:00] plan (opus): fix review findings - safe-server-log allowlist, ci-guard-policy lists + test, workflow integration cmd, admin-client stale text + error messages, double-POST replay test\n\n[2026-11-16T12:56:58-05:00] opus fix of review findings: api.orders.refund_failure added to ALLOWED_SERVER_EVENTS; refund route added to ci-guard same-origin+admin-session list and no-exception-details list (+2 ci-guard tests); refund-route.integration.mjs added to infra-guard.yml integration step; admin-client stale \"refunds not available\" text replaced with cancellation-only note; submitRefund shows server reason (mapped), adds \"Check Stripe before retrying\" on 409/502 and on network error, no longer hangs busy on fetch throw. New route test: two POSTs same token (partial replays same refund_id, full retry -> 409 not_refundable, never a 2nd Stripe refund). refund-service unchanged (full-refund replay still returns 409, documented). npm test 241/241, tsc ok, lint 0 errors, refund integration 4/4, files LF.\n\n[2026-11-16T12:58:28-05:00] done by opus, escalated from sonnet; verified",
             "testStrategy": "A route test rejects a missing confirmation.",
             "complexity": 5,
             "id": 2
@@ -601,9 +601,9 @@
           {
             "title": "Runbook and evidence-collection doc",
             "description": "Damaged/lost handling docs with decisions left TBD.",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "Files: docs/PAYMENT_INCIDENT_RESPONSE.md (merge).",
+            "details": "Files: docs/PAYMENT_INCIDENT_RESPONSE.md (merge).\n\n[2026-11-16T12:58:45-05:00] plan (haiku): docs/PAYMENT_INCIDENT_RESPONSE.md - append additive section (refund procedure, damaged/lost evidence, refund email), TBD for owner policy; keep CRLF file as-is\n\n[2026-11-16T12:59:17-05:00] done (haiku): appended \"Admin refund runbook (added 2026-11-16, task 26.3)\" to docs/PAYMENT_INCIDENT_RESPONSE.md. Covers the /admin Refund... flow (typed order id confirm, blank amount = full remaining), idempotency token per dialog and retry rules, 400/409/502 meaning with \"check Stripe before retrying\", damaged/lost evidence list (no PII), one refund email per order. Owner policy marked TBD:. Existing text untouched: git diff shows 45 insertions, 0 deletions. File normalised CRLF->LF to match the committed blob (the only non-additive byte change is the line ending, which is not in HEAD).\n\n[2026-11-16T13:00:00-05:00] escalate haiku→sonnet: reviewer CHANGES NEEDED (doc inaccuracies on 409 and refund email amount)\n\n[2026-11-16T13:00:30-05:00] done by sonnet, escalated from haiku; verified",
             "testStrategy": "The doc diff is additive and carries TBD: markers for owner policy.",
             "complexity": 3,
             "id": 3
@@ -613,12 +613,12 @@
       {
         "title": "Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005",
         "description": "Decide with evidence which inventory and pick/pack items still apply under Printify.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           2
         ],
-        "details": "Roadmap: TSU-M3-005, TSU-M6-006, TSU-M14-004, TSU-M14-005. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md and the notes in master_plan.md. Output a short recommendation (apply / adapt / not applicable) in the task log and docs. Do NOT cancel roadmap items yourself: the owner decides.",
+        "details": "Roadmap: TSU-M3-005, TSU-M6-006, TSU-M14-004, TSU-M14-005. Read docs/PHASE_2_CATALOG_FULFILLMENT_DECISIONS.md and the notes in master_plan.md. Output a short recommendation (apply / adapt / not applicable) in the task log and docs. Do NOT cancel roadmap items yourself: the owner decides.\n\n[2026-11-16T11:23:37-05:00] plan (haiku): new .taskmaster/docs/m2-fit-assessment.md - read PHASE_2 decisions doc + master_plan entries M3-005, M6-006, M14-004, M14-005; write apply/adapt/not-applicable per item with evidence; log via tasks.py log 27; no master_plan or memory edits\n\n[2026-11-16T11:24:03-05:00] assessment (haiku): wrote .taskmaster/docs/m2-fit-assessment.md, read PHASE_2 decisions, CATALOG_PRICE_INVENTORY, PRINTIFY_FULFILLMENT, master_plan entries, migrations 004/006.\n- TSU-M3-005: ADAPT. Validated JSONB sizes (per-size available flag, M6-004 Zod) is enough; no normalized inventory tables. Verify each size stores Printify variant_id.\n- TSU-M6-006: NOT APPLICABLE as written. Made-to-order, no finite stock (owner note 2026-09-30). Residual need = Printify out_of_stock/discontinued handling (PRINTIFY s5).\n- TSU-M14-004: ADAPT. Drop pick/pack (Printify prints/packs); keep artwork print-size check and exception checklist (DAILY_ORDER_RECOVERY, M14-006 done).\n- TSU-M14-005: ADAPT. Keep order/shipment reconciliation vs Printify statuses (partially-fulfilled, canceled, invoice s2); drop physical stock reconciliation.\nNo roadmap items cancelled or edited; master_plan.md untouched; memory.md untouched. Owner to decide wording of each item.\n\n[2026-11-16T11:24:17-05:00] done by haiku; verified",
         "testStrategy": "A recommendation per item is logged and listed under the open questions in memory.md.",
         "complexity": 3,
         "phase": 4,
@@ -1151,7 +1151,7 @@
       {
         "title": "Phase 4 gate: lint, types and tests pass",
         "description": "",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [
           23,
@@ -1160,7 +1160,7 @@
           26,
           27
         ],
-        "details": "",
+        "details": "[2026-11-16T13:02:20-05:00] script check passed: 3 command(s), 24.5s, no model used",
         "testStrategy": "python .taskmaster/run_checks.py run --only 59",
         "complexity": 3,
         "runner": "script",
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T08:16:50-05:00",
+      "updated": "2026-11-16T13:02:20-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

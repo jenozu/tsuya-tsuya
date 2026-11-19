@@ -9,6 +9,9 @@ export function resetStripe() {
   sessions.clear()
   webhookSessions.clear()
   paymentSessions.clear()
+  refundCalls.length = 0
+  charges.clear()
+  refundsByKey.clear()
 }
 export function setWebhookSession(session) { webhookSessions.set(session.id, session) }
 export function setPaymentSessions(paymentIntentId, sessionIds) {
@@ -30,7 +33,39 @@ export function expireSession(idempotencyKey) {
   if (!current) throw new Error('Unknown test session')
   current.session.expires_at = Math.floor(Date.now()/1000) - 5
 }
+// Refund model: one synthetic charge per payment intent. Only this in-memory map is ever touched (never live Stripe).
+export const refundCalls = []
+const charges = new Map()
+const refundsByKey = new Map()
+export function setCharge(paymentIntentId, amount, amountRefunded = 0) {
+  charges.set(paymentIntentId, { amount, amount_refunded: amountRefunded })
+}
 export const stripe = {
+  paymentIntents: {
+    async retrieve(id) {
+      const c = charges.get(id)
+      if (!c) throw new Error('Unregistered synthetic payment intent')
+      return { id, latest_charge: { ...c } }
+    },
+  },
+  refunds: {
+    async create(params, options) {
+      if (!options?.idempotencyKey) throw new Error('Test requires Stripe idempotency')
+      // Like Stripe: same key replays the first result; same key with different params is an error.
+      const prior = refundsByKey.get(options.idempotencyKey)
+      if (prior) {
+        if (JSON.stringify(prior.params) !== JSON.stringify(params)) throw new Error('Idempotency key reused with different params')
+        return prior.result
+      }
+      const c = charges.get(params.payment_intent)
+      if (!c || params.amount > c.amount - c.amount_refunded) throw new Error('Synthetic refund exceeds charge')
+      refundCalls.push({ params, options })
+      c.amount_refunded += params.amount
+      const result = { id: 're_test_' + refundCalls.length, amount: params.amount, status: 'succeeded' }
+      refundsByKey.set(options.idempotencyKey, { params, result })
+      return result
+    },
+  },
   checkout: {
     sessions: {
       async retrieve(id) {

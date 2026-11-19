@@ -32,6 +32,7 @@ export function Footer() {
               <li><Link href="/favourites" className="hover:text-[#2D2A26]">Favourites</Link></li>
               <li><Link href="/shipping" className="hover:text-[#2D2A26]">Shipping</Link></li>
               <li><Link href="/faq" className="hover:text-[#2D2A26]">FAQ</Link></li>
+              <li><Link href="/contact" className="hover:text-[#2D2A26]">Contact</Link></li>
               <li><Link href="/returns" className="hover:text-[#2D2A26]">Returns</Link></li>
               <li><Link href="/privacy" className="hover:text-[#2D2A26]">Privacy</Link></li>
               <li><Link href="/terms" className="hover:text-[#2D2A26]">Terms</Link></li>

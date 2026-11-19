@@ -37,10 +37,11 @@ export async function addWaitlistEmail() { throw new Error('Test must not persis
 const orders = new Map()
 export const orderMutations = []
 let failOrderWrite = false
-export function resetMockOrders() { orders.clear(); orderMutations.length = 0; failOrderWrite = false }
+export function resetMockOrders() { orders.clear(); orderMutations.length = 0; orderReads.length = 0; failOrderWrite = false }
 export function setMockOrder(order) { orders.set(order.order_id, { ...order }) }
 export function failMockOrderWrite(value) { failOrderWrite = value }
-export async function getOrder(id) { return orders.get(id) ?? null }
+export const orderReads = []
+export async function getOrder(id) { orderReads.push(id); return orders.get(id) ?? null }
 export async function createOrder(data, lineItems = []) {
   if (failOrderWrite) return null
   orderMutations.push({ kind: 'create', id: data.order_id, lineItems })
@@ -58,6 +59,13 @@ export async function markUnpaidOrderPaymentState(id, intentId, nextStatus) {
   orders.set(id, { ...order, status: nextStatus, payment_status: nextStatus })
   return 'updated'
 }
+export async function transitionOrderStatus(id, from, to) {
+  const order = orders.get(id)
+  if (!order || order.status !== from) return false
+  orderMutations.push({ kind: 'transition', id, from, to })
+  orders.set(id, { ...order, status: to })
+  return true
+}
 export async function markExistingOrderPaidForIntent(id, intentId) {
   if (failOrderWrite) return false
   const order = orders.get(id)
@@ -68,4 +76,16 @@ export async function markExistingOrderPaidForIntent(id, intentId) {
     status: ['shipped','delivered','fulfilled'].includes(order.status) ? order.status : 'processing',
     payment_intent_id: order.payment_intent_id || intentId })
   return true
+}
+export async function applyRefundToOrder(intentId, state) {
+  for (const [id, order] of orders) {
+    if (order.payment_intent_id !== intentId) continue
+    if (!['paid', 'partially_refunded', 'refunded'].includes(order.payment_status)) return null
+    // Mirrors the monotonic SQL in lib/data.ts: 'refunded' is never downgraded.
+    const next = order.payment_status === 'refunded' ? 'refunded' : state
+    orderMutations.push({ kind: 'refund', id, state: next })
+    orders.set(id, { ...order, payment_status: next })
+    return { order_id: id, email: order.email ?? '' }
+  }
+  return null
 }

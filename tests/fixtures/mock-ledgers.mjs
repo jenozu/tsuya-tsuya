@@ -3,3 +3,4 @@
 export async function claimPaymentEvent() { return 'unavailable' }
 export async function finishPaymentEvent() {}
 export async function sendOrderEmailsOnce() { return null }
+export async function sendLifecycleEmailOnce(_orderId, _kind, send) { return (await send()) ? 'sent' : 'failed' }

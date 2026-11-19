@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 31/62 tasks done.**
+**Progress: 37/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -120,25 +120,25 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 
 ## Phase 4 - Fulfilment ops and comms
 
-- [ ] **23. Admin order details and explicit fulfilment states** _(after 20)_\
+- [x] **23. Admin order details and explicit fulfilment states** _(after 20)_\
   Make order state transitions explicit and authorized.\
   _Test:_ Tests for allowed and rejected transitions and for unauthorized access; `npm test --silent` green.
-- [ ] **24. Durable email status and lifecycle templates** _(after 10)_\
+- [x] **24. Durable email status and lifecycle templates** _(after 10)_\
   Delivery state, retry, duplicate suppression and the missing templates.\
   _Test:_ tests/email-*.test.mjs extended and green; each template renders with escaped input.
-- [ ] **25. Accessible contact form with spam controls** _(after 5)_\
+- [x] **25. Accessible contact form with spam controls** _(after 5)_\
   A server-validated contact form routed to the support inbox.\
   _Test:_ Route tests for valid, invalid, spam and over-limit requests; an e2e smoke test added.
-- [ ] **26. Cancellation and refund procedure (guarded, test-only)** _(after 24, 23)_\
+- [x] **26. Cancellation and refund procedure (guarded, test-only)** _(after 24, 23)_\
   Safe cancel/refund mechanics and docs without any live refund.\
   _Test:_ Mock tests: full and partial refunds update the order and send one email; no code path issues a refund without admin confirmation.
-  - [ ] 26.1 Refund service and state sync with mocks
-  - [ ] 26.2 Admin confirm step and route checks
-  - [ ] 26.3 Runbook and evidence-collection doc
-- [ ] **27. Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005** _(after 2)_\
+  - [x] 26.1 Refund service and state sync with mocks
+  - [x] 26.2 Admin confirm step and route checks
+  - [x] 26.3 Runbook and evidence-collection doc
+- [x] **27. Assess made-to-order fit of M3-005, M6-006, M14-004 and M14-005** _(after 2)_\
   Decide with evidence which inventory and pick/pack items still apply under Printify.\
   _Test:_ A recommendation per item is logged and listed under the open questions in memory.md.
-- [ ] **59. Phase 4 gate: lint, types and tests pass** _(after 23, 24, 25, 26, 27)_\
+- [x] **59. Phase 4 gate: lint, types and tests pass** _(after 23, 24, 25, 26, 27)_\
   _Test:_ python .taskmaster/run_checks.py run --only 59
 
 ## Phase 5 - Experience quality

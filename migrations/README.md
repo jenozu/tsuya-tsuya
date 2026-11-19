@@ -49,3 +49,7 @@ The operator-only `scripts/test-disposable-neon.mjs` now bootstraps the canonica
 ## Task 5.1: staged admin session ledger and login throttle
 
 `forward/005_admin_auth_hardening.json` is **additive and NOT applied by a GitHub merge, build or deployment**. It creates `admin_sessions` (opaque 128-bit hex `session_id`, `last_seen_at` for the inactivity timeout, `expires_at`, `revoked_at` for server-side logout) and `admin_login_attempts` (an HMAC'd 64-hex client bucket, never a raw IP, with an attempt count and fixed window start). Nothing reads either table until task 5.2/5.3 code ships behind a switch that stays off until the owner applies the migration; applying it anywhere other than a disposable test database is a human step (restore-point branch first).
+
+## Task 24: lifecycle email kinds
+
+`forward/008_lifecycle_email_kinds.json` is **NOT applied by a GitHub merge, build or deployment**. It replaces the 003 `recipient_kind` CHECK on `order_email_deliveries` with a wider one (`customer`, `owner`, `shipped`, `canceled`, `refunded`, `payment_failed`) so lifecycle emails are tracked once per order and kind. Widening only: every existing row still passes. `ALTER TABLE IF EXISTS` and `DROP CONSTRAINT IF EXISTS` make it a no-op guard if the table or constraint is absent. Until it is applied, `sendLifecycleEmailOnce` answers `unavailable` for lifecycle kinds. Applying it anywhere other than a disposable test database is a human step (restore-point branch first).

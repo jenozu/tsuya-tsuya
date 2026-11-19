@@ -57,6 +57,14 @@ test('security self-check fails on reintroduced client-amount payments or missin
     'app/api/orders/route.ts',
     text => text.replace('isSameOriginMutation(request)', 'true'),
   )).some(problem => problem.includes('same-origin')))
+  assert.ok(securitySourceViolations(withChangedFile(
+    'app/api/orders/refund/route.ts',
+    text => text.replace('isSameOriginMutation(request)', 'true'),
+  )).some(problem => problem.includes('refund/route.ts') && problem.includes('same-origin')))
+  assert.ok(securitySourceViolations(withChangedFile(
+    'app/api/orders/refund/route.ts',
+    text => text.replace('hasAdminSession(request)', 'true'),
+  )).some(problem => problem.includes('refund/route.ts') && problem.includes('admin/session')))
 })
 
 test('security self-check catches unsafe Next/image rules and raw exception logging', () => {
