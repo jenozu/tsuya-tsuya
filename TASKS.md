@@ -3,7 +3,7 @@
 Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit by hand; regenerate with
 `python .taskmaster/render_tasks_md.py`.
 
-**Progress: 37/62 tasks done.**
+**Progress: 38/62 tasks done.**
 
 ## Phase 0 - Foundation
 
@@ -192,7 +192,7 @@ Generated from `.taskmaster/tasks/tasks.json` (the source of truth). Never edit 
 - [ ] **40. Owner decision: assortment, artwork rights and launch copy** **[HUMAN]**\
   Launch gate: owner only.\
   _Test:_ Decision recorded in the PRD decision log with a date.
-- [ ] **41. Owner decision: destinations, shipping prices and duties** **[HUMAN]**\
+- [x] **41. Owner decision: destinations, shipping prices and duties** **[HUMAN]**\
   Launch gate: owner only.\
   _Test:_ Decision recorded in the PRD decision log; shipping tests updated and green after the agent applies it.
 - [ ] **42. Owner decision: tax registration and treatment** **[HUMAN]**\

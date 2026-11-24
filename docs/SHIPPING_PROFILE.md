@@ -43,3 +43,7 @@ For paid destinations:
 For the United States, both first and additional item shipping are $0.
 
 Delivery windows are estimates copied from the owner's Etsy configuration and are not carrier guarantees. PO-box handling, tracking expectations, lost-parcel policy, customs requirements and provider rate-change procedures remain separate launch tasks.
+
+## Launch scope (owner decision 2026-11-24, task 41)
+
+Launch ships to the **United States and Canada only**. Only those two rows are in `destinations`; every other destination from the Etsy profile is kept unchanged in `disabledDestinations` and is not available at checkout or accepted by the API. To enable one later, move its row into `destinations` in a reviewed branch, after a reviewed country list and fulfilment confirmation, and update the shipping tests. Buyers pay any duties and import taxes on delivery; the customer-facing wording is supplied by the owner.
