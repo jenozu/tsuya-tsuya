@@ -10,5 +10,6 @@ test('contact form is labelled, keyboard operable and shows an accessible error'
   await page.getByLabel('Message').fill('Where is my order? Thanks.')
   await page.getByRole('button', { name: 'Send message' }).focus()
   await page.keyboard.press('Enter')
-  await expect(page.getByRole('alert')).toContainText('Too many messages')
+  // Next.js adds its own empty role=alert route announcer to every page, so match the form's alert by its text.
+  await expect(page.getByRole('alert').filter({ hasText: 'Too many messages' })).toBeVisible()
 })
