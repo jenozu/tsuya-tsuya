@@ -826,10 +826,10 @@
       {
         "title": "Owner decision: destinations, shipping prices and duties",
         "description": "Launch gate: owner only.",
-        "status": "pending",
+        "status": "done",
         "priority": "medium",
         "dependencies": [],
-        "details": "Roadmap: TSU-M12-007 (policy part), TSU-M13-004. The owner (with a qualified reviewer) chooses supported countries, exclusions, DDP vs DAP and shipping prices. The agent then updates config/shipping-profile.json and tests only as instructed.",
+        "details": "Roadmap: TSU-M12-007 (policy part), TSU-M13-004. The owner (with a qualified reviewer) chooses supported countries, exclusions, DDP vs DAP and shipping prices. The agent then updates config/shipping-profile.json and tests only as instructed.\n\n[2026-11-24T09:28:25-05:00] decision applied 2026-11-24: US and Canada only; rates unchanged; buyer pays duties; others kept in disabledDestinations; owner supplies shipping-page duties wording (placeholder). Files: config/shipping-profile.json, tests/tax-shipping.test.mjs, docs/SHIPPING_PROFILE.md, prd.md.\n\n[2026-11-24T09:28:25-05:00] human confirmed: done",
         "testStrategy": "Decision recorded in the PRD decision log; shipping tests updated and green after the agent applies it.",
         "complexity": 1,
         "human": true,
@@ -1346,7 +1346,7 @@
         }
       ],
       "created": "2026-11-10",
-      "updated": "2026-11-16T13:02:20-05:00",
+      "updated": "2026-11-24T09:28:25-05:00",
       "goal": "Launch the made-to-order TsuyaNoUchi print store with server-derived checkout (Stripe, USD), secure admin and Printify fulfilment, to a launch state the owner explicitly approves.",
       "non_goals": [
         "No customer-visible stock counts, \"only N left\" messaging or invented SKUs; per-size availability stays private.",

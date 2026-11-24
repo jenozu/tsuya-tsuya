@@ -85,12 +85,22 @@
       ]
     }
   },
+  "launchScope": {
+    "decision": "Owner decision 2026-11-24 (task 41): launch ships to the United States and Canada only. Duties and import taxes are the buyer's responsibility on delivery. All other destinations are kept below in disabledDestinations, unchanged, so enabling one later means moving its row into destinations after a reviewed country list and fulfilment confirmation."
+  },
   "destinations": [
     [
       "US",
       "United States",
       "free_us"
     ],
+    [
+      "CA",
+      "Canada",
+      "canada"
+    ]
+  ],
+  "disabledDestinations": [
     [
       "AL",
       "Albania",
@@ -135,11 +145,6 @@
       "BG",
       "Bulgaria",
       "europe_other_fast"
-    ],
-    [
-      "CA",
-      "Canada",
-      "canada"
     ],
     [
       "HR",
