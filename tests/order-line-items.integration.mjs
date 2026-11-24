@@ -60,8 +60,15 @@ test('paid order persists line items equal to server-derived pricing, not client
     ...priced.lines.map(l => ({ kind: 'product', productId: l.productId, sizeLabel: l.sizeLabel, name: l.name,
       quantity: l.quantity, unitAmountCents: l.unitCents, currency: 'usd' })),
     // Stripe line order; free shipping had no Stripe line, so its explicit zero row is appended last.
-    { kind: 'tax', productId: null, sizeLabel: null, name: 'Tax', quantity: 1, unitAmountCents: taxCents, currency: 'usd' },
-    { kind: 'shipping', productId: null, sizeLabel: null, name: 'Shipping', quantity: 1, unitAmountCents: 0, currency: 'usd' },
+    // With tax off (task 42) Stripe has no tax line, so both zero rows are appended: shipping, then tax.
+    // If tax is ever enabled, the tax line comes from Stripe first.
+    ...(taxCents > 0 ? [
+  { kind: 'tax', productId: null, sizeLabel: null, name: 'Tax', quantity: 1, unitAmountCents: taxCents, currency: 'usd' },
+  { kind: 'shipping', productId: null, sizeLabel: null, name: 'Shipping', quantity: 1, unitAmountCents: 0, currency: 'usd' },
+    ] : [
+  { kind: 'shipping', productId: null, sizeLabel: null, name: 'Shipping', quantity: 1, unitAmountCents: 0, currency: 'usd' },
+  { kind: 'tax', productId: null, sizeLabel: null, name: 'Tax', quantity: 1, unitAmountCents: taxCents, currency: 'usd' },
+    ]),
   ])
   assert.equal(priced.lines[0].unitCents, 1250)
   const order = await getOrder(orderId)
