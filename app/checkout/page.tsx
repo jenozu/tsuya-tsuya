@@ -327,7 +327,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address Line 2 (Optional)</label>
+                    <label className="block text-sm font-medium text-[#2D2A26] mb-2">Address Line 2</label>
                     <input
                       {...register('addressLine2')}
                       className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
@@ -337,7 +337,7 @@ export default function CheckoutPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#2D2A26] mb-2">Unit Number (Optional)</label>
+                      <label className="block text-sm font-medium text-[#2D2A26] mb-2">Unit Number</label>
                       <input
                         {...register('unitNumber')}
                         className="w-full px-4 py-2 border border-[#E5E0D8] bg-[#F9F8F4] focus:outline-none focus:border-[#2D2A26]"
