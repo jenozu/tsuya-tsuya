@@ -1,4 +1,4 @@
-import { TAX_RATES_BY_COUNTRY, TAX_RATES_BY_STATE, DEFAULT_TAX_RATE_PERCENT } from './tax-rates.ts'
+import { TAX_COLLECTION_ENABLED, TAX_RATES_BY_COUNTRY, TAX_RATES_BY_STATE, DEFAULT_TAX_RATE_PERCENT } from './tax-rates.ts'
 
 /**
  * Get tax rate percent for a country (and optional state).
@@ -10,7 +10,7 @@ import { TAX_RATES_BY_COUNTRY, TAX_RATES_BY_STATE, DEFAULT_TAX_RATE_PERCENT } fr
 const CANADIAN_PROVINCES = new Set(['ON', 'BC', 'AB', 'QC', 'MB', 'SK', 'NS', 'NB', 'NL', 'PE'])
 const US_STATE_OVERRIDES = new Set(['CA', 'NY', 'TX', 'WA', 'FL'])
 
-export function getTaxRatePercent(countryCode: string, stateCode?: string): number {
+export function getConfiguredTaxRatePercent(countryCode: string, stateCode?: string): number {
   const country = (countryCode || '').toUpperCase().trim()
   const state = (stateCode || '').toUpperCase().trim()
 
@@ -26,9 +26,20 @@ export function getTaxRatePercent(countryCode: string, stateCode?: string): numb
 }
 
 /**
+ * Rate actually charged at checkout. 0 while TAX_COLLECTION_ENABLED is false (launch decision, task 42).
+ */
+export function getTaxRatePercent(countryCode: string, stateCode?: string): number {
+  return TAX_COLLECTION_ENABLED ? getConfiguredTaxRatePercent(countryCode, stateCode) : 0
+}
+
+/** Tax on an amount for a given rate percent, rounded to cents. */
+export function taxFromRate(taxableAmount: number, ratePercent: number): number {
+  return Math.round(taxableAmount * (ratePercent / 100) * 100) / 100
+}
+
+/**
  * Compute tax amount from a taxable amount (e.g. subtotal + shipping).
  */
 export function computeTaxAmount(taxableAmount: number, countryCode: string, stateCode?: string): number {
-  const rate = getTaxRatePercent(countryCode, stateCode)
-  return Math.round(taxableAmount * (rate / 100) * 100) / 100
+  return taxFromRate(taxableAmount, getTaxRatePercent(countryCode, stateCode))
 }

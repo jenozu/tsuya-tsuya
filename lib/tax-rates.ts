@@ -4,6 +4,14 @@
  * Used when Stripe automatic tax is disabled; set aside collected amounts for tax remittance.
  */
 
+/**
+ * Launch switch (owner decision 2026-11-24, task 42): the store does not collect sales tax, GST/HST or VAT at
+ * launch (no sales yet, volume expected below the registration and nexus thresholds). While false, checkout
+ * charges 0 tax everywhere. The tables below are kept unchanged and are NOT reviewed rates: set this to true
+ * only after the owner's accountant has confirmed registrations and approved the rates.
+ */
+export const TAX_COLLECTION_ENABLED = false
+
 /** Country code (ISO 3166-1 alpha-2) -> rate percent (e.g. 5 = 5%) */
 export const TAX_RATES_BY_COUNTRY: Record<string, number> = {
   CA: 5,   // Canada GST (federal); provinces may add PST/HST - use state overrides below

@@ -116,7 +116,7 @@ test('tampered shipping, tax or forged item price is refused with 409 and never 
   resetStripe()
   for (const body of [
     {...payload,shipping:payload.shipping+5},
-    {...payload,tax:0},
+    // tax:0 is the correct value while TAX_COLLECTION_ENABLED is false (task 42), so only nonzero tax is tampering
     {...payload,tax:payload.tax+1},
     {...payload,subtotal:0.01,items:[{...payload.items[0],price:0.01,unitPrice:0.01}]},
   ]) assert.equal((await POST(request(a,body))).status,409)
