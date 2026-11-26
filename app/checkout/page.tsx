@@ -461,10 +461,12 @@ export default function CheckoutPage() {
                         <span>{deliveryWindow[0]}–{deliveryWindow[1]} business days</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-[#4A4036]">
-                      <span>Tax</span>
-                      <span>${taxes.toFixed(2)}</span>
-                    </div>
+                    {taxes > 0 && (
+                      <div className="flex justify-between text-[#4A4036]">
+                        <span>Tax</span>
+                        <span>${taxes.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-lg font-medium text-[#2D2A26] border-t border-[#E5E0D8] pt-3">
                       <span>Total</span>
                       <span>${total.toFixed(2)}</span>
